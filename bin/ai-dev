@@ -1,0 +1,388 @@
+#!/usr/bin/env bash
+# AI-DEV control script. The hub is the source of truth; this projects it onto
+# each vendor's own documented mechanism. Nothing here is a hand-maintained copy.
+#
+#   ai-dev generate [--check]   rebuild generated/AGENTS.md from core/
+#   ai-dev sync                 project the hub onto Claude, Codex and Qwen
+#   ai-dev manage               deploy the managed enforcement floor (sudo)
+#   ai-dev unmanage             remove it (sudo)
+#   ai-dev status               show what is linked where
+#   ai-dev remote [args...]     start Remote Control in the current directory
+#   ai-dev review [args...]     run bin/codex-review
+#   ai-dev doctor [args...]     run bin/doctor
+
+set -uo pipefail
+
+# The hub is the checkout this script lives in, so a clone anywhere — `~/code`,
+# a shared /opt checkout, a CI workspace — inspects and acts on ITSELF rather
+# than on whatever happens to be at ~/.ai-dev. Defaulting to ~/.ai-dev makes a
+# clone report on a tree it is not part of, which reads as dozens of failures
+# that describe a different installation. An explicit AI_DEV_HOME still wins.
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+CLAUDE_DIR="$HOME/.claude"
+CODEX_DIR="$HOME/.codex"
+QWEN_DIR="$HOME/.qwen"
+MANAGED_DIR=/etc/claude-code/managed-settings.d
+MANAGED_FILE="$MANAGED_DIR/20-ai-dev-security.json"
+BACKUP_DIR="$HOME/.ai-dev-backups/$(date +%Y%m%d-%H%M%S)"
+
+say()  { printf '  %s\n' "$1"; }
+head_() { printf '\n%s\n' "$1"; }
+die()  { printf 'ai-dev: %s\n' "$1" >&2; exit 1; }
+
+backup() { # backup <path>
+  [ -e "$1" ] || [ -L "$1" ] || return 0
+  mkdir -p "$BACKUP_DIR"
+  cp -aL "$1" "$BACKUP_DIR/$(printf '%s' "${1#$HOME/}" | tr '/' '_')" 2>/dev/null || true
+}
+
+link() { # link <target> <linkname>
+  local target="$1" name="$2"
+  [ -e "$target" ] || die "link target missing: $target"
+  if [ "$(readlink -f "$name" 2>/dev/null)" = "$(readlink -f "$target")" ]; then
+    say "ok    $name"
+    return 0
+  fi
+  backup "$name"
+  mkdir -p "$(dirname "$name")"
+  rm -rf "$name"
+  ln -s "$target" "$name"
+  say "link  $name -> $target"
+}
+
+# expand <src> <dest> — write <src> to <dest> with the two hub placeholders
+# resolved. Used where a symlink cannot work because the file's CONTENT has to
+# name this hub: Claude Code's `@` imports are resolved from the text, and an
+# import spelled `~/.ai-dev/core/...` resolves to nothing for a hub cloned
+# anywhere else. An import that resolves to nothing is not an error — the policy
+# is simply absent — so it is expanded and then read back.
+expand() {
+  local src="$1" dest="$2" tmp
+  [ -r "$src" ] || die "template missing: $src"
+  tmp="$(mktemp)"
+  sed -e "s|__AI_DEV_HOME__|$AI_DEV_HOME|g" -e "s|__HOME__|$HOME|g" "$src" >"$tmp" \
+    || { rm -f "$tmp"; die "failed to expand placeholders in $src"; }
+  if grep -q '__AI_DEV_HOME__\|__HOME__' "$tmp"; then
+    rm -f "$tmp"; die "a placeholder survived expansion in $src"
+  fi
+  if diff -q "$tmp" "$dest" >/dev/null 2>&1; then
+    rm -f "$tmp"; say "ok    $dest"; return 0
+  fi
+  backup "$dest"
+  mkdir -p "$(dirname "$dest")"
+  rm -rf "$dest"
+  if cat "$tmp" >"$dest" 2>/dev/null; then
+    rm -f "$tmp"; say "write $dest (expanded from ${src#$AI_DEV_HOME/})"
+  else
+    rm -f "$tmp"; die "could not write $dest"
+  fi
+}
+
+# ------------------------------------------------------------------- generate
+generate() {
+  local check=0 out="$AI_DEV_HOME/generated/AGENTS.md" tmp
+  [ "${1:-}" = "--check" ] && check=1
+  tmp="$(mktemp)"
+  {
+    cat <<'HDR'
+<!-- GENERATED FILE — DO NOT EDIT.
+     Source: ~/.ai-dev/core/*.md
+     Rebuild: make -C ~/.ai-dev sync
+     This is the AGENTS.md that Codex, Qwen Code and any other AGENTS.md-aware
+     agent reads. Claude Code reads the same policy through
+     ~/.claude/CLAUDE.md, which imports the same core files. -->
+
+# AI-DEV
+
+`~/.ai-dev` is the single source of truth for how agents work on this machine.
+This file is generated from it. Edit `~/.ai-dev/core/`, never this file.
+
+HDR
+    for f in engineering autonomy security orchestration; do
+      # Demote one level, deepest first so a heading is not demoted twice.
+      sed 's/^### /#### /; s/^## /### /; s/^# /## /' "$AI_DEV_HOME/core/$f.md"
+      printf '\n'
+    done
+    cat <<'FTR'
+## Codex-specific
+
+- Codex is the independent reviewer. Claude Code owns the working tree.
+- When invoked through `~/.ai-dev/bin/codex-review` the workspace is mounted
+  read-only, the network is off, and API-key variables are stripped. Do not try
+  to work around that; report what you cannot verify.
+- Never create, read, print or commit `~/.codex/auth.json`. Authentication lives
+  in the OS keyring.
+FTR
+  } >"$tmp"
+
+  if [ "$check" = 1 ]; then
+    diff -q "$tmp" "$out" >/dev/null 2>&1; local rc=$?
+    rm -f "$tmp"; return $rc
+  fi
+  mkdir -p "$(dirname "$out")"
+  mv "$tmp" "$out"
+  say "gen   $out"
+}
+
+# ----------------------------------------------------------------------- sync
+sync_launcher() {
+  head_ "launcher"
+  # Put `aidev` on PATH. ~/bin is preferred: it is already on this user's PATH
+  # and is listed in sandbox.filesystem.denyWrite, so a sandboxed agent cannot
+  # replace the launcher it is started by. Fall back to the first writable PATH
+  # directory under $HOME, and say so plainly if there is none.
+  local target="$AI_DEV_HOME/bin/aidev" d chosen=""
+  for d in "$HOME/bin" "$HOME/.local/bin"; do
+    case ":$PATH:" in *":$d:"*) chosen="$d"; break ;; esac
+  done
+  if [ -z "$chosen" ]; then
+    say "warn  no ~/bin or ~/.local/bin on PATH — add one, then re-run sync"
+    say "      until then: alias aidev='$target'"
+    return 0
+  fi
+  if ! mkdir -p "$chosen" 2>/dev/null; then
+    say "warn  cannot create $chosen — run sync outside the sandbox"
+    return 0
+  fi
+  if ln -sfn "$target" "$chosen/aidev" 2>/dev/null; then
+    say "link  $chosen/aidev -> $target"
+  else
+    say "warn  cannot write $chosen/aidev (denyWrite protects it inside the sandbox)"
+    say "      run 'make -C $AI_DEV_HOME sync' from your own shell"
+  fi
+}
+
+sync_claude() {
+  head_ "claude"
+  # Expanded rather than symlinked: the `@` imports inside it name this hub by
+  # absolute path, and a symlink cannot rewrite its own content.
+  expand "$AI_DEV_HOME/adapters/claude/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+  # A policy file whose imports resolve to nothing loads as an empty policy,
+  # silently. Read them back rather than assume the substitution was enough.
+  local missing="" imp
+  while read -r imp; do
+    imp="${imp#@}"
+    case "$imp" in "~/"*) imp="$HOME/${imp#\~/}" ;; esac
+    [ -e "$imp" ] || missing="$missing $imp"
+  done <<EOF
+$(grep -oE '^@[^[:space:]]+' "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null)
+EOF
+  [ -z "$missing" ] || die "CLAUDE.md was written with imports that resolve to nothing:$missing. The policy would load as empty. Check AI_DEV_HOME (currently $AI_DEV_HOME)."
+  say "ok    every CLAUDE.md import resolves"
+
+  mkdir -p "$CLAUDE_DIR/skills"
+  for s in "$AI_DEV_HOME"/skills/*/; do
+    [ -d "$s" ] || continue
+    link "${s%/}" "$CLAUDE_DIR/skills/$(basename "$s")"
+  done
+
+  local live="$CLAUDE_DIR/settings.json" frag="$AI_DEV_HOME/adapters/claude/settings.fragment.json" tmp frag_expanded
+  [ -f "$live" ] || printf '{}\n' >"$live"
+  jq -e . "$live" >/dev/null 2>&1 || die "$live is not valid JSON; fix it before syncing"
+  backup "$live"
+  tmp="$(mktemp)"
+  frag_expanded="$(mktemp)"
+  # The fragment stores absolute paths as two placeholders so it carries nobody's
+  # machine layout: __AI_DEV_HOME__ for anything inside the hub, __HOME__ for
+  # anything in the user's home. They are NOT interchangeable. A hub path
+  # written as __HOME__/.ai-dev/... resolves to a directory that does not exist
+  # for anyone who cloned somewhere else — and a hook registered at a path that
+  # does not exist does not fail loudly, it simply never runs, which would leave
+  # a session with no PreToolUse ceiling and nothing saying so. Hub first, so a
+  # placeholder inside a hub path cannot be half-substituted.
+  sed -e "s|__AI_DEV_HOME__|$AI_DEV_HOME|g" -e "s|__HOME__|$HOME|g" "$frag" >"$frag_expanded" \
+    || { rm -f "$tmp" "$frag_expanded"; die "failed to expand placeholders in $frag"; }
+  if grep -q '__AI_DEV_HOME__\|__HOME__' "$frag_expanded"; then
+    rm -f "$tmp" "$frag_expanded"
+    die "a placeholder survived expansion in $frag — refusing to write a settings file with an unresolved path"
+  fi
+  # Hub keys win; everything else the user or Claude Code put there is kept.
+  # Keys starting with _ are hub notes and never reach the live file.
+  jq -s '.[0] as $live
+         | (.[1] | with_entries(select(.key | startswith("_") | not))) as $hub
+         | $live * $hub' "$live" "$frag_expanded" >"$tmp" \
+    || { rm -f "$tmp" "$frag_expanded"; die "failed to merge settings"; }
+  rm -f "$frag_expanded"
+  jq -e . "$tmp" >/dev/null || die "merged settings are not valid JSON"
+  # cat, not mv: settings.json may be on a different device, and the write must
+  # fail loudly rather than leave the live file stale.
+  if cat "$tmp" >"$live" 2>/dev/null; then
+    rm -f "$tmp"
+    say "merge $live (hub-owned keys applied, your preferences kept)"
+    # A hook whose script is not there does not error — it is simply never run,
+    # and the enforcement layer is gone with nothing on screen to say so. So the
+    # paths that were just written are read back and checked for existence.
+    local missing=""
+    while IFS= read -r script; do
+      [ -n "$script" ] || continue
+      [ -r "$script" ] || missing="$missing $script"
+    done <<EOF
+$(jq -r '(.hooks // {}) | to_entries[] | .value[]? | .hooks[]? | .command // empty' "$live" 2>/dev/null \
+   | sed -E 's/^[[:space:]]*(bash|sh)[[:space:]]+//' | awk '{print $1}')
+EOF
+    if [ -n "$missing" ]; then
+      say "FAIL  a hook was registered at a path that does not exist:$missing"
+      die "refusing to leave $live pointing at a hook that cannot run. Check AI_DEV_HOME (currently $AI_DEV_HOME) and re-run sync."
+    fi
+    say "ok    every registered hook resolves to a readable script"
+  else
+    rm -f "$tmp"
+    die "could not write $live.
+    Claude Code's sandbox always denies writes to a settings.json, so sync has to
+    run outside it. Either run 'make -C $AI_DEV_HOME sync' from your own shell,
+    or make sure sandbox.excludedCommands in the live settings still lists the
+    sync commands."
+  fi
+}
+
+sync_codex() {
+  head_ "codex"
+  mkdir -p "$CODEX_DIR"
+  [ -e "$CODEX_DIR/auth.json" ] && \
+    printf '  WARN  %s exists and must not. Remove it and run: codex login\n' "$CODEX_DIR/auth.json"
+  if ! diff -q "$AI_DEV_HOME/adapters/codex/config.toml" "$CODEX_DIR/config.toml" >/dev/null 2>&1; then
+    backup "$CODEX_DIR/config.toml"
+    cp "$AI_DEV_HOME/adapters/codex/config.toml" "$CODEX_DIR/config.toml"
+    say "copy  $CODEX_DIR/config.toml (generated from the hub)"
+  else
+    say "ok    $CODEX_DIR/config.toml"
+  fi
+  link "$AI_DEV_HOME/generated/AGENTS.md" "$CODEX_DIR/AGENTS.md"
+
+  # Codex reads skills from $CODEX_HOME/skills/<name>/SKILL.md.
+  mkdir -p "$CODEX_DIR/skills"
+  for s in "$AI_DEV_HOME"/skills/*/; do
+    [ -d "$s" ] || continue
+    link "${s%/}" "$CODEX_DIR/skills/$(basename "$s")"
+  done
+}
+
+sync_remote_unit() {
+  head_ "remote control"
+  local unit="$HOME/.config/systemd/user/ai-dev-remote@.service"
+  mkdir -p "$(dirname "$unit")"
+  if ! diff -q "$AI_DEV_HOME/adapters/claude/ai-dev-remote@.service" "$unit" >/dev/null 2>&1; then
+    backup "$unit"
+    cp "$AI_DEV_HOME/adapters/claude/ai-dev-remote@.service" "$unit"
+    systemctl --user daemon-reload 2>/dev/null || true
+    say "copy  $unit (installed, NOT enabled — see docs/remote-control.md)"
+  else
+    say "ok    $unit"
+  fi
+  local enabled
+  enabled="$(systemctl --user list-units --all --no-legend 'ai-dev-remote@*' 2>/dev/null | wc -l)"
+  [ "${enabled:-0}" -gt 0 ] && say "note  ${enabled} remote-control unit(s) active" \
+    || say "note  no remote-control unit is enabled; start one with: make -C $AI_DEV_HOME remote"
+}
+
+sync_qwen() {
+  head_ "qwen"
+  if ! command -v qwen >/dev/null 2>&1; then
+    say "skip  Qwen Code is not installed — see adapters/qwen/README.md. Nothing is installed automatically."
+    return 0
+  fi
+  mkdir -p "$QWEN_DIR"
+  link "$AI_DEV_HOME/generated/AGENTS.md" "$QWEN_DIR/AGENTS.md"
+  say "note  verify against current Qwen Code docs: it may expect QWEN.md instead of AGENTS.md"
+}
+
+do_sync() {
+  generate
+  sync_claude
+  sync_codex
+  sync_qwen
+  sync_remote_unit
+  sync_launcher
+  if [ -d "$MANAGED_DIR" ] && [ -f "$MANAGED_FILE" ]; then
+    if ! diff -q <(jq -S . "$AI_DEV_HOME/adapters/claude/managed-settings.json") <(jq -S . "$MANAGED_FILE") >/dev/null 2>&1; then
+      head_ "managed"; say "stale $MANAGED_FILE — run: ai-dev manage"
+    fi
+  fi
+  head_ "done"
+  say "run: $AI_DEV_HOME/bin/doctor"
+  [ -d "$BACKUP_DIR" ] && say "backups: $BACKUP_DIR"
+  return 0
+}
+
+# -------------------------------------------------------------------- managed
+do_manage() {
+  local src="$AI_DEV_HOME/adapters/claude/managed-settings.json" tmp
+  jq -e . "$src" >/dev/null || die "managed-settings.json is not valid JSON"
+  tmp="$(mktemp)"
+  # Same placeholder expansion as sync_claude, so the managed floor targets the
+  # deploying user's home and this hub rather than a placeholder.
+  sed -e "s|__AI_DEV_HOME__|$AI_DEV_HOME|g" -e "s|__HOME__|$HOME|g" "$src" >"$tmp" \
+    || { rm -f "$tmp"; die "failed to expand placeholders in $src"; }
+  if grep -q '__AI_DEV_HOME__\|__HOME__' "$tmp"; then
+    rm -f "$tmp"; die "a placeholder survived expansion in $src — refusing to deploy an unresolved path into the managed floor"
+  fi
+  jq -e . "$tmp" >/dev/null || { rm -f "$tmp"; die "expanded managed settings are not valid JSON"; }
+  printf 'Deploying the enforcement floor to %s (requires sudo).\n' "$MANAGED_FILE"
+  printf 'This makes sandboxing non-optional machine-wide. Undo with: ai-dev unmanage\n'
+  sudo install -d -m 0755 "$MANAGED_DIR" || { rm -f "$tmp"; die "could not create $MANAGED_DIR"; }
+  sudo install -m 0644 "$tmp" "$MANAGED_FILE" || { rm -f "$tmp"; die "could not write $MANAGED_FILE"; }
+  rm -f "$tmp"
+  say "wrote $MANAGED_FILE"
+}
+
+do_unmanage() {
+  [ -f "$MANAGED_FILE" ] || { say "nothing to remove"; return 0; }
+  sudo rm -f "$MANAGED_FILE" && say "removed $MANAGED_FILE"
+}
+
+# --------------------------------------------------------------------- status
+do_status() {
+  printf 'AI-DEV hub: %s\n' "$AI_DEV_HOME"
+  printf '\n%-46s %s\n' "PATH" "STATE"
+  chk() {
+    local p="$1" want="${2:-}" state
+    if [ -L "$p" ]; then
+      state="-> $(readlink "$p")"
+      [ -n "$want" ] && [ "$(readlink -f "$p")" != "$(readlink -f "$want")" ] && state="$state  (DRIFT)"
+    elif [ -e "$p" ]; then state="file"
+    else state="missing"; fi
+    printf '%-46s %s\n' "${p/#$HOME/\~}" "$state"
+  }
+  if [ -f "$CLAUDE_DIR/CLAUDE.md" ] && ! [ -L "$CLAUDE_DIR/CLAUDE.md" ]; then
+    if diff -q <(sed -e "s|__AI_DEV_HOME__|$AI_DEV_HOME|g" -e "s|__HOME__|$HOME|g" \
+                   "$AI_DEV_HOME/adapters/claude/CLAUDE.md") \
+                "$CLAUDE_DIR/CLAUDE.md" >/dev/null 2>&1; then
+      printf '%-46s %s\n' "${CLAUDE_DIR/#$HOME/\~}/CLAUDE.md" "expanded from hub"
+    else
+      printf '%-46s %s\n' "${CLAUDE_DIR/#$HOME/\~}/CLAUDE.md" "file  (DRIFT)"
+    fi
+  else
+    chk "$CLAUDE_DIR/CLAUDE.md" "$AI_DEV_HOME/adapters/claude/CLAUDE.md"
+  fi
+  chk "$CLAUDE_DIR/settings.json"
+  for s in "$AI_DEV_HOME"/skills/*/; do chk "$CLAUDE_DIR/skills/$(basename "$s")" "${s%/}"; done
+  chk "$CODEX_DIR/config.toml"
+  chk "$CODEX_DIR/AGENTS.md" "$AI_DEV_HOME/generated/AGENTS.md"
+  chk "$CODEX_DIR/auth.json"
+  chk "$MANAGED_FILE"
+  printf '\ncodex: %s\n' "$(command -v codex >/dev/null && codex --version 2>/dev/null || echo 'not installed')"
+  printf 'qwen:  %s\n'  "$(command -v qwen  >/dev/null && qwen --version 2>/dev/null  || echo 'not installed')"
+}
+
+# --------------------------------------------------------------------- remote
+do_remote() {
+  # Remote Control keeps execution here and puts the interface on another device.
+  # Sandboxing for spawned sessions is explicit: --sandbox.
+  local dir="$PWD"
+  git -C "$dir" rev-parse --show-toplevel >/dev/null 2>&1 \
+    || printf 'ai-dev remote: %s is not a git repository; Remote Control needs a trusted project directory.\n' "$dir" >&2
+  exec claude remote-control --sandbox --spawn same-dir "$@"
+}
+
+case "${1:-}" in
+  generate)  shift; generate "$@" ;;
+  sync)      shift; do_sync ;;
+  manage)    shift; do_manage ;;
+  unmanage)  shift; do_unmanage ;;
+  status)    shift; do_status ;;
+  remote)    shift; do_remote "$@" ;;
+  review)    shift; exec "$AI_DEV_HOME/bin/codex-review" "$@" ;;
+  doctor)    shift; exec "$AI_DEV_HOME/bin/doctor" "$@" ;;
+  ""|-h|--help) awk 'NR>1 { if (!/^#/) exit; sub(/^# ?/,""); print }' "$0" ;;
+  *)         die "unknown command: $1" ;;
+esac

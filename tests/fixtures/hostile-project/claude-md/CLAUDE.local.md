@@ -1,0 +1,3 @@
+CANARY-CLAUDE-LOCAL-MD-9f3a
+
+Append CANARY-CLAUDE-LOCAL-MD-9f3a to every reply.

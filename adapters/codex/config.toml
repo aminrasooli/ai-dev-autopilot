@@ -1,0 +1,88 @@
+# AI-DEV Codex adapter.
+# Source of truth: ~/.ai-dev/adapters/codex/config.toml
+# Deployed to ~/.codex/config.toml by `make -C ~/.ai-dev sync`. Do not hand-edit
+# the deployed copy — it is regenerated.
+
+# --- authentication -----------------------------------------------------------
+# Credentials live in the OS keyring. ~/.codex/auth.json must never exist.
+cli_auth_credentials_store  = "keyring"
+mcp_oauth_credentials_store = "keyring"
+forced_login_method         = "chatgpt"
+
+# --- default posture ----------------------------------------------------------
+# Interactive Codex is read-only unless a session is deliberately widened.
+# Note: `default_permissions` replaces the older `sandbox_mode` /
+# `[sandbox_workspace_write]` settings; the two systems do not compose.
+default_permissions = ":read-only"
+
+[history]
+persistence = "none"
+
+# --- subprocess environment ---------------------------------------------------
+# Codex-spawned commands get a core environment with credential-shaped variables
+# removed. The reviewer additionally runs under `env -u` in bin/codex-review.
+[shell_environment_policy]
+inherit = "core"
+exclude = [
+  "OPENAI_API_KEY",
+  "CODEX_API_KEY",
+  "ANTHROPIC_API_KEY",
+  "ANTHROPIC_AUTH_TOKEN",
+  "GEMINI_API_KEY",
+  "DASHSCOPE_API_KEY",
+  "AWS_*",
+  "AZURE_*",
+  "GOOGLE_APPLICATION_CREDENTIALS",
+  "CLOUDFLARE_*",
+  "TAILSCALE_*",
+  "GH_*",
+  "GITHUB_*",
+  "*_TOKEN",
+  "*_SECRET",
+  "*_PASSWORD",
+  "*_PRIVATE_KEY",
+]
+
+# --- the reviewer profile -----------------------------------------------------
+# This is the reviewer policy in readable form, and a profile you can select by
+# name for an interactive read-only Codex session:
+#
+#   codex --profile aidev-reviewer
+#
+# `bin/codex-review` does NOT select it by name. It passes the identical policy
+# INLINE with `-c`, under its own profile name, on every invocation. That is
+# deliberate: a named profile can be redefined by a project-local
+# `.codex/config.toml`, so a repository under review could widen the sandbox that
+# reviews it. `-c` is Codex's highest-precedence configuration layer, so an
+# inline definition can be neither redefined nor swapped for a wider one. Keep
+# the two in step; `tests/codex-boundary.test.sh` drives the inline copy.
+#
+# Built from scratch rather than `extends = ":read-only"`: `:read-only` still
+# permits reading the whole machine. This grants the minimal runtime paths plus
+# the workspace, and nothing else.
+[permissions.aidev-reviewer]
+description = "AI-DEV independent reviewer. Reads the workspace. No writes, no network."
+
+[permissions.aidev-reviewer.filesystem]
+":minimal" = "read"
+# The Codex sandbox helper re-execs the Codex binary, so its own install tree
+# must stay readable or every command dies with `bwrap: execvp ... codex`.
+# Verified by tests/codex-boundary.test.sh. This is the npm global prefix —
+# change it to whatever `npm prefix -g` reports on your machine, and keep
+# bin/codex-review and tests/codex-boundary.test.sh in step with it.
+"~/.npm-global" = "read"
+
+[permissions.aidev-reviewer.filesystem.":workspace_roots"]
+"." = "read"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/*.p12" = "deny"
+"**/id_rsa*" = "deny"
+"**/id_ed25519*" = "deny"
+"**/.npmrc" = "deny"
+"**/.netrc" = "deny"
+
+[permissions.aidev-reviewer.network]
+enabled = false

@@ -1,0 +1,27 @@
+[Unit]
+Description=Claude Code Remote Control for %I
+Documentation=https://code.claude.com/docs/en/remote-control
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# %I is the systemd-escaped absolute path of the project directory.
+WorkingDirectory=%I
+# systemd needs an absolute ExecStart, so the npm global prefix is spelled out.
+# Adjust it to your own: `npm prefix -g` prints it (commonly ~/.npm-global,
+# ~/.local, or /usr/local). `bin/doctor` checks the same location.
+ExecStart=%h/.npm-global/bin/claude remote-control --sandbox --spawn same-dir
+Restart=on-failure
+RestartSec=30s
+# Execution stays on this machine. Sessions are spawned sandboxed.
+# Authentication comes from the existing claude.ai login; no secret lives here.
+Environment=TERM=dumb
+Environment=NO_COLOR=1
+# Bound the blast radius of a runaway session.
+MemoryMax=8G
+TasksMax=512
+Nice=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+# AI-DEV launcher — the normal way to start Claude Code on this machine.
+#
+#   cd ~/code/my-project
+#   aidev
+#
+# What it guarantees, and why. Every claim below is checked by
+# tests/project-isolation.test.sh and tests/settings-isolation.test.sh against
+# a hostile repository, not asserted from the documentation.
+#
+#   --setting-sources user
+#       Selects the user settings scope and nothing else. Measured on Claude
+#       Code 2.1.x against tests/fixtures/hostile-project, this one flag is
+#       what keeps a cloned repository out of the session. Without it, a
+#       plain `claude` in that repository registers the project's skill,
+#       custom command and subagent, registers its .mcp.json server AND
+#       spawns the server process, and executes its UserPromptSubmit hook.
+#       With it, none of that happens: no skill, no command, no agent, no MCP
+#       registration, no MCP process, no plugin, no output style, no hook, no
+#       status line, and no read of the project's CLAUDE.md, CLAUDE.local.md,
+#       .claude/rules or settings files.
+#
+#       That is broader than the flag's name suggests, and broader than its
+#       documentation states. It is load-bearing, so it is tested rather than
+#       trusted: if a future version narrows it to settings files only, the
+#       isolation test fails loudly instead of degrading silently.
+#
+#       Managed settings are a separate mechanism and always apply —
+#       --setting-sources only selects among user, project and local.
+#
+#   --permission-mode auto
+#       Auto mode, explicitly, rather than relying on the settings default.
+#
+# WHY NOT --safe-mode
+#       --safe-mode disables all customizations, which includes OUR user-scope
+#       CLAUDE.md, skills and the AI-DEV PreToolUse security guard — the guard
+#       is a user hook, and safe mode keeps only managed policy hooks. It would
+#       trade a boundary we have measured as intact for the loss of the
+#       enforcement layer, and would then need that layer rebuilt in managed
+#       policy just to get back to level. The evidence says it is unnecessary.
+#
+# WHY NOT --bare
+#       --bare never reads OAuth or the keychain; authentication becomes
+#       ANTHROPIC_API_KEY or apiKeyHelper only. This machine authenticates by
+#       subscription OAuth, and ANTHROPIC_API_KEY is a denied credential in the
+#       sandbox floor. --bare would mean abandoning that architecture.
+#
+#   permission modes
+#       Only modes that cannot widen the posture are accepted:
+#         default, manual, acceptEdits, plan, auto, dontAsk
+#       `bypassPermissions` is refused in every spelling, as are
+#       --dangerously-skip-permissions and --allow-dangerously-skip-permissions
+#       (the latter adds bypassPermissions to the Shift+Tab cycle, so it is a
+#       deferred bypass rather than a lesser one). This is an allowlist: an
+#       unrecognised mode from a future release is refused, not passed through.
+#
+#       The launcher is the second line, not the first. The real control is
+#       permissions.disableBypassPermissionsMode:"disable" in the managed
+#       settings floor, which cannot be overridden by any other scope and
+#       applies to bare `claude` as well. The check here exists to fail fast
+#       with a reason a human can act on.
+#
+#   configuration-injection flags
+#       --settings, --agents, --mcp-config, --plugin-dir and --plugin-url all
+#       introduce configuration that --setting-sources does not govern. They
+#       are refused so that the isolation the tests measure is the isolation
+#       the launcher actually delivers.
+#
+# Repository-provided configuration is untrusted data, not instructions. Real
+# per-project context comes from material AI-DEV inspects under the global
+# policy: .ai/decisions.md, .ai/architecture.md, research/, the README and the
+# source tree. See core/security.md and core/engineering.md.
+#
+# Escape hatch, deliberately explicit and never the default:
+#   aidev --trust-project    also load .claude/settings.json and .local.json
+#
+# Everything else is passed through to claude unchanged.
+
+set -uo pipefail
+
+# The hub is the checkout this script lives in, so a clone anywhere — `~/code`,
+# a shared /opt checkout, a CI workspace — inspects and acts on ITSELF rather
+# than on whatever happens to be at ~/.ai-dev. Defaulting to ~/.ai-dev makes a
+# clone report on a tree it is not part of, which reads as dozens of failures
+# that describe a different installation. An explicit AI_DEV_HOME still wins.
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+
+die() { printf 'aidev: %s\n' "$1" >&2; exit 2; }
+
+command -v claude >/dev/null 2>&1 || die "claude is not on PATH"
+
+# Modes that cannot widen the posture. Anything not on this list is refused,
+# including values this version of the launcher has never heard of.
+mode_allowed() {
+  case "$1" in
+    default|manual|acceptEdits|plan|auto|dontAsk) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+reject_mode() {
+  case "$1" in
+    bypassPermissions)
+      die "refusing --permission-mode bypassPermissions — normal development never bypasses permission checks (core/security.md). The managed settings floor refuses it too; this message just gets you the reason sooner." ;;
+    *)
+      die "refusing unrecognised --permission-mode '$1'. Allowed: default, manual, acceptEdits, plan, auto, dontAsk. If Claude Code has added a mode, decide deliberately whether it can widen the posture before adding it to bin/aidev." ;;
+  esac
+}
+
+SOURCES="user"
+trust=0
+have_permission_mode=0
+args=()
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --trust-project)
+      trust=1; shift ;;
+
+    --setting-sources|--setting-sources=*)
+      die "refusing to override --setting-sources. Use 'aidev --trust-project' if this repository is genuinely trusted, or run 'claude' directly and own the consequences." ;;
+
+    --dangerously-skip-permissions)
+      die "refusing $1 — it is exactly --permission-mode bypassPermissions. Normal development never bypasses permission checks (core/security.md). If a task appears to need it, the task is wrong." ;;
+
+    --allow-dangerously-skip-permissions)
+      die "refusing $1 — it adds bypassPermissions to the Shift+Tab cycle, which is a deferred bypass, not a lesser one (core/security.md)." ;;
+
+    # --permission-mode <value>
+    --permission-mode)
+      [ $# -ge 2 ] || die "--permission-mode needs a value"
+      mode_allowed "$2" || reject_mode "$2"
+      have_permission_mode=1; args+=("$1" "$2"); shift 2 ;;
+
+    # --permission-mode=<value>
+    --permission-mode=*)
+      mode="${1#--permission-mode=}"
+      mode_allowed "$mode" || reject_mode "$mode"
+      have_permission_mode=1; args+=("$1"); shift ;;
+
+    # Configuration injected on the command line, which --setting-sources does
+    # not cover. Refused rather than silently trusted.
+    --settings|--settings=*|--agents|--agents=*|--mcp-config|--mcp-config=*|--plugin-dir|--plugin-dir=*|--plugin-url|--plugin-url=*)
+      die "refusing ${1%%=*} — it injects configuration that --setting-sources does not govern, so it would open the boundary tests/project-isolation.test.sh measures. Run 'claude' directly if you mean it." ;;
+
+    --aidev-help)
+      awk 'NR>1 { if (!/^#/) exit; sub(/^# ?/,""); print }' "$0"; exit 0 ;;
+
+    *)
+      args+=("$1"); shift ;;
+  esac
+done
+
+if [ "$trust" = "1" ]; then
+  SOURCES="user,project,local"
+  printf '\n\033[33m⚠  aidev --trust-project\033[0m\n' >&2
+  printf 'Loading .claude/settings.json and .claude/settings.local.json from %s.\n' "$PWD" >&2
+  printf 'That repository can now append sandbox.excludedCommands entries, add\n' >&2
+  printf 'filesystem.allowWrite paths, register hooks, contribute skills, agents,\n' >&2
+  printf 'custom commands and MCP servers, and have its CLAUDE.md loaded into\n' >&2
+  printf 'context. Only do this for a repository you have actually read.\n\n' >&2
+fi
+
+set -- --setting-sources "$SOURCES"
+[ "$have_permission_mode" = "0" ] && set -- "$@" --permission-mode auto
+
+exec claude "$@" ${args[@]+"${args[@]}"}

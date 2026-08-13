@@ -1,0 +1,68 @@
+# Environment / secrets — real .env files are never checked in
+.env
+.env.*
+!.env.example
+
+# Runtime state that the framework writes locally
+var/
+logs/
+backups/
+tests/fixtures/.run-hostile/
+.ai/reviews/
+
+# Local editor / IDE / OS junk.
+# Deliberately without a trailing slash: the sandbox's scrub mode can leave a
+# /dev/null bind mount at these names, and that is a character device, not a
+# directory, so a `dir/` pattern would not match it. Git refuses to add a
+# character device at all — `git add -A` fails outright rather than skipping it
+# — so anything that can appear as one has to be ignored by a pattern that
+# matches both spellings.
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Machine-specific Claude and Codex state — never in the public repo.
+# The whole directory, not selected files inside it: this project's own security
+# model is that a repository's `.claude/` is never loaded and never authoritative
+# (core/security.md), so shipping one would contradict the thing being shipped.
+# `tests/fixtures/hostile-project/claude/` is deliberately named without the dot
+# so the fixture stays trackable and inert.
+.claude/
+.codex/
+
+# Placeholder / bind-mount artifacts that the local sandbox may create.
+# Claude Code's scrub mode drops empty stubs and /dev/null binds over the
+# config-injection surfaces in the working directory. None of them are project
+# content — this is a bash project with no Node toolchain — and an accidentally
+# committed empty .env or .npmrc is exactly the local artifact that must never
+# reach a public repository.
+.mcp.json
+.gitconfig
+.ripgreprc
+.bashrc
+.bash_profile
+.profile
+.zshrc
+.zprofile
+bunfig.toml
+package.json
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.npmrc
+.yarnrc
+.yarnrc.yml
+.gitmodules
+
+# Logs, backups, temp
+*.log
+*.bak
+*.bak-*
+*~
+
+# Language ecosystems
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/

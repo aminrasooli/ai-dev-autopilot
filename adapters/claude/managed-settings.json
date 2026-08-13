@@ -1,0 +1,129 @@
+{
+  "_comment": "AI-DEV enforcement floor. Deployed to /etc/claude-code/managed-settings.d/20-ai-dev-security.json by `make -C ~/.ai-dev sync` (needs sudo). Managed booleans cannot be overridden by user or project settings, so a checked-out repository cannot switch the sandbox off, re-enable the unsandboxed escape hatch, or unblock credential paths. Deny entries merge from every scope and can only ever narrow access. Remove with `make -C ~/.ai-dev unmanage`.",
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "credentials": {
+      "files": [
+        {
+          "path": "~/.ssh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.aws",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.azure",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.gnupg",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.kube",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.config/gcloud",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.config/gh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.password-store",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.local/share/keyrings",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.docker/config.json",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.netrc",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.git-credentials",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.codex/auth.json",
+          "mode": "deny"
+        },
+        {
+          "path": "~/.claude/.credentials.json",
+          "mode": "deny"
+        }
+      ],
+      "envVars": [
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "mode": "deny"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "mode": "deny"
+        },
+        {
+          "name": "CODEX_API_KEY",
+          "mode": "deny"
+        },
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "mode": "deny"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "mode": "deny"
+        },
+        {
+          "name": "AWS_SESSION_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "AZURE_CLIENT_SECRET",
+          "mode": "deny"
+        },
+        {
+          "name": "CLOUDFLARE_API_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "GITHUB_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "GH_TOKEN",
+          "mode": "deny"
+        },
+        {
+          "name": "NPM_TOKEN",
+          "mode": "deny"
+        }
+      ]
+    }
+  },
+  "_note_disableBypassPermissionsMode": "Claude Code documents this as: 'To prevent bypassPermissions or auto mode from being used, set permissions.disableBypassPermissionsMode or permissions.disableAutoMode to \"disable\" in any settings file. These are most useful in managed settings where they can't be overridden.' A launcher-side flag check is a blacklist on one entry point; this is enforcement. It refuses bypassPermissions however it is reached: --permission-mode bypassPermissions in either spelling, --dangerously-skip-permissions, --allow-dangerously-skip-permissions and the Shift+Tab cycle, a defaultMode in any settings file, and bare `claude` invoked without the launcher at all. disableAutoMode is deliberately NOT set: auto is the AI-DEV default mode.",
+  "permissions": {
+    "disableBypassPermissionsMode": "disable",
+    "deny": [
+      "Read(/__HOME__/.ssh/**)",
+      "Read(/__HOME__/.aws/**)",
+      "Read(/__HOME__/.gnupg/**)",
+      "Read(/__HOME__/.config/gcloud/**)",
+      "Read(/__HOME__/.password-store/**)",
+      "Read(/__HOME__/.local/share/keyrings/**)",
+      "Read(/__HOME__/.codex/auth.json)",
+      "Read(/__HOME__/.claude/.credentials.json)",
+      "Read(//etc/shadow)"
+    ]
+  }
+}

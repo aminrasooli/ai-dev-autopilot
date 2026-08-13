@@ -1,0 +1,247 @@
+#!/usr/bin/env bash
+# AI-DEV — activate the delegated approval broker.
+#
+#   bash ~/.ai-dev/bin/activate-approval-broker
+#
+# Run this from a NORMAL shell, not from inside a Claude Code session. It is
+# the one command that turns the broker on, and it is deliberately the only
+# thing that can: it tests first, syncs second, and verifies third, so a broken
+# broker can never be the thing that starts answering permission dialogs on
+# your behalf.
+#
+# ORDER MATTERS, and it is the whole design:
+#
+#   1. run every security and contract test
+#   2. STOP if any of them fail — nothing is synced, nothing is activated
+#   3. sync the trusted configuration (user scope; managed scope needs sudo)
+#   4. verify the PermissionRequest hook is actually installed in the merged
+#      settings, not merely present in the hub
+#   5. behavioural smoke test through the installed hook command
+#   6. print PASS or FAIL, and the command to resume the session
+#
+# Steps 1 and 2 are the point. An approval broker is a thing that says "yes"
+# without asking anyone, so the bar for switching it on is that it has just
+# demonstrated it says "no" correctly.
+#
+# Exit codes: 0 activated · 1 tests failed, nothing changed · 2 sync or
+#             verification failed after tests passed
+
+set -uo pipefail
+
+# The hub is the checkout this script lives in, so a clone anywhere — `~/code`,
+# a shared /opt checkout, a CI workspace — inspects and acts on ITSELF rather
+# than on whatever happens to be at ~/.ai-dev. Defaulting to ~/.ai-dev makes a
+# clone report on a tree it is not part of, which reads as dozens of failures
+# that describe a different installation. An explicit AI_DEV_HOME still wins.
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+# Set AI_DEV_RESUME_SESSION_ID to the id printed by `claude` at session start
+# if you want the final message to include a copy-pasteable resume command.
+SESSION_ID="${AI_DEV_RESUME_SESSION_ID:-<your-session-id>}"
+USER_SETTINGS="$HOME/.claude/settings.json"
+BROKER="$AI_DEV_HOME/hooks/permission-broker.sh"
+GUARD="$AI_DEV_HOME/hooks/security-guard.sh"
+
+if [ -t 1 ]; then G=$'\e[32m'; R=$'\e[31m'; Y=$'\e[33m'; B=$'\e[1m'; D=$'\e[2m'; N=$'\e[0m'
+else G=""; R=""; Y=""; B=""; D=""; N=""; fi
+
+step() { printf '\n%s── %s%s\n' "$B" "$1" "$N"; }
+ok()   { printf '  %s✓%s %s\n' "$G" "$N" "$1"; }
+no()   { printf '  %s✗%s %s\n' "$R" "$N" "$1"; }
+info() { printf '  %s%s%s\n' "$D" "$1" "$N"; }
+
+fail_closed() {
+  printf '\n%s%sFAIL%s  %s\n' "$R" "$B" "$N" "$1"
+  printf '\n%sNothing was activated. The broker is NOT answering permission\n' "$Y"
+  printf 'dialogs, and your existing PreToolUse security guard is unchanged.%s\n\n' "$N"
+  exit "${2:-1}"
+}
+
+printf '%sAI-DEV delegated approval broker — activation%s\n' "$B" "$N"
+printf '%s%s%s\n' "$D" "$AI_DEV_HOME" "$N"
+
+# ---------------------------------------------------------------- preflight
+step "0. preflight"
+
+# Claude Code mounts hooks/ read-only inside a session, so a session can
+# neither chmod a hook it wrote nor delete one it superseded. Both are done
+# here instead, because this script runs from a normal shell where that
+# directory is writable.
+[ -e "$AI_DEV_HOME/hooks/approval.sh" ] && {
+  rm -f "$AI_DEV_HOME/hooks/approval.sh" && \
+    ok "removed superseded hooks/approval.sh (replaced by permission-broker.sh)"
+}
+for h in "$AI_DEV_HOME"/hooks/*.sh "$AI_DEV_HOME"/bin/*; do
+  [ -f "$h" ] && [ ! -x "$h" ] && chmod +x "$h" && ok "made executable: ${h#$AI_DEV_HOME/}"
+done
+for f in "$GUARD" "$BROKER" "$AI_DEV_HOME/tests/approval.test.sh"; do
+  [ -r "$f" ] || fail_closed "missing required file: $f"
+done
+ok "hooks and tests present"
+
+if grep -q 'CLAUDE_CODE_SUBPROCESS_ENV_SCRUB' "$AI_DEV_HOME/adapters/claude/settings.fragment.json" 2>/dev/null; then
+  ok "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB still configured"
+else
+  fail_closed "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB is missing from the settings fragment"
+fi
+
+# The broker must never be reachable for anything PreToolUse denies. That is a
+# property of file structure, so it is checked as one: the guard must not
+# delegate.
+if grep -Ev '^[[:space:]]*#' "$GUARD" | grep -Eq 'approval\.sh|permission-broker\.sh'; then
+  fail_closed "the PreToolUse guard references the broker. It must stay a pure ceiling; delegation belongs to PermissionRequest."
+fi
+ok "PreToolUse guard does not delegate (hard denies can never reach Codex)"
+
+# ---------------------------------------------------------------- 1. tests
+step "1. security and contract tests"
+rc=0
+
+# MANDATORY: tests whose absence or inconclusiveness is itself an activation
+# failure. project-isolation.test.sh is the only thing that establishes that a
+# hostile repository's skills, hooks, agents and MCP servers do not load into a
+# session; that boundary rests on one flag whose behaviour a Claude Code
+# release can narrow. If it cannot run — missing, or exit 3 because it could
+# not establish its baseline — the boundary is UNVERIFIED, and an unverified
+# boundary must not be the ground an approval broker is switched on above.
+# Everything else may legitimately skip on a missing local dependency.
+MANDATORY=" project-isolation.test.sh "
+
+for t in approval.test.sh permission-posture.test.sh codex-preflight.test.sh \
+         prompt-injection.test.sh settings-isolation.test.sh \
+         guard-portability.test.sh project-isolation.test.sh; do
+  p="$AI_DEV_HOME/tests/$t"
+  if [ ! -r "$p" ]; then
+    case "$MANDATORY" in
+      *" $t "*) no "$t is missing, and it is mandatory"; rc=1; continue ;;
+      *)        info "skip $t (absent)"; continue ;;
+    esac
+  fi
+  printf '\n%s   ── %s%s\n' "$D" "$t" "$N"
+  if bash "$p"; then
+    ok "$t"
+  else
+    s=$?
+    if [ "$s" = "3" ]; then
+      case "$MANDATORY" in
+        *" $t "*)
+          no "$t could not run to a verdict (exit 3). The isolation boundary is unverified."
+          rc=1 ;;
+        *) info "$t skipped (dependency unavailable)" ;;
+      esac
+    elif [ "$s" = "2" ] && [ "$t" = "permission-posture.test.sh" ]; then
+      info "$t: contract holds; a managed control awaits this sync"
+    else
+      no "$t failed (exit $s)"; rc=1
+    fi
+  fi
+done
+[ "$rc" -eq 0 ] || fail_closed "one or more test suites failed. Fix them before activating."
+ok "all test suites passed"
+
+# ---------------------------------------------------------------- 2. sync
+step "2. sync trusted configuration"
+info "writes ~/.claude/settings.json and, with sudo, the managed policy floor"
+if ! make -C "$AI_DEV_HOME" sync; then
+  fail_closed "make sync failed. Configuration is in an unknown state — re-run and read the error." 2
+fi
+ok "sync completed"
+
+# ------------------------------------------------- 3. verify hook installed
+step "3. verify the PermissionRequest hook is really installed"
+[ -r "$USER_SETTINGS" ] || fail_closed "$USER_SETTINGS is not readable after sync" 2
+
+installed="$(python3 - "$USER_SETTINGS" <<'PY' 2>/dev/null
+import json,sys
+try: s=json.load(open(sys.argv[1]))
+except Exception: print("parse-error"); sys.exit(0)
+h=s.get("hooks",{}).get("PermissionRequest")
+if not h: print("absent"); sys.exit(0)
+cmds=[e.get("command","") for g in h for e in g.get("hooks",[])]
+print("ok:"+"|".join(cmds) if any("permission-broker.sh" in c for c in cmds) else "wrong:"+"|".join(cmds))
+PY
+)"
+case "$installed" in
+  ok:*)  ok "PermissionRequest -> ${installed#ok:}" ;;
+  absent) fail_closed "PermissionRequest hook is absent from $USER_SETTINGS after sync" 2 ;;
+  *)      fail_closed "PermissionRequest hook is installed but does not point at the broker: ${installed#*:}" 2 ;;
+esac
+
+if python3 -c "import json,sys;s=json.load(open(sys.argv[1]));sys.exit(0 if s.get('env',{}).get('CLAUDE_CODE_SUBPROCESS_ENV_SCRUB')=='1' else 1)" "$USER_SETTINGS" 2>/dev/null; then
+  ok "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 survived the sync"
+else
+  fail_closed "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB is not set to 1 in the merged settings" 2
+fi
+
+# --------------------------------------------------- 4. behavioural smoke
+# Drives the hook command exactly as the merged settings define it, with the
+# JSON Claude Code sends. This exercises the installed path — not the file in
+# the hub, and not a copy — so it catches a sync that wrote something stale.
+#
+# Stated plainly: this proves the installed hook answers correctly. It is not a
+# full interactive session; the first real session is the final confirmation.
+step "4. behavioural smoke test through the installed hook"
+HOOK_CMD="$(python3 - "$USER_SETTINGS" <<'PY' 2>/dev/null
+import json,sys
+s=json.load(open(sys.argv[1]))
+for g in s.get("hooks",{}).get("PermissionRequest",[]):
+    for e in g.get("hooks",[]):
+        c=e.get("command","")
+        if "permission-broker.sh" in c: print(c); sys.exit(0)
+PY
+)"
+[ -n "$HOOK_CMD" ] || fail_closed "could not read the installed hook command back" 2
+
+SMOKE="$(mktemp -d "${TMPDIR:-/tmp}/aidev-smoke.XXXXXX")"
+git -C "$SMOKE" init -q >/dev/null 2>&1
+printf 'x\n' > "$SMOKE/f.txt"
+trap 'rm -rf "$SMOKE"' EXIT
+
+probe() { # <tool> <tool_input-json> [overnight] -> allow|deny|<empty>
+  printf '{"hook_event_name":"PermissionRequest","tool_name":"%s","cwd":"%s","permission_mode":"default","tool_input":%s}' \
+    "$1" "$SMOKE" "$2" \
+    | AI_DEV_HOME="$AI_DEV_HOME" AI_DEV_OVERNIGHT="${3:-0}" sh -c "$HOOK_CMD" 2>/dev/null \
+    | grep -o '"behavior":"[a-z]*"' | head -1 | sed 's/.*:"//;s/"//'
+}
+
+smoke_rc=0
+check() { # <want> <got> <label>
+  if [ "$2" = "$1" ]; then ok "$3"
+  else no "$3 (wanted '${1:-none}', got '${2:-none}')"; smoke_rc=1; fi
+}
+
+printf '%s   routine — must be handled without a human in the loop%s\n' "$D" "$N"
+check allow "$(probe Bash '{"command":"git status"}')"                  "git status is auto-approved"
+check allow "$(probe Bash '{"command":"git add -A && git commit -m x"}')" "add + commit is one decision"
+check allow "$(probe Bash '{"command":"make test"}')"                   "make test is auto-approved"
+check allow "$(probe Read "{\"file_path\":\"$SMOKE/f.txt\"}")"          "reading a repo file is auto-approved"
+check allow "$(probe Edit "{\"file_path\":\"$SMOKE/f.txt\"}")"          "editing a repo file is auto-approved"
+
+printf '\n%s   critical — must never be auto-approved%s\n' "$D" "$N"
+check ""    "$(probe Bash '{"command":"sudo apt install nginx"}')"      "sudo still reaches the human"
+check ""    "$(probe Bash '{"command":"git push origin main"}')"        "git push still reaches the human"
+check ""    "$(probe Read "{\"file_path\":\"$HOME/.ssh/id_rsa\"}")"     "secret access still reaches the human"
+check ""    "$(probe Bash '{"command":"eval \"$X\""}')"                 "eval still reaches the human (fail-open regression)"
+check ""    "$(probe Bash '{"command":"ssh host uptime"}')"             "ssh still reaches the human"
+check ""    "$(probe Bash '{"command":"some-unknown-binary --go"}')"    "an unknown binary still reaches the human"
+
+printf '\n%s   overnight — uncertain becomes deny, never allow%s\n' "$D" "$N"
+check deny  "$(probe Bash '{"command":"sudo apt install nginx"}' 1)"    "sudo denies overnight"
+check deny  "$(probe Bash '{"command":"some-unknown-binary --go"}' 1)"  "unknown binary denies overnight"
+
+[ "$smoke_rc" -eq 0 ] || fail_closed "the installed hook did not behave correctly. It is synced but must not be trusted — investigate before starting a session." 2
+
+# ---------------------------------------------------------------- verdict
+printf '\n%s%sPASS%s  the delegated approval broker is active.\n' "$G" "$B" "$N"
+printf '\n%sWhat changes in your next session%s\n' "$B" "$N"
+printf '  routine reads, repo edits, tests, builds and local git run without asking\n'
+printf '  sudo, push, publish, deploy, secrets, ssh, eval and obfuscation still ask\n'
+printf '  gray read-only cases go to Codex under a fixed rubric, %ss timeout, fails closed\n' "${AI_DEV_CODEX_TIMEOUT:-10}"
+printf '  every decision is logged to %s\n' "$AI_DEV_HOME/var/permission-audit.log"
+
+printf '\n%sOvernight mode%s\n' "$B" "$N"
+printf '  AI_DEV_OVERNIGHT=1 aidev      uncertain becomes deny + queue, never a wait\n'
+printf '  morning queue: %s\n' "$AI_DEV_HOME/var/pending-approvals.log"
+
+printf '\n%sResume the session%s\n' "$B" "$N"
+printf '  %saidev --resume %s%s\n\n' "$B" "$SESSION_ID" "$N"
+exit 0

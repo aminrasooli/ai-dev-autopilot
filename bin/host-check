@@ -1,0 +1,211 @@
+#!/usr/bin/env bash
+# AI-DEV host check — the facts that are only observable OUTSIDE Claude's sandbox.
+#
+# Why this exists as a separate program:
+#
+#   A sandboxed process cannot see host truth, and must not pretend otherwise.
+#   Four facts are unobservable from inside, each for a different reason:
+#
+#     .mcp.json  the sandbox binds a placeholder over every protected path, so a
+#                check reads the mask rather than the file
+#     codex      the D-Bus unix socket the OS keyring needs is blocked by design
+#     network    the session's proxy is built once, at session start, from the
+#                settings as they were then — a session older than a `make sync`
+#                reports the old policy however current the file on disk is
+#     launcher   ~/bin and ~/.local/bin are in denyWrite and therefore bound over
+#
+#   Spawning a child process does NOT escape the sandbox it inherited, so none of
+#   these can be answered by `bin/doctor` calling something. `bin/doctor` defers
+#   all four and this script answers them. It is only valid when invoked as its
+#   OWN top-level Bash tool call, matching an entry in `sandbox.excludedCommands`
+#   — or simply run from your own shell. It refuses to report otherwise.
+#
+# Usage:
+#   host-check            everything
+#   host-check --mcp      protected .mcp.json placeholders only
+#   host-check --codex    Codex keyring authentication only
+#   host-check --network  strict domain allowlist actually denies unknown hosts
+#   host-check --launcher `aidev` is on PATH and resolves to the hub
+#
+# Exit codes: 0 all checks passed · 1 a check failed · 3 ran sandboxed (invalid)
+
+set -uo pipefail
+
+# The hub is the checkout this script lives in. host-check is always executed
+# from inside the hub, so its own location is a better answer than either an
+# inherited environment variable or the default install path — a clone under
+# ~/code would otherwise be told to run commands that do not exist on it. An
+# explicit AI_DEV_HOME still wins, to match every other entry point.
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+
+WHAT="all"
+case "${1:-}" in
+  --mcp)      WHAT="mcp" ;;
+  --codex)    WHAT="codex" ;;
+  --network)  WHAT="network" ;;
+  --launcher) WHAT="launcher" ;;
+  -h|--help) awk 'NR>1 { if (!/^#/) exit; sub(/^# ?/,""); print }' "$0"; exit 0 ;;
+  "") ;;
+  *) printf 'host-check: unknown argument %s\n' "$1" >&2; exit 2 ;;
+esac
+
+if [ -t 1 ]; then G=$'\e[32m'; R=$'\e[31m'; Y=$'\e[33m'; B=$'\e[2m'; N=$'\e[0m'
+else G=""; R=""; Y=""; B=""; N=""; fi
+FAIL=0
+ok()   { printf '  %sPASS%s  %s\n' "$G" "$N" "$1"; }
+bad()  { FAIL=$((FAIL+1)); printf '  %sFAIL%s  %s\n        %s\n' "$R" "$N" "$1" "${2:-}"; }
+warn() { printf '  %sWARN%s  %s\n        %s\n' "$Y" "$N" "$1" "${2:-}"; }
+
+# --- refuse to produce a result that would be a lie --------------------------
+# If the protected paths are bound, we inherited Claude's sandbox and every
+# answer below would describe the mask instead of the host.
+if awk '$5 ~ /\/\.mcp\.json$/ { found = 1 } END { exit !found }' /proc/self/mountinfo 2>/dev/null; then
+  printf '%shost-check: running INSIDE Claude'\''s sandbox — results would be invalid.%s\n' "$R" "$N" >&2
+  printf 'Invoke it as a top-level Bash call matching sandbox.excludedCommands\n' >&2
+  # The hub's own path, not the default one: a checkout somewhere else would
+  # otherwise be told to run a command that does not exist on this machine.
+  printf '(e.g. `%s/bin/host-check`), not as a child of bin/doctor.\n' "$AI_DEV_HOME" >&2
+  exit 3
+fi
+
+printf 'AI-DEV host check · %s\n' "$(date -Is)"
+
+# --- protected .mcp.json placeholders ----------------------------------------
+# A placeholder is required only where the ancestor directory is NOT writable:
+# elsewhere bubblewrap creates the mount point itself and absent is correct.
+if [ "$WHAT" = "all" ] || [ "$WHAT" = "mcp" ]; then
+  printf '\n%s── protected .mcp.json placeholders%s\n' "$B" "$N"
+  d="$AI_DEV_HOME"
+  while :; do
+    parent="$(dirname "$d")"
+    f="${d%/}/.mcp.json"
+    if [ -w "$d" ]; then
+      if [ -e "$f" ] || [ -h "$f" ]; then
+        if [ -f "$f" ] && jq -e 'type == "object" and (.mcpServers | type) == "object"' "$f" >/dev/null 2>&1; then
+          ok "$f — real MCP config, left alone"
+        else
+          bad "$f — unnecessary and rejected by Claude Code" \
+              "$d is writable, so no placeholder is needed: rm -f '$f' (no root required)"
+        fi
+      else
+        ok "$f — absent, correct ($d is writable; bubblewrap creates it)"
+      fi
+    else
+      if [ ! -e "$f" ] && [ ! -h "$f" ]; then
+        bad "$f — required and absent" \
+            "$d is not writable, so bubblewrap cannot create it and the sandbox will not start. Fix: printf '{\"mcpServers\":{}}\\n' | sudo install -m 444 /dev/stdin '$f'"
+      elif [ -h "$f" ] || [ ! -f "$f" ]; then
+        bad "$f — required but not a regular file" \
+            "Claude Code rejects it: \"MCP config is not a regular file\". Fix: sudo rm -f '$f' && printf '{\"mcpServers\":{}}\\n' | sudo install -m 444 /dev/stdin '$f'"
+      elif ! jq -e 'type == "object" and (.mcpServers | type) == "object"' "$f" >/dev/null 2>&1; then
+        bad "$f — required but fails the MCP schema" \
+            "Claude Code rejects it: \"mcpServers: Invalid input: expected record, received undefined\". Fix: printf '{\"mcpServers\":{}}\\n' | sudo install -m 444 /dev/stdin '$f'"
+      else
+        ok "$f — regular file, schema-valid"
+      fi
+    fi
+    [ "$d" = "/" ] && break
+    d="$parent"
+  done
+fi
+
+# --- Codex keyring authentication --------------------------------------------
+# Static posture (config, keyring mode, no auth.json) is checked by bin/doctor
+# and needs no host access. Only the LIVE keyring lookup belongs here.
+if [ "$WHAT" = "all" ] || [ "$WHAT" = "codex" ]; then
+  printf '\n%s── codex live authentication%s\n' "$B" "$N"
+  # THE ANSWER IS THE EXIT STATUS, NOT THE WORDING
+  #
+  # `codex login status | grep -qi chatgpt` reads a human-readable string as if
+  # it were an API: the day the wording changes, a perfectly healthy reviewer is
+  # reported as broken and someone goes to fix a login that works. The exit
+  # status is the documented contract, and it is the only thing that decides
+  # this check — the same rule bin/codex-review follows and
+  # tests/codex-preflight.test.sh pins. Output is read afterwards, only to tell
+  # an unreachable keyring apart from a real logout, and only in the branch
+  # where the status has already said something is wrong.
+  if ! command -v codex >/dev/null 2>&1; then
+    bad "codex authentication resolves" "codex is not on PATH"
+  else
+    out="$(timeout 45 codex login status 2>&1)"
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      ok "codex authentication resolves (exit 0 — the OS keyring answered)"
+    elif [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
+      warn "codex authentication resolves" \
+           "DEFERRED — \`codex login status\` timed out after 45s, so the login state is unknown. A timeout is not a logout."
+    elif printf '%s' "$out" | grep -qiE 'keyring|secure storage|zbus|dbus|Operation not permitted'; then
+      # Distinguish "no session keyring on this host" from "not logged in".
+      if [ -S "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bus" ]; then
+        bad "codex authentication resolves" \
+            "D-Bus session bus exists but the keyring lookup failed: $(printf '%s' "$out" | tail -1). Run: codex login"
+      else
+        warn "codex authentication resolves" \
+             "DEFERRED — no D-Bus session bus on this host (${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bus absent), so the OS keyring is unreachable for any process. This is a host session issue, not a Codex or policy fault. Log in from a desktop session, or start a user D-Bus + keyring, then re-run."
+      fi
+    else
+      bad "codex authentication resolves" "exit $rc: $(printf '%s' "$out" | tail -1). Run: codex login"
+    fi
+  fi
+fi
+
+# --- strict domain allowlist --------------------------------------------------
+# bin/doctor probes this from inside the session's own sandbox, which is built
+# once at session start: a session older than the setting reports the old proxy
+# no matter what is on disk. Here we build a throwaway sandbox from the settings
+# as they are NOW and probe that, so the answer describes the deployed policy.
+if [ "$WHAT" = "all" ] || [ "$WHAT" = "network" ]; then
+  printf '\n%s── strict domain allowlist%s\n' "$B" "$N"
+  settings="$HOME/.claude/settings.json"
+  if ! command -v srt >/dev/null 2>&1; then
+    warn "unknown hosts are denied" "srt is not on PATH — install with: npm install -g @anthropic-ai/sandbox-runtime"
+  elif ! jq -e '.sandbox.network.allowedDomains' "$settings" >/dev/null 2>&1; then
+    bad "unknown hosts are denied" "no sandbox.network.allowedDomains in $settings — run: make -C $AI_DEV_HOME sync"
+  elif [ "$(jq -r '.sandbox.network.strictAllowlist // false' "$settings")" != "true" ]; then
+    bad "unknown hosts are denied" \
+        "sandbox.network.strictAllowlist is not set, so unknown hosts fall through to the ask callback and a non-interactive command reaches them"
+  else
+    cfg="$(mktemp -t aidev-srt-XXXXXX.json)"
+    trap 'rm -f "$cfg"' EXIT
+    # Write is irrelevant to a network probe; keep it empty so the probe cannot
+    # touch anything, and carry the real domain lists across verbatim.
+    jq '{network: {allowedDomains: .sandbox.network.allowedDomains,
+                   deniedDomains: (.sandbox.network.deniedDomains // []),
+                   strictAllowlist: true},
+         filesystem: {allowWrite: [], denyRead: []}}' "$settings" >"$cfg"
+    probe() { timeout 45 srt -s "$cfg" -c "curl -s -o /dev/null -w '%{http_code}' --max-time 20 $1" 2>/dev/null; }
+    blocked="$(probe https://example.com)"
+    allowed="$(probe https://pypi.org/simple/)"
+    if [ "$blocked" = "200" ]; then
+      bad "unknown hosts are denied" \
+          "https://example.com is NOT on allowedDomains but returned 200 through a sandbox built from the current settings — strictAllowlist is not being honored by this sandbox-runtime ($(srt --version 2>/dev/null))"
+    elif [ "$allowed" != "200" ]; then
+      warn "unknown hosts are denied" \
+           "example.com was correctly denied, but the allowlisted https://pypi.org/simple/ returned '${allowed:-no response}' — the allowlist may be too tight, or this host has no egress"
+    else
+      ok "unknown hosts are denied (example.com blocked, allowlisted pypi.org reachable)"
+    fi
+    rm -f "$cfg"; trap - EXIT
+  fi
+fi
+
+# --- launcher on PATH ---------------------------------------------------------
+# ~/bin and ~/.local/bin are both in denyWrite, so Claude's sandbox binds over
+# them and cannot see the host's symlink. Only this side can answer.
+if [ "$WHAT" = "all" ] || [ "$WHAT" = "launcher" ]; then
+  printf '\n%s── launcher on PATH%s\n' "$B" "$N"
+  hub="$AI_DEV_HOME/bin/aidev"
+  resolved="$(command -v aidev 2>/dev/null)"
+  if [ -z "$resolved" ]; then
+    bad "aidev is on PATH" \
+        "not found in PATH. Run: make -C $AI_DEV_HOME sync (from this shell, not from inside Claude)"
+  elif [ "$(readlink -f "$resolved")" = "$(readlink -f "$hub")" ]; then
+    ok "aidev is on PATH ($resolved → hub)"
+  else
+    bad "aidev is on PATH" "$resolved resolves to $(readlink -f "$resolved"), not $hub"
+  fi
+fi
+
+printf '\n'
+if [ "$FAIL" -eq 0 ]; then printf '%shost-check: ok%s\n' "$G" "$N"; exit 0; fi
+printf '%shost-check: %d failed%s\n' "$R" "$FAIL" "$N"; exit 1

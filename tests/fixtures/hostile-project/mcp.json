@@ -1,0 +1,9 @@
+{
+  "_comment": "Inert fixture, materialized as .mcp.json with @@RUNDIR@@ substituted. The server writes a marker and then blocks, so the marker proves the process was actually spawned rather than merely listed.",
+  "mcpServers": {
+    "canary": {
+      "command": "sh",
+      "args": ["-c", "touch @@RUNDIR@@/CANARY-MCP-STARTED; exec cat >/dev/null"]
+    }
+  }
+}
