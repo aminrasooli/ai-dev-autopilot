@@ -4,6 +4,8 @@
 
 **The missing control plane for Claude Code + Codex.**
 
+> Tested on Ubuntu 24.04 with Claude Code 2.1.x. Codex CLI is an optional independent reviewer.
+
 Run coding agents for hours without turning yourself into a human permission button.
 
 Routine engineering just runs:
@@ -73,7 +75,7 @@ The tests first prove the attack can happen, then prove the AI Dev Autopilot pat
 
 > **Give coding agents freedom over the work, not freedom over the consequences.**
 
-If this solves your approval-loop problem, **star the repo, try to break the boundary, and open an issue with the command that still annoys you.**
+**Try to break the boundary and open an issue with the command that still annoys you.**
 
 ## Evidence
 
@@ -197,7 +199,7 @@ for people who use the launcher.
 ## Quick start
 
 ```bash
-git clone <this-repository> ~/.ai-dev
+git clone https://github.com/aminrasooli/ai-dev-autopilot.git ~/.ai-dev
 cd ~/.ai-dev
 
 make deps      # bubblewrap + socat, and the sandbox seccomp filter. Needs sudo.
