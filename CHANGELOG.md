@@ -46,7 +46,34 @@ Notable changes to AI Dev Autopilot. Format follows
   (exclusions and their reasons in `.shellcheckrc`), and fails if `core/` has
   changed without `generated/AGENTS.md` being regenerated.
 
+- **`tests/hook-contract.test.sh`** — the claim nobody was checking. Every other
+  suite asserts what a hook *decided*; none asserted that Claude Code would act
+  on it. If the decision shape drifts, an `allow` the CLI cannot parse is not a
+  deny — it is no decision, so every routine command starts prompting again and
+  the framework degrades into the approval fatigue it exists to solve, with
+  every other assertion still passing. The suite pins the exact JSON each hook
+  emits, including that a decision object carries no key outside the documented
+  set, and checks that the installed Claude Code build still contains every
+  field name those shapes are built from, with a negative control proving the
+  search can tell present from absent.
+
 ### Fixed
+
+- **The approval broker emitted a key Claude Code does not define.** Its `allow`
+  path carried an optional `addPermissionRule` object, which is not in the
+  `PermissionRequest` decision schema — Claude Code drops an unrecognised key
+  with one debug line and no error. No caller ever passed it, so it was a loaded
+  trap rather than a live bug: the first use would have produced an accepted
+  allow with the rule silently discarded. Removed;
+  `updatedPermissions` is the current mechanism and should arrive with a test
+  when something needs it.
+
+- **An unattended denial now says why.** The broker computed a reason for the
+  audit log and then emitted a bare `{"behavior":"deny"}`, leaving the model
+  unable to tell "this needs a human tonight" from "this tool is broken" — the
+  first is a reason to take a different route, the second is a reason to retry
+  all night. `message` is part of the deny shape, so the reason, the rule id and
+  the pointer to `var/pending-approvals.log` are now carried in it.
 
 - **`curl --tls-max` escalated a request it should have allowed.** The option
   was declared both as a standalone flag and as one that carries a value; the

@@ -44,6 +44,7 @@ sandboxed. A result that cannot be obtained honestly is not reported.
 | `prompt-injection.test.sh` | classic injection payloads are refused deterministically | model-free |
 | `bootstrap.test.sh` | the bootstrap skill's contract holds in a disposable repository | model-free |
 | `doctor-reporting.test.sh` | doctor reports an uninstalled machine as pending and a drifted one as failed, so "not deployed here" cannot be used to hide drift | model-free |
+| `hook-contract.test.sh` | the hooks emit exactly the decision shape Claude Code parses, no key outside it, and the installed build still contains every field name — the canary for a schema change that would otherwise degrade the framework in silence | model-free |
 
 Run them all with `make test`.
 

@@ -138,23 +138,54 @@ audit() { # $1 classification  $2 codex-consulted  $3 codex-verdict  $4 final  $
     >>"$AUDIT" 2>/dev/null
 }
 
-allow() { # $1 classification  $2 reason  [$3 rule to batch]
+jesc() { # $1 -> the same text as a JSON string, quotes included
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/^/"/; s/$/"/'
+}
+
+# THE DECISION SHAPE IS A CONTRACT WITH CLAUDE CODE, NOT A CONVENTION
+#
+# Claude Code validates a PermissionRequest hook's output against
+#
+#   decision: { behavior: "allow", updatedInput?, updatedPermissions? }
+#           | { behavior: "deny",  message?, interrupt? }
+#
+# and there is exactly one way this can go wrong quietly: a key outside that
+# shape is dropped with a line in the debug log nobody reads. This file used to
+# carry an optional third argument that emitted `addPermissionRule` inside the
+# allow decision. No caller ever passed it — but it was a loaded trap, because
+# the key is not in the schema above, so the first person to use it would have
+# got an allow that Claude Code accepted while silently discarding the rule they
+# wrote it for. Removed rather than fixed: `updatedPermissions` is the current
+# way to say that, and it should be added when something actually needs it, with
+# a test, not left lying around as a shape that looks supported.
+#
+# tests/hook-contract.test.sh pins the emitted shape against the installed
+# Claude Code build, so a schema change is a failing test rather than a session
+# that silently stops being brokered.
+allow() { # $1 classification  $2 reason
   audit "$1" no - allow "$2"
-  if [ -n "${3:-}" ]; then
-    printf '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow","addPermissionRule":{"toolName":"%s","ruleContent":%s}}}}\n' \
-      "$TOOL_NAME" "$(printf '%s' "$3" | sed 's/\\/\\\\/g; s/"/\\"/g; s/^/"/; s/$/"/')"
-  else
-    printf '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}\n'
-  fi
+  printf '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}\n'
   exit 0
 }
 
+# A DENIAL THE MODEL CANNOT READ IS A DENIAL IT WILL RETRY
+#
+# The reason is computed for the audit log either way, and `message` is part of
+# the deny shape, so withholding it bought nothing: it left the model with an
+# opaque refusal and no way to tell "this needs a human tonight" from "this
+# tool is broken". The first is a reason to take a different route or stop; the
+# second is a reason to try again. Saying which is the difference between an
+# unattended run that parks a task and one that spends the night retrying it.
+#
+# The message says nothing the command did not already contain — it is the rule
+# id and a fixed explanation, never a captured value.
 deny() { # $1 classification  $2 reason
   audit "$1" "${CODEX_CONSULTED:-no}" "${CODEX_VERDICT:--}" deny "$2"
   mkdir -p "$LOG_DIR" 2>/dev/null
   printf '%s\t%s\t%s\t%s\n' "$(date -Is)" "$1" "${TOOL_NAME:-?}" "$SUBJECT" \
     >>"$PENDING" 2>/dev/null
-  printf '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny"}}}\n'
+  printf '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":%s}}}\n' \
+    "$(jesc "[$1] $2 Queued in var/pending-approvals.log for review. Do not retry it and do not look for a way around it: take a different route, or leave it for the human.")"
   exit 0
 }
 
