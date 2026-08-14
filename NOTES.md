@@ -58,6 +58,31 @@ section 12 expands the shipped fragment against that hub and asserts every
 registered hook resolves to a real file there. Extend it when you add another
 path-based rule, or another path to the deployed configuration.
 
+## The rule for the guard's work budget
+
+`hooks/security-guard.sh` runs as a `PreToolUse` command hook, and Claude Code
+cancels a command hook that reaches its timeout: the output is discarded, the
+hook renders **no decision**, and the tool call continues through the normal
+permission flow. A guard that is merely slow is therefore not a guard that denies
+late. It is no guard at all, and nothing on screen says so.
+
+So the guard is bounded rather than trusted to be quick:
+
+- Every rule is a scan of the whole subject, so a new rule is a new pass over it.
+  Adding rules costs time linearly, and the time is spent against a fixed
+  deadline. Measure, do not assume.
+- The two ceilings — `AI_DEV_MAX_INPUT_BYTES` and `AI_DEV_MAX_SUBJECT_BYTES` —
+  are what turn "how long does this take?" into a bound. They are checked with a
+  bash string length before any scan, so they are free. Do not move the check
+  below the first substitution: bash parameter substitution on a long string is
+  itself superlinear.
+- Raising either ceiling is a change to the security posture and needs the
+  measurement to go with it. `bin/doctor` (`guard:workbound`) re-measures on the
+  machine it runs on, against the timeout registered in the *deployed* settings,
+  and fails if the worst admitted case exceeds half the budget.
+- The broker reads the same two variables. Keep them in step; two layers that
+  disagree about what is screenable is a gap in the shape of an argument.
+
 ## The rule for tests
 
 - A test that proves a boundary must also prove the attack is real. Every

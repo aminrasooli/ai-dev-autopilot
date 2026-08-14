@@ -114,6 +114,61 @@ pass() { exit 0; }
 have_json_parser || deny no-parser \
   "Blocked: this guard needs jq or python3 to read the hook payload, and neither is installed. Refusing every tool call rather than silently enforcing nothing. Install one (apt install jq) and restart Claude Code."
 
+# ------------------------------------------------------------------ work bound
+#
+# A CEILING WITH A DEADLINE MUST BOUND ITS OWN WORK
+#
+# Claude Code's hook contract is explicit, and it is the opposite of what a
+# security hook wants:
+#
+#   "A command, http, or mcp_tool hook that reaches its timeout is canceled:
+#    Claude Code discards the hook's output, and the hook renders no decision.
+#    [...] A timed-out command hook doesn't block the tool call. The call
+#    continues through the normal permission flow, so don't count on a stalled
+#    hook to act as a gate."
+#
+# So a guard that is merely SLOW is not a guard that denies late — it is no
+# guard at all, and nothing on screen says so. With `sandbox.autoAllowBashIfSandboxed`
+# and auto mode, the tool call that outran the guard is then auto-approved
+# without a dialog, so the PermissionRequest broker never sees it either: both
+# layers are gone at once.
+#
+# Every rule below is a `grep -E` over the whole subject, so the scan is linear
+# in the subject's length with a constant of about thirty passes, and the JSON
+# is parsed once per field it reads. Measured on the development machine:
+#
+#   subject scan   ~8.0 s per megabyte   (worst case: nothing matches, so every
+#                                         rule runs to the end of the string)
+#   payload parse  ~0.3 s per megabyte
+#
+# which puts the 10 s timeout a little over a megabyte of command away —
+# reachable by any command that embeds a large blob, deliberately or by
+# accident, and far below the size at which a human would notice something odd.
+#
+# The fix is not to make the rules faster; a faster ceiling is still a ceiling
+# with a deadline, and the next person to add a rule would silently spend the
+# margin. It is to refuse to accept an input large enough for the deadline to
+# matter. The two limits below are checked with a bash string length — no
+# subprocess, no scan — so the refusal costs microseconds no matter how large
+# the payload is, and every measurement above becomes a bound:
+#
+#   64 KiB of subject   ->  ~0.7 s      1 MiB of payload  ->  ~0.6 s
+#
+# i.e. the guard's own worst case sits an order of magnitude inside its timeout,
+# and it stays there when a rule is added.
+#
+# Deny, not pass: "I cannot screen this" is the same answer as the missing
+# parser above, and for the same reason. A denied command is recoverable — write
+# the blob to a file and act on the file — whereas an unscreened one is not. The
+# limits are generous by the standards of a shell command a model actually
+# writes: 64 KiB is roughly sixteen thousand tokens of a single command line.
+MAX_INPUT_BYTES="${AI_DEV_MAX_INPUT_BYTES:-1048576}"
+MAX_SUBJECT_BYTES="${AI_DEV_MAX_SUBJECT_BYTES:-65536}"
+
+if [ "${#input}" -gt "$MAX_INPUT_BYTES" ]; then
+  deny oversize-payload "Blocked: this hook payload is ${#input} bytes, over the ${MAX_INPUT_BYTES}-byte ceiling this guard will screen. Above it the guard risks being cancelled by its own hook timeout, and a cancelled guard does not block anything. Write large content to a file and operate on the file."
+fi
+
 TOOL_NAME="$(json_get '.tool_name')"
 CWD="$(json_get '.cwd')"
 [ -n "$TOOL_NAME" ] || pass
@@ -132,6 +187,14 @@ esac
 # spelling a command can use for the same location.
 SUBJECT="$CMD$FILE"
 [ -n "$SUBJECT" ] || pass
+
+# The second half of the work bound described above. This one is the load-bearing
+# limit: $SUBJECT is what every rule in this file scans, and the bash parameter
+# substitutions immediately below it are themselves superlinear on a long string,
+# so the cap is applied before the first of them rather than after.
+if [ "${#SUBJECT}" -gt "$MAX_SUBJECT_BYTES" ]; then
+  deny oversize-subject "Blocked: this command is ${#SUBJECT} bytes, over the ${MAX_SUBJECT_BYTES}-byte ceiling this guard will screen. Above it the guard risks being cancelled by its own hook timeout, and a cancelled guard does not block anything. Write large content to a file and operate on the file."
+fi
 
 # A LINE CONTINUATION IS WHITESPACE, NOT A COMMAND BOUNDARY
 #

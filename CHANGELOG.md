@@ -6,7 +6,25 @@ Notable changes to AI Dev Autopilot. Format follows
 
 ## [Unreleased]
 
-Nothing yet.
+### Security
+
+- **The PreToolUse guard now bounds its own work, so a hook timeout cannot
+  cancel it into silence.** Claude Code discards the output of a command hook
+  that reaches its timeout and lets the tool call continue through the normal
+  permission flow — so a guard that is merely slow is not a guard that denies
+  late, it is no guard at all. Every guard rule scans the whole command, at a
+  measured 13.3 seconds for a 2 MiB command against a 10-second timeout, and in
+  auto mode the tool call that outran the guard is auto-approved without a
+  dialog, so the approval broker never sees it either. `hooks/security-guard.sh`
+  now refuses a hook payload over 1 MiB (`oversize-payload`) or a command over
+  64 KiB (`oversize-subject`) with a bash string-length check taken before any
+  scan; `hooks/permission-broker.sh` applies the same two limits from the same
+  variables and escalates. Both limits are overridable with
+  `AI_DEV_MAX_INPUT_BYTES` and `AI_DEV_MAX_SUBJECT_BYTES`.
+  `tests/guard-portability.test.sh` section 13 proves the slow path is real
+  before proving the bound holds, and `bin/doctor` (`guard:workbound`)
+  re-measures the worst admitted case against the timeout registered in the
+  deployed settings.
 
 ## [0.1.0]
 

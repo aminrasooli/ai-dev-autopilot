@@ -329,6 +329,139 @@ EOF
   fi
 fi
 
+# --- 13. the ceiling bounds its own work ---------------------------------------
+# A CANCELLED GUARD IS NOT A LATE DENY, IT IS NO GUARD
+#
+# Claude Code's hook contract: "A command, http, or mcp_tool hook that reaches
+# its timeout is canceled: Claude Code discards the hook's output, and the hook
+# renders no decision. [...] A timed-out command hook doesn't block the tool
+# call. The call continues through the normal permission flow."
+#
+# The guard is registered with timeout 10. Every rule in it is a grep over the
+# whole subject, so its cost is linear in the length of the command it is handed
+# — and the command is chosen by the thing being constrained. Without a bound,
+# "make the guard slow" is a way to make the guard absent, and in auto mode with
+# autoAllowBashIfSandboxed the tool call that outran it is then auto-approved
+# with no dialog, so the PermissionRequest broker never sees it either.
+#
+# The baseline below proves the attack is real before the defence is asserted:
+# with the bound lifted, the SAME payload costs many times more than the bound
+# allows, on the same machine, in the same run. Comparing the two against each
+# other rather than against a fixed number of seconds keeps the claim true on a
+# faster or slower machine than this one.
+printf '\n%s13. the ceiling bounds its own work so a timeout cannot cancel it%s\n' "$B" "$N"
+
+ms_now() { printf '%s' "$(( $(date +%s%N) / 1000000 ))"; }
+
+# run_guard_ms <env-assignments...> -- <json-file> -> "<elapsed-ms> <decision>"
+guard_timed() { # $1 = payload file, rest = extra env
+  local f="$1"; shift
+  local t0 t1 out
+  t0="$(ms_now)"
+  out="$(env AI_DEV_UNATTENDED=0 AI_DEV_OVERNIGHT=0 AI_DEV_HOME="$HUB" "$@" \
+          bash "$GUARD" < "$f" 2>/dev/null \
+        | grep -o '"permissionDecision":"[a-z]*"' | head -1 | sed 's/.*:"//;s/"//')"
+  t1="$(ms_now)"
+  printf '%s %s' "$((t1 - t0))" "${out:-none}"
+}
+
+BIG="$WORK/big-command.json"
+python3 - "$BIG" <<'PY'
+import json, sys
+# Half a mebibyte of inert filler in a command that names nothing dangerous, so
+# nothing short-circuits and every rule runs to the end of the string: the worst
+# case, which is the one the timeout budget has to survive. Deliberately over
+# the 64 KiB SUBJECT ceiling and under the 1 MiB PAYLOAD ceiling, so this
+# fixture exercises the subject limit specifically — a bigger one would be
+# refused by the payload limit first and prove the other rule instead.
+cmd = "echo " + "a" * (512 * 1024)
+open(sys.argv[1], "w").write(json.dumps(
+    {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+     "cwd": "/tmp", "tool_input": {"command": cmd}}))
+PY
+
+read -r UNBOUND_MS UNBOUND_DEC <<<"$(guard_timed "$BIG" AI_DEV_MAX_SUBJECT_BYTES=99999999 AI_DEV_MAX_INPUT_BYTES=99999999)"
+read -r BOUND_MS   BOUND_DEC   <<<"$(guard_timed "$BIG")"
+
+expect deny "$BOUND_DEC" "a command past the subject ceiling is denied, not scanned"
+
+if [ "$UNBOUND_DEC" != "none" ]; then
+  bad "baseline: without the bound the same payload is scanned in full" \
+      "expected the unbounded run to fall through to 'pass' (no decision), got '$UNBOUND_DEC'"
+elif [ "$UNBOUND_MS" -ge $(( BOUND_MS * 5 )) ] && [ "$UNBOUND_MS" -gt 500 ]; then
+  ok "baseline: without the bound this 512 KiB command costs ${UNBOUND_MS}ms vs ${BOUND_MS}ms bounded — the scan is linear, so the 10s hook timeout is reachable by making the command larger"
+else
+  bad "baseline: without the bound the same payload is scanned in full" \
+      "unbounded ${UNBOUND_MS}ms vs bounded ${BOUND_MS}ms — too close together to prove the scan is the cost. If this machine really is that fast, re-measure the ceiling in hooks/security-guard.sh rather than relaxing this test."
+fi
+
+# The bound is only worth having if the work it still admits fits the budget.
+# 64 KiB of subject that matches nothing is the guard's own worst case.
+ATCAP="$WORK/at-cap.json"
+python3 - "$ATCAP" <<'PY'
+import json, sys
+cmd = "echo " + "a" * (65536 - 8)
+open(sys.argv[1], "w").write(json.dumps(
+    {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+     "cwd": "/tmp", "tool_input": {"command": cmd}}))
+PY
+read -r ATCAP_MS ATCAP_DEC <<<"$(guard_timed "$ATCAP")"
+expect none "$ATCAP_DEC" "a command just under the ceiling is still classified normally"
+if [ "$ATCAP_MS" -lt 5000 ]; then
+  ok "the guard's worst admitted case costs ${ATCAP_MS}ms, inside its 10s hook timeout"
+else
+  bad "the guard's worst admitted case fits its hook timeout" \
+      "${ATCAP_MS}ms of a 10000ms budget — lower AI_DEV_MAX_SUBJECT_BYTES in hooks/security-guard.sh"
+fi
+
+# The payload ceiling is a separate limit with a separate rule id: a file tool
+# carries its content in the payload and its subject is only the path, so the
+# subject ceiling would never fire for it.
+BIGWRITE="$WORK/big-write.json"
+python3 - "$BIGWRITE" <<'PY'
+import json, sys
+open(sys.argv[1], "w").write(json.dumps(
+    {"hook_event_name": "PreToolUse", "tool_name": "Write", "cwd": "/tmp",
+     "tool_input": {"file_path": "/tmp/x.txt", "content": "z" * (2 * 1024 * 1024)}}))
+PY
+read -r BIGW_MS BIGW_DEC <<<"$(guard_timed "$BIGWRITE")"
+expect deny "$BIGW_DEC" "a hook payload past the payload ceiling is denied, not parsed"
+
+reason_of() { # $1 payload file -> the [rule-id] the guard reported
+  env AI_DEV_UNATTENDED=0 AI_DEV_OVERNIGHT=0 AI_DEV_HOME="$HUB" bash "$GUARD" < "$1" 2>/dev/null \
+    | grep -o '\[[a-z-]*\]' | head -1
+}
+expect '[oversize-subject]' "$(reason_of "$BIG")"      "the oversize command names its own rule id"
+expect '[oversize-payload]' "$(reason_of "$BIGWRITE")" "the oversize payload names its own rule id"
+
+# Positive controls: the bound must not have become the only thing the guard
+# does. Ordinary commands stay silent and dangerous ones stay denied, at sizes
+# either side of nothing interesting.
+expect ""    "$(gcmd "$PROJECT" 'ls -la && cat README.md')" "control: an ordinary command is still silent"
+expect deny  "$(gcmd "$PROJECT" 'rm -rf /')"                "control: a catastrophic command is still denied"
+expect ask   "$(gcmd "$PROJECT" 'git push origin main')"    "control: a publication still reaches the human"
+
+# The broker is the other half. Its timeout is longer and its failure direction
+# is safe — no decision means Claude Code asks the human — but "ask the human"
+# is exactly what an unattended run has no answer for, so it applies the same
+# bound and gives its own answer instead of being cancelled.
+BROKER="$HUB_SRC/hooks/permission-broker.sh"
+if [ ! -r "$BROKER" ]; then
+  bad "the broker applies the same bound" "$BROKER missing"
+else
+  b_out="$(env AI_DEV_OVERNIGHT=0 AI_DEV_HOME="$HUB" bash "$BROKER" < "$BIG" 2>/dev/null)"
+  if [ -z "$b_out" ]; then
+    ok "the broker escalates an oversize request instead of classifying it"
+  else
+    bad "the broker escalates an oversize request instead of classifying it" "got: $b_out"
+  fi
+  b_night="$(env AI_DEV_OVERNIGHT=1 AI_DEV_HOME="$HUB" bash "$BROKER" < "$BIG" 2>/dev/null)"
+  case "$b_night" in
+    *'"behavior":"deny"'*) ok "unattended, an oversize request is denied and queued rather than left to a dialog" ;;
+    *) bad "unattended, an oversize request is denied and queued rather than left to a dialog" "got: ${b_night:-<none>}" ;;
+  esac
+fi
+
 printf '\n'
 if [ "$FAIL" -eq 0 ]; then printf '%s%d passed%s\n' "$G" "$PASS" "$N"; exit 0; fi
 printf '%s%d passed · %d FAILED%s\n' "$R" "$PASS" "$FAIL" "$N"; exit 1

@@ -172,6 +172,27 @@ CODEX_VERDICT=-
 
 [ -n "$TOOL_NAME" ] || escalate no-tool "No tool name in the request."
 
+# A BROKER THAT IS CANCELLED DECIDES NOTHING, WHICH UNATTENDED MEANS NOBODY DOES
+#
+# The same hook-timeout contract that governs the PreToolUse guard governs this
+# hook: a command hook that reaches its timeout is cancelled, its output is
+# discarded, and it renders no decision. Here that is far less dangerous than it
+# is one layer up — no decision means Claude Code falls back to asking the
+# human, which is the direction this file escalates in anyway. But it is not
+# harmless: OVERNIGHT=1 exists precisely because there is no human to ask, and a
+# cancelled broker raises the dialog nobody is there to answer instead of
+# denying and queueing. So the same ceiling is applied here, with the answer
+# this file gives to everything it cannot classify.
+#
+# The limits are the guard's, read from the same variables, so raising one
+# raises both and the two layers cannot drift into disagreeing about what is
+# screenable.
+MAX_INPUT_BYTES="${AI_DEV_MAX_INPUT_BYTES:-1048576}"
+MAX_SUBJECT_BYTES="${AI_DEV_MAX_SUBJECT_BYTES:-65536}"
+if [ "${#input}" -gt "$MAX_INPUT_BYTES" ] || [ "${#SUBJECT}" -gt "$MAX_SUBJECT_BYTES" ]; then
+  escalate oversize "Too large to classify within this hook's timeout (payload ${#input} B, subject ${#SUBJECT} B); a cancelled broker decides nothing, so it is escalated deliberately instead."
+fi
+
 NORM="${SUBJECT//\$HOME/$HOME}"
 NORM="${NORM//\~\//$HOME/}"
 m() { printf '%s' "$NORM" | grep -Eq -- "$1"; }

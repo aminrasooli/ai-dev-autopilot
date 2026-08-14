@@ -721,6 +721,57 @@ guard_says allow "guard: framework edit from hub" \
      '{hook_event_name:"PreToolUse",tool_name:"Edit",cwd:$cwd,tool_input:{file_path:$p}}')"
 guard_says allow "guard: framework read from project" "$(read_payload "$AI_DEV_HOME/core/security.md")"
 
+# A CEILING IS ONLY A CEILING IF IT ANSWERS BEFORE IT IS CANCELLED
+#
+# Claude Code discards the output of a command hook that reaches its timeout and
+# lets the tool call continue through the normal permission flow. So the guard's
+# worst case is not a latency question, it is the question of whether the guard
+# exists. Two things decide it and neither is fixed at authoring time: the
+# timeout actually registered in the deployed settings, and how fast this
+# particular machine runs the shipped rules. So it is measured here rather than
+# argued, against the budget this machine will really be given.
+if want "guard:workbound"; then
+  cap="$(grep -oE 'AI_DEV_MAX_SUBJECT_BYTES:-[0-9]+' "$GUARD" 2>/dev/null | head -1 | sed 's/.*-//')"
+  budget="$(jq -r --arg g "$GUARD" \
+      '[.hooks.PreToolUse[]?.hooks[]? | select((.command // "") | contains($g)) | .timeout // empty] | first // empty' \
+      "$HOME/.claude/settings.json" 2>/dev/null)"
+  # Not deployed yet: fall back to the timeout the hub would deploy, and say so.
+  budget_src="the deployed settings"
+  if [ -z "$budget" ]; then
+    budget="$(jq -r '[.hooks.PreToolUse[]?.hooks[]? | .timeout // empty] | first // empty' \
+        "$AI_DEV_HOME/adapters/claude/settings.fragment.json" 2>/dev/null)"
+    budget_src="the hub fragment (not deployed here yet)"
+  fi
+  if [ -z "$cap" ] || [ -z "$budget" ]; then
+    skip "the guard answers well inside its hook timeout" \
+         "could not read the subject ceiling or the registered hook timeout"
+  else
+    probe="$(mktemp "${TMPDIR:-/tmp}/aidev-workbound.XXXXXX")"
+    # The guard's worst case: a subject at the ceiling that matches no rule, so
+    # every rule runs to the end of the string instead of short-circuiting.
+    python3 -c 'import json,sys
+n = int(sys.argv[2])
+open(sys.argv[1], "w").write(json.dumps({"hook_event_name": "PreToolUse",
+  "tool_name": "Bash", "cwd": "/tmp",
+  "tool_input": {"command": "echo " + "a" * (n - 8)}}))' "$probe" "$cap" 2>/dev/null
+    t0="$(( $(date +%s%N) / 1000000 ))"
+    env AI_DEV_UNATTENDED=0 AI_DEV_OVERNIGHT=0 bash "$GUARD" < "$probe" >/dev/null 2>&1
+    t1="$(( $(date +%s%N) / 1000000 ))"
+    rm -f "$probe"
+    spent=$((t1 - t0)); allowed=$((budget * 1000))
+    if [ "$spent" -lt $((allowed / 2)) ]; then
+      ok "the guard's worst admitted case answers in ${spent}ms of its ${budget}s timeout (ceiling ${cap} B, budget from $budget_src)"
+    else
+      bad "the guard answers well inside its hook timeout" \
+          "worst case ${spent}ms of a ${allowed}ms budget on this machine. A hook that reaches its timeout is cancelled and renders NO decision, and the tool call proceeds — so this is the ceiling disappearing, not the ceiling being slow. Lower AI_DEV_MAX_SUBJECT_BYTES in hooks/security-guard.sh or raise the hook timeout in adapters/claude/settings.fragment.json, then re-sync."
+    fi
+  fi
+fi
+guard_says deny "guard: command past the subject ceiling" \
+  "$(python3 -c 'import json; print(json.dumps({"hook_event_name":"PreToolUse","tool_name":"Bash","cwd":"/tmp","tool_input":{"command":"echo " + "a"*200000}}))' 2>/dev/null)"
+guard_says deny "guard: payload past the payload ceiling" \
+  "$(python3 -c 'import json; print(json.dumps({"hook_event_name":"PreToolUse","tool_name":"Write","cwd":"/tmp","tool_input":{"file_path":"/tmp/x","content":"z"*2000000}}))' 2>/dev/null)"
+
 if want "guard:nosecrets"; then
   probe='cat /nonexistent && export TOTALLY_SECRET_VALUE=hunter2sesame'
   printf '%s' "$(bash_payload "$probe")" | "$GUARD" >/dev/null 2>&1

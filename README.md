@@ -67,7 +67,7 @@ This is not another coding agent. **It is the control plane that lets coding age
 
 ### Tested against the ugly cases
 
-**813** approval-broker assertions · **68** guard-portability assertions · **32** Codex-boundary checks · **31** permission-posture checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
+**813** approval-broker assertions · **80** guard-portability assertions · **32** Codex-boundary checks · **31** permission-posture checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
 
 Including hostile repository hooks, hostile MCP servers, `curl | bash`, credential exfiltration, browser-cookie access, keyrings, `docker.sock`, permission-bypass flags, shell line-continuation bypasses, symlink escapes, `..` traversal, executable Git configuration, malicious Codex configuration, arbitrary network egress, and destructive host operations.
 
@@ -84,7 +84,7 @@ Everything below is asserted by a test in this repository. Run `make test`.
 | Suite | Assertions | What it establishes |
 | --- | ---: | --- |
 | `approval.test.sh` | 813 | routine work is allowed and everything else escalates, clause by clause |
-| `guard-portability.test.sh` | 68 | the framework self-protection rule and the deployed hook paths both follow `$AI_DEV_HOME`, not a hardcoded path; the ceiling fails closed; a line continuation does not split a command past the rules |
+| `guard-portability.test.sh` | 80 | the framework self-protection rule and the deployed hook paths both follow `$AI_DEV_HOME`, not a hardcoded path; the ceiling fails closed; a line continuation does not split a command past the rules; the ceiling answers inside the timeout that would otherwise cancel it |
 | `permission-posture.test.sh` | 31 | every spelling of every permission-bypass flag is refused |
 | `prompt-injection.test.sh` | 22 | injection payloads are refused deterministically |
 | `codex-boundary.test.sh` | 32 | both callers of `codex exec` are contained; the reviewer can read its workspace and do nothing else |
@@ -98,7 +98,7 @@ Everything below is asserted by a test in this repository. Run `make test`.
 canaries. Every suite except `project-isolation.test.sh` is model-free and costs
 nothing to run.
 
-Two properties are worth stating plainly, because they are the ones people
+Three properties are worth stating plainly, because they are the ones people
 assume rather than test:
 
 **The isolation test proves the attack is real before it proves the defence.**
@@ -107,6 +107,16 @@ repository's skill, custom command and subagent all register, its `.mcp.json`
 server registers **and its process spawns**, and its `UserPromptSubmit` hook
 **executes**. Run through `aidev`, none of it does. A test that only ever
 observed silence could not tell isolation from a broken probe.
+
+**A hook that runs out of time is not a hook that denies late.** Claude Code
+cancels a command hook that reaches its timeout: the output is discarded, the
+hook renders no decision, and the tool call continues. Every guard rule is a scan
+of the whole command, so "make the guard slow" would otherwise be a way to make
+the guard absent — measured at **13.3 seconds** for a 2 MiB command against a
+10-second timeout, with the auto-approved tool call then never reaching the
+broker either. The guard refuses an input large enough for its deadline to
+matter, before scanning it, and `guard-portability.test.sh` proves the slow path
+is real before proving the bound holds.
 
 **The reviewer boundary is tested under an adversarial config.**
 `codex-boundary.test.sh` drives the reviewer's exact policy while a project-local

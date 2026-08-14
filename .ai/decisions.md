@@ -708,6 +708,73 @@ is denied when a parser is present.
 
 **Links.** `hooks/security-guard.sh` · `tests/guard-portability.test.sh`
 
+## A ceiling with a deadline bounds its own work
+
+**Problem.** Claude Code's hook contract states it plainly: *"A command, http, or
+mcp_tool hook that reaches its timeout is canceled: Claude Code discards the
+hook's output, and the hook renders no decision. [...] A timed-out command hook
+doesn't block the tool call. The call continues through the normal permission
+flow, so don't count on a stalled hook to act as a gate."*
+
+Every rule in `hooks/security-guard.sh` is a `grep -E` over the whole subject, so
+its cost is linear in the length of a command chosen by the thing being
+constrained. Measured on the development machine: **13.3 seconds** for a 2 MiB
+command that matches no rule, against a registered timeout of **10**. Being slow
+is therefore not a latency problem, it is the ceiling ceasing to exist — and in
+auto mode with `autoAllowBashIfSandboxed` the tool call that outran the guard is
+auto-approved with no dialog, so `PermissionRequest` never fires and the broker
+does not see it either. Both layers disappear together, silently, to an input
+whose only unusual property is its size.
+
+**Options.**
+
+- **A. Make the rules faster.** A faster ceiling is still a ceiling with a
+  deadline; the next rule added spends the margin back, invisibly.
+- **B. Raise the hook timeout.** Moves the cliff without removing it, and buys
+  the move by making a stalled session the new failure.
+- **C. Truncate the subject and scan the first N bytes.** Fail-open by
+  construction: the payload goes after the cut.
+- **D. Refuse an input large enough for the deadline to matter.**
+
+**Decision: D.** Two ceilings — 1 MiB of hook payload and 64 KiB of subject —
+each checked with a bash string length before any scan, so the refusal costs
+microseconds however large the input is. Above either one the guard denies,
+naming its own rule (`oversize-payload`, `oversize-subject`). That is the same
+answer, for the same reason, as the missing parser above: *"I cannot screen
+this"* is not *"this is fine"*. A denied command is recoverable — write the blob
+to a file and operate on the file — an unscreened one is not.
+
+The limits turn every measurement into a bound rather than a hope: 64 KiB of
+subject costs ~0.7 s and 1 MiB of payload ~0.6 s, so the guard's worst case sits
+an order of magnitude inside its timeout, and stays there when a rule is added.
+They are generous against what a model actually writes on one command line —
+64 KiB is roughly sixteen thousand tokens of it.
+
+`hooks/permission-broker.sh` applies the identical limits from the identical
+variables, so the two layers cannot drift into disagreeing about what is
+screenable. Its answer is `escalate` rather than deny, because that is its answer
+to everything it cannot classify. Its failure direction was already safe — no
+decision means Claude Code asks the human — but `AI_DEV_OVERNIGHT=1` exists
+precisely because there is no human to ask, and a cancelled broker raises a
+dialog nobody will answer instead of denying and queueing.
+
+**Confidence: high for the bound, medium for the constants.**
+`tests/guard-portability.test.sh` section 13 proves the attack before the
+defence: it runs the same payload with the bound lifted and with it in force, in
+the same run on the same machine, and requires the unbounded scan to cost several
+times more — a ratio rather than a number of seconds, so the claim survives a
+faster or slower machine. It then asserts the worst *admitted* case still answers
+inside the budget, both rule ids by name, the broker's escalate and its
+unattended deny, and positive controls that ordinary commands are still silent
+and catastrophic ones still denied. `bin/doctor` re-measures on the machine it is
+run on, against the timeout actually registered in the deployed settings rather
+than the one in the hub, because that is the budget the guard will really be
+given. The constants are a judgement about command sizes, and the doctor check is
+what will report if either side of that judgement stops holding.
+
+**Links.** `hooks/security-guard.sh` · `hooks/permission-broker.sh` ·
+`tests/guard-portability.test.sh` · `bin/doctor`
+
 ## `cd` into the hub is a write to the hub
 
 **Problem.** The framework self-protection rule binds a mutating verb to a hub
