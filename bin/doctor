@@ -55,6 +55,64 @@ known() {
   printf '  %sKNOWN%s %s\n        %s\n' "$Y" "$N" "$1" "${2:-}"
 }
 
+# --- "not installed here" is not "broken" -------------------------------------
+#
+# A CHECK THAT CANNOT BE ANSWERED DEFERS BY NAME
+#
+# Most of what doctor inspects lives OUTSIDE the repository — ~/.claude,
+# ~/.codex, /etc, $PATH — and none of it exists until `make sync` has run. On a
+# fresh clone, a CI runner, or anyone's first five minutes, every one of those
+# checks fails, and `make test` ends in CONTRACT TESTS FAILED with a dozen
+# failures that all say the same thing: you have not installed this yet.
+#
+# That is the report being wrong, not the machine. It buries a real regression
+# under noise, teaches the reader that red is normal here, and it is the first
+# thing anyone evaluating this project sees. The suites already draw this
+# distinction — exit 2, "the contract holds; a control is awaiting `make sync`"
+# — and this is the same distinction one layer down, following the standing rule
+# in NOTES.md: a check that cannot be answered in its environment defers by name
+# and says which command answers it, rather than guessing.
+#
+# The line is drawn at ONE question, asked once: has this hub ever been synced
+# onto this machine? A machine that HAS been synced and then drifted is a real
+# failure and still reports as one — otherwise this would be a way to make any
+# finding disappear by deleting a file.
+PENDING=0
+PENDING_NAMES=()
+pending() {
+  PENDING=$((PENDING+1)); PENDING_NAMES+=("$1")
+  printf '  %sPEND%s  %s\n        %s\n' "$Y" "$N" "$1" "${2:-}"
+}
+
+# Deployed = the live user settings register a hook that lives in THIS hub.
+# That is the narrowest fact that is true after `make sync` and false before it,
+# and it is the one this hub writes itself — the presence of ~/.claude at all
+# would be true for anyone who has ever run Claude Code.
+DEPLOYED=1
+jq -e --arg h "$AI_DEV_HOME/" '
+    [ (.hooks // {}) | to_entries[] | .value[]? | .hooks[]? | .command // empty
+      | select(contains($h)) ] | length >= 1' \
+  "$HOME/.claude/settings.json" >/dev/null 2>&1 || DEPLOYED=0
+
+# needs_sync <name> <detail> — a failure whose only possible cause on an
+# unsynced machine is that the hub was never installed. On a synced machine it
+# is an ordinary failure and reports as one.
+needs_sync() {
+  if [ "$DEPLOYED" = 0 ]; then
+    pending "$1" "not deployed on this machine yet — run: make -C $AI_DEV_HOME sync"
+  else
+    bad "$1" "${2:-}"
+  fi
+}
+
+# needs_setup <name> <detail> — the same, for a control installed by something
+# other than `sync` (a privileged one-off, a package). The detail carries its
+# own fix, so it is passed through rather than replaced: "run make sync" would
+# be confident, prominent and wrong.
+needs_setup() {
+  if [ "$DEPLOYED" = 0 ]; then pending "$1" "${2:-}"; else bad "$1" "${2:-}"; fi
+}
+
 # --- what this session can and cannot honestly observe ------------------------
 # Three distinct things make a live probe from inside Claude's sandbox report the
 # sandbox rather than the host. Each check that is affected has to say so instead
@@ -212,9 +270,9 @@ if want "drift:claude-md"; then
   if [ -n "$claudemd_want" ] && [ "$claudemd_want" = "$(cat "$HOME/.claude/CLAUDE.md" 2>/dev/null)" ]; then
     ok "~/.claude/CLAUDE.md is this hub's adapter"
   elif [ "$(readlink -f "$HOME/.claude/CLAUDE.md" 2>/dev/null)" = "$(readlink -f "$AI_DEV_HOME/adapters/claude/CLAUDE.md")" ]; then
-    bad "~/.claude/CLAUDE.md is this hub's adapter" \
+    needs_sync "~/.claude/CLAUDE.md is this hub's adapter" \
         "it is the raw template, symlinked — its @ imports still read __AI_DEV_HOME__ and resolve to nothing. Run: make -C $AI_DEV_HOME sync"
-  else bad "~/.claude/CLAUDE.md is this hub's adapter" "absent or drifted — run: make -C $AI_DEV_HOME sync"; fi
+  else needs_sync "~/.claude/CLAUDE.md is this hub's adapter" "absent or drifted — run: make -C $AI_DEV_HOME sync"; fi
 fi
 if want "drift:settings"; then
   # The hub stores two placeholders — __AI_DEV_HOME__ for hub paths, __HOME__
@@ -229,8 +287,8 @@ if want "drift:settings"; then
     | [ $h | keys[] | select(($l[.] // null) != $h[.]) ]' 2>/dev/null)"
   rm -f "$hub_expanded"
   if [ "$drift" = "[]" ]; then ok "~/.claude/settings.json matches the hub"
-  elif [ -z "$drift" ]; then bad "~/.claude/settings.json matches the hub" "could not compare"
-  else bad "~/.claude/settings.json matches the hub" "drifted keys: $(printf '%s' "$drift" | jq -c .) — run: make -C $AI_DEV_HOME sync"; fi
+  elif [ -z "$drift" ]; then needs_sync "~/.claude/settings.json matches the hub" "could not compare"
+  else needs_sync "~/.claude/settings.json matches the hub" "drifted keys: $(printf '%s' "$drift" | jq -c .) — run: make -C $AI_DEV_HOME sync"; fi
 fi
 if want "drift:managed"; then
   MP=/etc/claude-code/managed-settings.d/20-ai-dev-security.json
@@ -247,12 +305,12 @@ fi
 if want "drift:codex"; then
   if diff -q "$AI_DEV_HOME/adapters/codex/config.toml" "$HOME/.codex/config.toml" >/dev/null 2>&1; then
     ok "~/.codex/config.toml matches the hub"
-  else bad "~/.codex/config.toml matches the hub" "drifted — run: make -C $AI_DEV_HOME sync"; fi
+  else needs_sync "~/.codex/config.toml matches the hub" "drifted — run: make -C $AI_DEV_HOME sync"; fi
 fi
 if want "drift:agents"; then
   if [ "$(readlink -f "$HOME/.codex/AGENTS.md" 2>/dev/null)" = "$(readlink -f "$AI_DEV_HOME/generated/AGENTS.md")" ]; then
     ok "~/.codex/AGENTS.md points at the hub"
-  else bad "~/.codex/AGENTS.md points at the hub" "run: make -C $AI_DEV_HOME sync"; fi
+  else needs_sync "~/.codex/AGENTS.md points at the hub" "run: make -C $AI_DEV_HOME sync"; fi
 fi
 if want "drift:generated"; then
   if "$AI_DEV_HOME/bin/ai-dev" generate --check >/dev/null 2>&1; then
@@ -281,7 +339,7 @@ if want "claude:validates"; then
   if [ -z "$out" ]; then
     warn "claude accepts every setting we wrote" "claude doctor produced no output"
   elif [ -n "$invalid" ]; then
-    bad "claude accepts every setting we wrote" \
+    needs_sync "claude accepts every setting we wrote" \
         "$(printf '%s' "$invalid" | head -8 | tr '\n' ' ')"
   elif printf '%s' "$out" | grep -q 'MCP config is not a regular file'; then
     ok "claude accepts every setting we wrote (only this sandbox's own .mcp.json placeholders were rejected — real files checked by bin/host-check --mcp)"
@@ -303,7 +361,7 @@ if want "claude:imports"; then
     [ -e "$p" ] || missing="$missing $p"
   done < <(sed -e "s|__AI_DEV_HOME__|$AI_DEV_HOME|g" -e "s|__HOME__|$HOME|g" \
              "$AI_DEV_HOME/adapters/claude/CLAUDE.md" | grep -oE '^@[^[:space:]]+')
-  [ -z "$missing" ] && ok "every CLAUDE.md import resolves" || bad "every CLAUDE.md import resolves" "missing:$missing"
+  [ -z "$missing" ] && ok "every CLAUDE.md import resolves" || needs_sync "every CLAUDE.md import resolves" "missing:$missing"
 fi
 if want "claude:skills"; then
   bad_links=""
@@ -312,7 +370,7 @@ if want "claude:skills"; then
     [ "$(readlink -f "$HOME/.claude/skills/$n" 2>/dev/null)" = "$(readlink -f "$s")" ] || bad_links="$bad_links $n"
   done
   [ -z "$bad_links" ] && ok "hub skills are discoverable in ~/.claude/skills" \
-    || bad "hub skills are discoverable in ~/.claude/skills" "not linked:$bad_links — run: make -C $AI_DEV_HOME sync"
+    || needs_sync "hub skills are discoverable in ~/.claude/skills" "not linked:$bad_links — run: make -C $AI_DEV_HOME sync"
 fi
 if want "claude:skillfrontmatter"; then
   broken=""
@@ -343,12 +401,12 @@ if want "launcher:onpath"; then
       skip "aidev is on PATH" \
            "DEFERRED — bound by this sandbox, so the host's link is not observable from here:$hidden. Verify on the host: $AI_DEV_HOME/bin/host-check --launcher"
     else
-      bad "aidev is on PATH" "not found — run: make -C $AI_DEV_HOME sync (outside the sandbox)"
+      needs_sync "aidev is on PATH" "not found — run: make -C $AI_DEV_HOME sync (outside the sandbox)"
     fi
   elif [ "$(readlink -f "$resolved")" = "$(readlink -f "$AI_DEV_HOME/bin/aidev")" ]; then
     ok "aidev is on PATH ($resolved → hub)"
   else
-    bad "aidev is on PATH" "$resolved does not resolve to $AI_DEV_HOME/bin/aidev"
+    needs_sync "aidev is on PATH" "$resolved does not resolve to $AI_DEV_HOME/bin/aidev"
   fi
 fi
 if want "launcher:flags"; then
@@ -426,10 +484,10 @@ if want "sandbox:startup"; then
     d="$parent"
   done
   if [ -n "$missing_targets" ] || [ -n "$invalid_targets" ]; then
-    bad "every protected .mcp.json path is bindable (sandbox can start)" \
+    needs_setup "every protected .mcp.json path is bindable (sandbox can start)" \
         "root-owned ancestor needs a valid placeholder:${missing_targets}${invalid_targets} — printf '{\"mcpServers\":{}}\\n' | sudo install -m 444 /dev/stdin <path>"
   elif [ -n "$stray_targets" ]; then
-    bad "every protected .mcp.json path is bindable (sandbox can start)" \
+    needs_setup "every protected .mcp.json path is bindable (sandbox can start)" \
         "unnecessary placeholder Claude Code rejects:$stray_targets — the directory is writable, so no placeholder is needed: rm -f <path> (no root required)"
   elif [ -n "$masked_targets" ]; then
     skip "every protected .mcp.json path is bindable (sandbox can start)" \
@@ -446,10 +504,10 @@ if want "sandbox:live"; then
   live_probe="$HOME/.codex/.aidev-live-probe"
   if writable_probe "$live_probe"; then
     if [ "$enabled" = "true" ]; then
-      bad "sandbox is actually enforcing right now" \
+      needs_sync "sandbox is actually enforcing right now" \
           "settings say enabled but a write to a denyWrite path succeeded — this session started before the sandbox was configured; restart Claude Code"
     else
-      bad "sandbox is actually enforcing right now" "sandbox.enabled is '$enabled' in ~/.claude/settings.json"
+      needs_sync "sandbox is actually enforcing right now" "sandbox.enabled is '$enabled' in ~/.claude/settings.json"
     fi
   else
     ok "sandbox is actually enforcing right now (write to a denyWrite path refused)"
@@ -486,10 +544,10 @@ if want "sandbox:confinement"; then
       fi
     done
     if [ -n "$uncovered" ]; then
-      bad "writes are confined to the working directory" \
+      needs_sync "writes are confined to the working directory" \
           "confinement could not be confirmed AND the compensating denyWrite control did not hold — writable:$uncovered. This is an uncovered persistence/credential path, not a documented limitation. Fix denyWrite in adapters/claude/settings.fragment.json and re-sync."
     elif [ -n "$unproven" ]; then
-      bad "writes are confined to the working directory" \
+      needs_sync "writes are confined to the working directory" \
           "confinement could not be confirmed, and the compensating denyWrite control could not be proven for:$unproven — the write was refused but the path is not bound by the sandbox, so the refusal is not evidence of a deny. Do not treat these as protected until they appear in sandbox.filesystem.denyWrite and are bound."
     else
       known "writes are confined to the working directory" \
@@ -509,7 +567,7 @@ if want "sandbox:network-live"; then
       skip "non-allowlisted network is blocked" \
            "DEFERRED — $STALE_REASON, so the running proxy was built before strictAllowlist was written. Restart Claude Code, or verify on the host: $AI_DEV_HOME/bin/host-check --network"
     else
-      bad "non-allowlisted network is blocked" "https://example.com was reachable — the domain allowlist is not being enforced"
+      needs_sync "non-allowlisted network is blocked" "https://example.com was reachable — the domain allowlist is not being enforced"
     fi
   else
     ok "non-allowlisted network is blocked (example.com unreachable)"
@@ -524,7 +582,7 @@ if want "sandbox:credscrub"; then
     [ -n "${!v:-}" ] && leaked="$leaked $v"
   done
   [ -z "$leaked" ] && ok "credential environment variables are scrubbed" \
-    || bad "credential environment variables are scrubbed" "visible to sandboxed commands:$leaked"
+    || needs_sync "credential environment variables are scrubbed" "visible to sandboxed commands:$leaked"
 fi
 if want "sandbox:escape"; then
   # Every host-truth check (host-check, codex-review, make sync) depends on
@@ -565,17 +623,17 @@ fi
 for k in enabled failIfUnavailable autoAllowBashIfSandboxed; do
   want "sandbox:$k" || continue
   v="$(jq -r ".sandbox.$k" "$HOME/.claude/settings.json" 2>/dev/null)"
-  [ "$v" = "true" ] && ok "settings: sandbox.$k = true" || bad "settings: sandbox.$k = true" "resolved to '$v'"
+  [ "$v" = "true" ] && ok "settings: sandbox.$k = true" || needs_sync "settings: sandbox.$k = true" "resolved to '$v'"
 done
 if want "sandbox:allowUnsandboxedCommands"; then
   v="$(jq -r '.sandbox.allowUnsandboxedCommands' "$HOME/.claude/settings.json" 2>/dev/null)"
   [ "$v" = "false" ] && ok "settings: unsandboxed escape hatch disabled" \
-    || bad "settings: unsandboxed escape hatch disabled" "allowUnsandboxedCommands resolved to '$v'"
+    || needs_sync "settings: unsandboxed escape hatch disabled" "allowUnsandboxedCommands resolved to '$v'"
 fi
 if want "sandbox:mode"; then
   v="$(jq -r '.permissions.defaultMode' "$HOME/.claude/settings.json" 2>/dev/null)"
   [ "$v" = "auto" ] && ok "settings: global permission mode is auto" \
-    || bad "settings: global permission mode is auto" "defaultMode resolved to '$v'"
+    || needs_sync "settings: global permission mode is auto" "defaultMode resolved to '$v'"
 fi
 if want "sandbox:bypass"; then
   problems=""
@@ -590,12 +648,12 @@ if want "sandbox:credentials"; then
   n="$(jq -r '[.sandbox.credentials.files[]? | select(.mode=="deny")] | length' "$HOME/.claude/settings.json" 2>/dev/null)"
   e="$(jq -r '[.sandbox.credentials.envVars[]? | select(.mode=="deny")] | length' "$HOME/.claude/settings.json" 2>/dev/null)"
   if [ "${n:-0}" -ge 10 ] && [ "${e:-0}" -ge 10 ]; then ok "credential files ($n) and env vars ($e) denied to sandboxed commands"
-  else bad "credential files and env vars denied to sandboxed commands" "files=$n envVars=$e"; fi
+  else needs_sync "credential files and env vars denied to sandboxed commands" "files=$n envVars=$e"; fi
 fi
 if want "sandbox:envscrub"; then
   v="$(jq -r '.env.CLAUDE_CODE_SUBPROCESS_ENV_SCRUB' "$HOME/.claude/settings.json" 2>/dev/null)"
   [ "$v" = "1" ] && ok "subprocess credential scrubbing enabled" \
-    || bad "subprocess credential scrubbing enabled" "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB='$v'"
+    || needs_sync "subprocess credential scrubbing enabled" "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB='$v'"
 fi
 if want "sandbox:selflock"; then
   # Regression guard against two self-inflicted lockouts: a denyWrite on the hub
@@ -611,7 +669,7 @@ if want "sandbox:selflock"; then
   jq -e '[.sandbox.network.allowUnixSockets[]?] | any(contains("bus"))' \
      "$HOME/.claude/settings.json" >/dev/null 2>&1 && problems="$problems dbus-socket-allowed"
   [ -z "$problems" ] && ok "no sandbox self-lock and no D-Bus/keyring hole" \
-    || bad "no sandbox self-lock and no D-Bus/keyring hole" "$problems"
+    || needs_sync "no sandbox self-lock and no D-Bus/keyring hole" "$problems"
 fi
 if want "sandbox:keyringblocked"; then
   # The keyring must stay unreachable from a sandboxed command. Proven by
@@ -625,13 +683,13 @@ if want "sandbox:network"; then
   n="$(jq -r '.sandbox.network.allowedDomains | length' "$HOME/.claude/settings.json" 2>/dev/null)"
   strict="$(jq -r '.sandbox.network.strictAllowlist // false' "$HOME/.claude/settings.json" 2>/dev/null)"
   if [ "${n:-0}" -lt 5 ]; then
-    bad "network allowlist configured" "allowedDomains has ${n:-0} entries"
+    needs_sync "network allowlist configured" "allowedDomains has ${n:-0} entries"
   elif [ "$strict" = "true" ]; then
     ok "network allowlist configured ($n domains; unknown hosts denied — strictAllowlist)"
   else
     # Without it the allowlist only suppresses prompts, and a non-interactive
     # sandboxed command has nothing to prompt: unknown hosts are reachable.
-    bad "network allowlist configured" \
+    needs_sync "network allowlist configured" \
         "$n domains but strictAllowlist is not set, so unknown hosts fall through to the ask callback and a non-interactive command reaches them. Set sandbox.network.strictAllowlist in adapters/claude/settings.fragment.json and re-sync."
   fi
 
@@ -666,7 +724,7 @@ if want "guard:wired"; then
   # bare-path spelling. Both are the same wiring.
   wired="$(jq -r --arg g "$GUARD" '[.hooks.PreToolUse[]?.hooks[]? | select((.command // "") | contains($g))] | length' "$HOME/.claude/settings.json" 2>/dev/null)"
   [ "${wired:-0}" -ge 1 ] && ok "guard is wired as a PreToolUse hook" \
-    || bad "guard is wired as a PreToolUse hook" "not present in ~/.claude/settings.json"
+    || needs_sync "guard is wired as a PreToolUse hook" "not present in ~/.claude/settings.json"
 
   # Registered is not the same as runnable. A hook whose script is absent — the
   # shape a hub cloned somewhere other than the placeholder's assumption used to
@@ -819,9 +877,16 @@ fi
 
 # =================================================================== 6. Codex
 section "codex reviewer"
+# Codex is documented as OPTIONAL, and the framework is designed so that its
+# absence is safe in the fail-closed direction: with no reviewer the broker's
+# gray cases escalate to the human instead of being adjudicated, and
+# `make review` is simply unavailable. Reporting that as a failed contract puts
+# a red line on every machine that took the project at its word — and buries the
+# failures that are real. It is a degraded posture, so it warns.
 if want "codex:installed"; then
   if command -v codex >/dev/null 2>&1; then ok "codex installed ($(codex --version 2>/dev/null))"
-  else bad "codex installed" "codex not on PATH"; fi
+  else warn "codex installed (optional)" \
+       "not on PATH — the independent reviewer and \`make review\` are unavailable, and the broker's gray cases escalate to you instead of being adjudicated. That is the safe direction; install Codex CLI if you want the reviewer."; fi
 fi
 if want "codex:authjson"; then
   [ -e "$HOME/.codex/auth.json" ] && bad "~/.codex/auth.json does not exist" "it exists — credentials must live in the OS keyring" \
@@ -833,10 +898,15 @@ if want "codex:keyring"; then
     grep -qE "^[[:space:]]*${kv%%:*}[[:space:]]*=[[:space:]]*\"${kv##*:}\"" "$HOME/.codex/config.toml" 2>/dev/null \
       || miss="$miss [${kv%%:*}=${kv##*:}]"
   done
-  [ -z "$miss" ] && ok "codex keyring + forced ChatGPT login configured" || bad "codex keyring configured" "missing:$miss"
+  [ -z "$miss" ] && ok "codex keyring + forced ChatGPT login configured" || needs_sync "codex keyring configured" "missing:$miss"
 fi
 if want "codex:strictconfig"; then
-  if timeout 30 codex exec --strict-config --skip-git-repo-check -s read-only \
+  # Only Codex can answer whether Codex accepts the config. Without it on PATH
+  # the check has no mechanism to exercise, and "the config is rejected" is not
+  # a conclusion that can be drawn from "the parser is not installed".
+  if ! command -v codex >/dev/null 2>&1; then
+    skip "codex accepts the hub config under --strict-config" "codex is not installed"
+  elif timeout 30 codex exec --strict-config --skip-git-repo-check -s read-only \
        -c 'model_reasoning_effort="low"' --help >/dev/null 2>&1 \
      || timeout 30 codex doctor >/dev/null 2>&1; then
     ok "codex accepts the hub config under --strict-config"
@@ -897,8 +967,9 @@ if want "bootstrap:disposable"; then
 fi
 
 # ================================================================== 8. summary
-printf '\n%s──%s  %spass %d%s · %sfail %d%s · %sknown %d%s · %swarn %d%s · skip %d\n' \
-  "$B" "$N" "$G" "$PASS" "$N" "$R" "$FAIL" "$N" "$Y" "$KNOWN" "$N" "$Y" "$WARN" "$N" "$SKIP"
+printf '\n%s──%s  %spass %d%s · %sfail %d%s · %spending %d%s · %sknown %d%s · %swarn %d%s · skip %d\n' \
+  "$B" "$N" "$G" "$PASS" "$N" "$R" "$FAIL" "$N" "$Y" "$PENDING" "$N" \
+  "$Y" "$KNOWN" "$N" "$Y" "$WARN" "$N" "$SKIP"
 if [ "$KNOWN" -gt 0 ]; then
   # Never let this scroll past as if it were a pass.
   printf '\n%sknown compensated limitations (NOT passing — compensating control verified):%s\n' "$Y" "$N"
@@ -908,6 +979,24 @@ if [ "$KNOWN" -gt 0 ]; then
 fi
 if [ "$FAIL" -gt 0 ]; then
   printf '\nfailed:\n'; printf '  - %s\n' "${FAILED_NAMES[@]}"
+  # A pending list is still worth printing next to a real failure: it is the
+  # difference between "twelve things are broken" and "one thing is broken and
+  # you have not installed yet".
+  if [ "$PENDING" -gt 0 ]; then
+    printf '\nnot deployed on this machine (%d) — these are not failures:\n' "$PENDING"
+    printf '  - %s\n' "${PENDING_NAMES[@]}"
+  fi
   exit 1
+fi
+if [ "$PENDING" -gt 0 ]; then
+  printf '\n%sAI-DEV is not deployed on this machine, so %d check(s) had nothing to\n' "$Y" "$PENDING"
+  printf 'inspect. Everything that could be verified here passed.%s\n\n' "$N"
+  printf '  - %s\n' "${PENDING_NAMES[@]}"
+  printf '\nInstall it with:  make -C %s sync\n' "$AI_DEV_HOME"
+  # Distinct from both outcomes on purpose. 0 would let a CI run or a first
+  # `make test` claim a posture nobody has deployed; 1 would call an uninstalled
+  # machine a violated contract, which is the report this exit code exists to
+  # stop being wrong about.
+  exit 3
 fi
 exit 0

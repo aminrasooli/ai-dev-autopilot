@@ -93,8 +93,9 @@ Everything below is asserted by a test in this repository. Run `make test`.
 | `codex-preflight.test.sh` | 12 | login state is read by exit status, never by matching prose |
 | `settings-isolation.test.sh` | 9 | a hostile repository cannot widen the sandbox |
 | `bootstrap.test.sh` | 29 | the bootstrap skill's contract holds in a disposable repository |
+| `doctor-reporting.test.sh` | 9 | an uninstalled machine reports pending, a drifted one still reports failed |
 
-`bin/doctor` adds 100+ configuration and behaviour checks, including 46 guard
+`bin/doctor` adds 100+ configuration and behaviour checks, including 48 guard
 canaries. Every suite except `project-isolation.test.sh` is model-free and costs
 nothing to run.
 
@@ -219,6 +220,12 @@ make sync      # project the hub onto the Claude and Codex adapters
 make manage    # deploy the managed enforcement floor. Needs sudo.
 make doctor    # verify contracts and behaviour
 ```
+
+`make test` and `make doctor` work before any of that, and are worth running
+first. Most of what doctor inspects lives outside the repository, so on a machine
+that has not been synced those checks report **PENDING** rather than failing —
+"not installed here" is not the same answer as "broken", and only one of them is
+something you should act on.
 
 Then start sessions with the launcher instead of `claude`:
 

@@ -14,6 +14,14 @@ point of shipping the checks rather than the conclusions.
 | --- | --- | --- |
 | `tests/*.test.sh` | inside the sandbox | do the behavioural contracts hold |
 | `bin/doctor` | inside the sandbox | is the configuration deployed and current |
+
+`bin/doctor` answers three ways, not two. A check whose subject lives outside
+this repository — `~/.claude`, `~/.codex`, `/etc`, `$PATH` — has nothing to
+inspect until `make sync` has run, so on an undeployed machine it reports
+**PENDING** and doctor exits **3**: nothing here is violated, some controls are
+simply not installed. A machine that HAS been synced and then drifted is a real
+failure and still reports as one, so the category cannot be used to hide drift
+by deleting a file. `tests/doctor-reporting.test.sh` pins both directions.
 | `bin/host-check` | **outside** the sandbox | is the sandbox real |
 
 A sandboxed process cannot observe host truth and must not pretend otherwise.
@@ -26,15 +34,16 @@ sandboxed. A result that cannot be obtained honestly is not reported.
 | Suite | Proves | Cost |
 | --- | --- | --- |
 | `approval.test.sh` | the delegated approval broker allows routine work and escalates everything else, clause by clause | model-free |
-| `guard-portability.test.sh` | the framework self-protection rule and the hook paths `make sync` deploys both follow `AI_DEV_HOME`, so an installation outside `~/.ai-dev` keeps the ceiling and actually runs it; the ceiling denies rather than disappearing when it cannot parse its input; and a line continuation does not split a command past the rules | model-free |
+| `guard-portability.test.sh` | the framework self-protection rule and the hook paths `make sync` deploys both follow `AI_DEV_HOME`, so an installation outside `~/.ai-dev` keeps the ceiling and actually runs it; the ceiling denies rather than disappearing when it cannot parse its input or when the input is too large to screen inside its own hook timeout; and a line continuation does not split a command past the rules | model-free |
 | `project-isolation.test.sh` | a hostile repository's skills, commands, agents, hooks, MCP servers and instruction files do not load into a session | starts real sessions |
 | `settings-isolation.test.sh` | a hostile repository cannot widen the sandbox through settings files | model-free |
 | | *(its two settings-scope assertions need `claude doctor` to print a report; where it cannot, they are reported UNMEASURED and the suite exits 3 rather than scoring silence)* | |
-| `permission-posture.test.sh` | every spelling of the permission-bypass flag is refused, and the six safe modes still work | model-free |
+| `permission-posture.test.sh` | every spelling of the permission-bypass flag is refused, the six safe modes still work, and the managed version floor is at least the version the control it protects needs | model-free |
 | `codex-boundary.test.sh` | the Codex reviewer can read its workspace and can do nothing else, and both callers of `codex exec` carry that containment | model-free |
 | `codex-preflight.test.sh` | login state is read by exit status, and "cannot determine" is never reported as "logged out" | model-free |
 | `prompt-injection.test.sh` | classic injection payloads are refused deterministically | model-free |
 | `bootstrap.test.sh` | the bootstrap skill's contract holds in a disposable repository | model-free |
+| `doctor-reporting.test.sh` | doctor reports an uninstalled machine as pending and a drifted one as failed, so "not deployed here" cannot be used to hide drift | model-free |
 
 Run them all with `make test`.
 

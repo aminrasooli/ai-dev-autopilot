@@ -30,7 +30,19 @@ for t in tests/*.test.sh; do
 done
 
 printf '\n=== bin/doctor ===\n'
-bash bin/doctor --quick || rc=1
+# Doctor uses the same three-way answer the suites do, for the same reason: most
+# of what it inspects lives outside this repository and does not exist until
+# `make sync` has run. 3 = nothing here is violated, some controls are simply
+# not installed on this machine — the state of a fresh clone, a CI runner, and
+# anyone's first five minutes. Folding that into 1 would make "CONTRACT TESTS
+# FAILED" the normal first impression of a project whose whole claim is that its
+# contracts are checkable.
+bash bin/doctor --quick; s=$?
+case $s in
+  0) ;;
+  3) sync_pending=1 ;;
+  *) rc=1 ;;
+esac
 
 printf '\n'
 if [ $rc != 0 ]; then

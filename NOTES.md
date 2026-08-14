@@ -94,3 +94,12 @@ So the guard is bounded rather than trusted to be quick:
 - `KNOWN` is not a pass. It is reserved for a limitation that cannot be fixed
   here, and only after the compensating control has been re-verified in the same
   run.
+- `PENDING` is not a pass either, and it is not a failure. It means the check's
+  subject is not installed on this machine, which is true of every check that
+  inspects `~/.claude`, `~/.codex`, `/etc` or `$PATH` before `make sync` has run.
+  The line is one question — has this hub ever been synced here? — and a machine
+  that HAS been synced and then drifted stays a failure. Adding a check outside
+  the repository means routing its failure through `needs_sync` (or `needs_setup`,
+  where something other than `sync` installs it) and extending
+  `tests/doctor-reporting.test.sh`. A category that could be reached by deleting a
+  file would be a way to make findings disappear.

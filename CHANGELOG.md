@@ -37,6 +37,24 @@ Notable changes to AI Dev Autopilot. Format follows
   `tests/permission-posture.test.sh` asserts the floor is at least the version
   the control it protects needs, and `bin/doctor` checks the running build.
 
+### Changed
+
+- **`bin/doctor` now answers three ways, and `make test` no longer says
+  CONTRACT TESTS FAILED on a fresh clone.** Most of what doctor inspects lives
+  outside the repository — `~/.claude`, `~/.codex`, `/etc`, `$PATH` — and none of
+  it exists until `make sync` has run, so a first run reported a dozen failures
+  that all meant "you have not installed this yet", burying anything real. Those
+  checks now report **PENDING** and doctor exits **3**, which `tests/run-all.sh`
+  routes to the same "awaiting `make sync`" path the suites already use. A
+  machine that has been synced and then drifted is still a failure, and
+  `tests/doctor-reporting.test.sh` pins both directions so the category cannot
+  be used to hide drift by deleting a file.
+- **Codex's absence is a warning, not a failed contract.** Codex CLI is
+  documented as optional and the framework is designed so that losing it fails
+  closed — the broker's gray cases escalate to the human instead of being
+  adjudicated. The check that asks whether Codex accepts the hub config now skips
+  when Codex is not installed, rather than concluding the config is rejected.
+
 ## [0.1.0]
 
 Initial public release.
