@@ -508,6 +508,42 @@ if m '\bjournalctl\b[^;|&]*(--vacuum-size|--vacuum-time|--vacuum-files|--rotate|
 fi
 
 # =====================================================================
+# 1e. SCHEDULED EXECUTION — the one class the broad fallback must not reach.
+#
+# Section 5's broad local-dev fallback trusts the sandbox and the PreToolUse
+# guard to contain anything it approves. That argument holds for every command
+# that runs NOW and fails for every command that runs LATER: a scheduled job
+# executes outside the session, outside the sandbox, as the user, and neither
+# layer is present when it does.
+#
+# The persistence paths the framework already models are covered by the
+# sandbox's denyWrite list — shell init, ~/.config/autostart, ~/.config/systemd,
+# PATH directories. Scheduled execution is the class that list cannot reach:
+# `crontab` and `at` write under /var/spool, outside $HOME entirely, and
+# `systemd-run` creates a transient unit over D-Bus and writes no file at all,
+# so there is nothing for denyWrite to deny. Measured before this screen
+# existed, `crontab /tmp/evil.cron`, `at now + 1 minute -f /tmp/evil.sh`,
+# `systemd-run --user --on-active=60 /tmp/evil.sh` and `systemctl --user enable
+# evil.service` were all approved with no dialog.
+#
+# It sits with the critical set, above Codex, for the same reason network egress
+# does: `escalate` exits before section 6, so no Codex verdict can turn leaving
+# something behind on the machine into an allow.
+#
+# Read forms schedule nothing and stay silent — `crontab -l`, `atq`, and the
+# `systemctl status|is-active|is-enabled|list-units|list-timers` family, none of
+# which match below. `systemctl stop|disable|mask` is already on the critical
+# list above.
+if m '\bcrontab\b([[:space:]]+-[uU][[:space:]]+[^[:space:]|;&]+)?[[:space:]]+(-[eEr]([[:space:]]|$)|-([[:space:]]|$)|[^-[:space:]|;&][^[:space:]|;&]*)' \
+  || m '(^|[;&|][[:space:]]*)(at|batch)[[:space:]]' \
+  || m '\batrm\b' \
+  || m '\bsystemd-run\b' \
+  || m '\bsystemctl\b[^;|&]*\b(enable|reenable|preset|link|edit|add-wants|add-requires|set-property)\b' \
+  || m '\bloginctl\b[^;|&]*\benable-linger\b' ; then
+  escalate scheduled-execution "This schedules or installs something that runs after this session ends — outside the sandbox and outside every control in this framework, which are all scoped to a running session. A human decides what gets left behind on the machine."
+fi
+
+# =====================================================================
 # 1d. EXTERNAL DEPLOYMENT CLIs — classify behaviour, not the binary name.
 #
 # `vercel dev`, `wrangler dev`, `netlify dev`, `flyctl status` are local

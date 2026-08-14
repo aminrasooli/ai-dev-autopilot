@@ -1035,6 +1035,56 @@ expect allow "$(bcmd 'systemctl is-active example-svc')"            "systemctl i
 expect allow "$(bcmd 'systemctl is-enabled example-svc')"           "systemctl is-enabled"
 expect allow "$(bcmd 'systemctl list-units --type=service')"      "systemctl list-units"
 expect allow "$(bcmd 'systemctl list-unit-files')"                "systemctl list-unit-files"
+expect allow "$(bcmd 'systemctl list-timers')"                    "systemctl list-timers"
+
+# --- 4b. scheduled execution: what runs after the session ends -------
+#
+# The broad local-dev fallback trusts the sandbox and the PreToolUse guard to
+# contain what it approves. That argument holds for every command that runs NOW
+# and fails for every command that runs LATER: a scheduled job executes outside
+# the session, outside the sandbox, as the user, and neither layer is there when
+# it does.
+#
+# It is also the persistence class `denyWrite` cannot reach. crontab and at write
+# under /var/spool, outside $HOME entirely; `systemd-run` creates a transient
+# unit over D-Bus and writes no file at all, so there is nothing to deny. Before
+# this screen existed every command in the first group below was approved with no
+# dialog.
+printf '\n%s    scheduled execution: leaving something behind is a human decision%s\n' "$B" "$N"
+for c in 'crontab /tmp/evil.cron' \
+         'crontab -e' \
+         'crontab -r' \
+         'crontab -u www /tmp/x' \
+         'at now + 1 minute -f /tmp/evil.sh' \
+         'batch < /tmp/evil.sh' \
+         'atrm 3' \
+         'systemd-run --user --on-active=60 /tmp/evil.sh' \
+         'systemctl --user enable evil.service' \
+         'systemctl enable --now evil.timer' \
+         'systemctl link /tmp/evil.service' \
+         'systemctl edit evil.service' \
+         'loginctl enable-linger someone' ; do
+  expect ""    "$(bcmd "$c")"     "interactive escalates: $c"
+  expect deny  "$(bcmd "$c" 1)"   "overnight denies:      $c"
+done
+
+# The listing forms schedule nothing and must stay silent, or the screen above
+# would just be a tax on reading the machine's state.
+expect allow "$(bcmd 'crontab -l')"                               "...while listing a crontab is a read"
+expect allow "$(bcmd 'crontab -u www -l')"                        "...and listing another user's crontab is a read"
+expect allow "$(bcmd 'crontab -l | grep backup')"                 "...and piping the listing is a read"
+expect allow "$(bcmd 'atq')"                                      "...and the at queue is a read"
+
+# The listing must not be usable as cover for the install. The rule matches the
+# writing shapes positively rather than excluding `-l`, so a leading read does
+# not launder the clause after it.
+expect "" "$(bcmd 'crontab -l; crontab /tmp/evil.cron')" \
+  "...and a listing in front of an install does not launder it"
+
+# `at` is an English word before it is a command, so the rule is anchored to a
+# clause boundary. This is the false positive it would otherwise produce.
+expect allow "$(bcmd 'git commit -m "fix the crash at startup"')" \
+  "...and the word 'at' inside a commit message is not a scheduled job"
 
 # --- 5. journalctl reads with the common flags -----------------------
 printf '\n%s    journalctl: read-only forms are silent, --vacuum/--rotate/--sync/--flush escalate%s\n' "$B" "$N"

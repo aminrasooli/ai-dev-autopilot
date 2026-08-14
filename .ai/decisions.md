@@ -876,6 +876,62 @@ what will report if either side of that judgement stops holding.
 **Links.** `hooks/security-guard.sh` · `hooks/permission-broker.sh` ·
 `tests/guard-portability.test.sh` · `bin/doctor`
 
+## Scheduled execution is a class of its own, because every other layer is scoped to a session
+
+**Problem.** The broad local-dev fallback in `hooks/permission-broker.sh` trusts
+the sandbox and the PreToolUse guard to contain what it approves. That argument
+holds for every command that runs *now* and fails for every command that runs
+*later*: a scheduled job executes outside the session, outside the sandbox, as
+the user, and neither layer is present when it does.
+
+Measured before this screen existed, all four of these were approved with no
+dialog at all:
+
+```
+crontab /tmp/evil.cron                          allow
+at now + 1 minute -f /tmp/evil.sh               allow
+systemd-run --user --on-active=60 /tmp/evil.sh  allow
+systemctl --user enable evil.service            allow
+```
+
+It is also the persistence class the `denyWrite` list *cannot* reach, which is
+why enumerating persistence paths did not catch it. `crontab` and `at` write
+under `/var/spool`, outside `$HOME` entirely, so no entry covers them.
+`systemd-run` creates a **transient** unit over D-Bus and writes no file at all,
+so there is nothing for a filesystem control to deny. The classes already
+modelled — shell init, `~/.config/autostart`, `~/.config/systemd`, PATH
+directories — are all covered precisely because they *are* files.
+
+**Decision.** A new screen in both layers: `ask` in the guard,
+`escalate` in the broker, above Codex so no verdict can turn "leave something
+behind on this machine" into an allow.
+
+`ask`, not `deny`: installing a timer is legitimate work in plenty of projects.
+What it is not is routine, and it must never be what happens while nobody is
+looking.
+
+The rule matches the *writing* shapes of `crontab` positively rather than
+excluding `-l`. An exclusion would have made `crontab -l; crontab /tmp/evil`
+silent, because the guard's rules see the whole command and a listing anywhere in
+it would have satisfied the exception — the same clause-laundering shape the line
+continuation decision above deals with.
+
+`at` is an English word before it is a command, so it is anchored to a clause
+boundary. `git commit -m "fix the crash at startup"` is a regression test, not a
+hypothetical.
+
+**Confidence: high for the shapes named; medium for coverage**, which is the
+standing honest limit of a denylist. `tests/approval.test.sh` pins thirteen
+scheduling forms interactively and unattended, six reading forms that must stay
+silent, the laundering case, and the English-word false positive. `bin/doctor`
+carries four of them as canaries plus two reads. What it does not cover is the
+next scheduler nobody has thought of — `anacron`, a desktop-environment autostart
+mechanism, a language runtime's own daemon — and the correct response to finding
+one is to add it deliberately, with its own regressions.
+
+**Links.** `hooks/security-guard.sh` · `hooks/permission-broker.sh` ·
+`tests/approval.test.sh` · `bin/doctor`
+
 ## The decision shape is a contract with Claude Code, and it is tested as one
 
 **Problem.** Every suite in this repository drove a hook and asserted what the

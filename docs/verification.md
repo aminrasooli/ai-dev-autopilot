@@ -33,7 +33,7 @@ sandboxed. A result that cannot be obtained honestly is not reported.
 
 | Suite | Proves | Cost |
 | --- | --- | --- |
-| `approval.test.sh` | the delegated approval broker allows routine work and escalates everything else, clause by clause | model-free |
+| `approval.test.sh` | the delegated approval broker allows routine work and escalates everything else, clause by clause — including execution scheduled to run after the session ends, which no other layer here is present for | model-free |
 | `guard-portability.test.sh` | the framework self-protection rule and the hook paths `make sync` deploys both follow `AI_DEV_HOME`, so an installation outside `~/.ai-dev` keeps the ceiling and actually runs it; the ceiling denies rather than disappearing when it cannot parse its input or when the input is too large to screen inside its own hook timeout; and a line continuation does not split a command past the rules | model-free |
 | `project-isolation.test.sh` | a hostile repository's skills, commands, agents, hooks, MCP servers and instruction files do not load into a session | starts real sessions |
 | `settings-isolation.test.sh` | a hostile repository cannot widen the sandbox through settings files | model-free |

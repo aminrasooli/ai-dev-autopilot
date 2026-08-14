@@ -26,6 +26,22 @@ Notable changes to AI Dev Autopilot. Format follows
   re-measures the worst admitted case against the timeout registered in the
   deployed settings.
 
+- **Scheduled execution is now a human decision.** The broad local-dev fallback
+  trusts the sandbox and the guard to contain what it approves — an argument
+  that holds for every command that runs *now* and fails for every command that
+  runs *later*. Measured before this change, `crontab /tmp/evil.cron`,
+  `at now + 1 minute -f /tmp/evil.sh`,
+  `systemd-run --user --on-active=60 /tmp/evil.sh` and
+  `systemctl --user enable evil.service` were all approved with no dialog. It is
+  also the persistence class the `denyWrite` list cannot reach: `crontab` and
+  `at` write under `/var/spool`, outside `$HOME` entirely, and `systemd-run`
+  creates a transient unit over D-Bus and writes no file at all. The guard now
+  asks and the broker escalates, above Codex, for `crontab` (writing forms),
+  `at`, `batch`, `atrm`, `systemd-run`, `systemctl enable|reenable|preset|link|
+  edit|add-wants|add-requires|set-property` and `loginctl enable-linger`.
+  Reading the schedule — `crontab -l`, `atq`, `systemctl status|is-active|
+  is-enabled|list-units|list-timers` — stays silent.
+
 - **The managed enforcement floor now pins a minimum Claude Code version.**
   `sandbox.network.strictAllowlist` — the setting that makes the domain
   allowlist a control rather than a prompt a sandboxed command cannot answer —

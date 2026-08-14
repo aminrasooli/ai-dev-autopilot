@@ -417,4 +417,44 @@ if m '\b(dropdb|mysqladmin[[:space:]]+drop)\b' \
   ask db-destructive "This destroys database data."
 fi
 
+# ======================================== ASK: execution that outlives the session
+#
+# A JOB SCHEDULED FOR LATER IS NOT CONTAINED BY ANYTHING HERE
+#
+# Every other control in this framework is scoped to a running session: the
+# sandbox confines what a command may touch, the guard screens the command, the
+# broker decides whether a human sees it. A scheduled job escapes all three by
+# construction — it runs later, outside the session, outside the sandbox, as the
+# user, with whatever the crontab or unit file says.
+#
+# The persistence classes the framework already models are covered by
+# `denyWrite`: shell init files, `~/.config/autostart`, `~/.config/systemd`, PATH
+# directories. Scheduled execution is the class that list cannot reach:
+#
+#   crontab <file>          writes /var/spool/cron/crontabs/$USER — outside $HOME
+#                           entirely, so no denyWrite entry covers it
+#   at / batch              writes /var/spool/cron/atjobs — likewise
+#   systemd-run --user      creates a TRANSIENT unit over D-Bus and writes no
+#                           file at all, so there is nothing for denyWrite to
+#                           deny
+#   systemctl --user enable installs a unit into the boot/login path
+#   loginctl enable-linger  makes user units run with nobody logged in
+#
+# `ask`, not `deny`: installing a timer is legitimate work in plenty of
+# projects. What it is not is routine, and it must never be the thing that
+# happens without anyone being asked.
+#
+# The read forms stay silent, because they schedule nothing: `crontab -l`,
+# `atq`, `systemctl status|is-active|is-enabled|list-units|list-timers`. The
+# crontab rule matches the WRITING shapes positively rather than excluding `-l`,
+# so `crontab -l; crontab /tmp/evil` cannot use the listing to cover the install.
+if m '\bcrontab\b([[:space:]]+-[uU][[:space:]]+[^[:space:]|;&]+)?[[:space:]]+(-[eEr]([[:space:]]|$)|-([[:space:]]|$)|[^-[:space:]|;&][^[:space:]|;&]*)' \
+  || m '(^|[;&|][[:space:]]*)(at|batch)[[:space:]]' \
+  || m '\batrm\b' \
+  || m '\bsystemd-run\b' \
+  || m '\bsystemctl\b[^|;&]*\b(enable|reenable|preset|link|edit|add-wants|add-requires|set-property)\b' \
+  || m '\bloginctl\b[^|;&]*\benable-linger\b'; then
+  ask scheduled-execution "This schedules or installs something that runs after this session ends, outside the sandbox. Confirm you meant to leave it behind."
+fi
+
 pass

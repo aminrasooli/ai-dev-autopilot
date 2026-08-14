@@ -790,10 +790,22 @@ guard_says ask  "guard: terraform apply"          "$(bash_payload 'terraform app
 guard_says ask  "guard: kubectl delete"           "$(bash_payload 'kubectl delete ns prod')"
 guard_says ask  "guard: aws terminate"            "$(bash_payload 'aws ec2 terminate-instances --instance-ids i-1')"
 guard_says ask  "guard: drop database"            "$(bash_payload 'psql -c "DROP DATABASE app"')"
+# Execution scheduled for after the session ends, which no other layer here is
+# present for: crontab and at write under /var/spool, outside every denyWrite
+# entry, and systemd-run creates a transient unit and writes no file at all.
+guard_says ask  "guard: crontab install"          "$(bash_payload 'crontab /tmp/jobs.cron')"
+guard_says ask  "guard: at job"                   "$(bash_payload 'at now + 1 minute -f /tmp/job.sh')"
+guard_says ask  "guard: systemd-run transient unit" "$(bash_payload 'systemd-run --user --on-active=60 /tmp/job.sh')"
+guard_says ask  "guard: systemctl --user enable"  "$(bash_payload 'systemctl --user enable example.timer')"
 
 guard_says allow "guard: ordinary test run"       "$(bash_payload 'pytest -q tests/')"
 guard_says allow "guard: ordinary build"          "$(bash_payload 'npm run build')"
 guard_says allow "guard: git status"              "$(bash_payload 'git status --porcelain')"
+# The reading side of the scheduled-execution screen: these inspect the schedule
+# and change nothing, so a screen that caught them would just be a tax on
+# reading the machine's state.
+guard_says allow "guard: crontab -l is a read"    "$(bash_payload 'crontab -l')"
+guard_says allow "guard: systemctl is-enabled is a read" "$(bash_payload 'systemctl is-enabled example-svc')"
 guard_says allow "guard: rm in project"           "$(bash_payload 'rm -rf ./node_modules')"
 guard_says allow "guard: framework edit from hub" \
   "$(jq -nc --arg p "$AI_DEV_HOME/core/security.md" --arg cwd "$AI_DEV_HOME" \
