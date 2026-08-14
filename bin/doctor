@@ -634,6 +634,27 @@ if want "sandbox:network"; then
     bad "network allowlist configured" \
         "$n domains but strictAllowlist is not set, so unknown hosts fall through to the ask callback and a non-interactive command reaches them. Set sandbox.network.strictAllowlist in adapters/claude/settings.fragment.json and re-sync."
   fi
+
+  # strictAllowlist is honoured from 2.1.219. Below that the key parses, is
+  # discarded, and the allowlist silently reverts to prompting — which a
+  # non-interactive sandboxed command cannot answer. The settings file still
+  # says strictAllowlist:true, so nothing on this machine would report it. The
+  # managed floor's requiredMinimumVersion is what turns that into a refusal to
+  # start; check that the RUNNING build is above the line either way, because a
+  # floor that is defined in the hub but not deployed here protects nothing.
+  floor="$(jq -r '.requiredMinimumVersion // empty' "$AI_DEV_HOME/adapters/claude/managed-settings.json" 2>/dev/null)"
+  running="$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+  if [ -z "$floor" ]; then
+    bad "the managed floor pins a Claude Code version" \
+        "adapters/claude/managed-settings.json declares no requiredMinimumVersion, so an older build would ignore strictAllowlist with nothing reporting it"
+  elif [ -z "$running" ]; then
+    skip "the running Claude Code is above the version floor" "could not read \`claude --version\`"
+  elif [ "$(printf '%s\n%s\n' "$floor" "$running" | sort -V | head -1)" = "$floor" ]; then
+    ok "the running Claude Code ($running) is at or above the managed version floor ($floor)"
+  else
+    bad "the running Claude Code is above the version floor" \
+        "running $running, floor $floor — settings this hub deploys are silently ignored on this build. Run: claude update (exempt from the floor), then restart."
+  fi
 fi
 
 # ============================================== 5. PreToolUse guard behaviour

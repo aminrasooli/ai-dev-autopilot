@@ -67,7 +67,7 @@ This is not another coding agent. **It is the control plane that lets coding age
 
 ### Tested against the ugly cases
 
-**813** approval-broker assertions · **80** guard-portability assertions · **32** Codex-boundary checks · **31** permission-posture checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
+**813** approval-broker assertions · **80** guard-portability assertions · **35** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
 
 Including hostile repository hooks, hostile MCP servers, `curl | bash`, credential exfiltration, browser-cookie access, keyrings, `docker.sock`, permission-bypass flags, shell line-continuation bypasses, symlink escapes, `..` traversal, executable Git configuration, malicious Codex configuration, arbitrary network egress, and destructive host operations.
 
@@ -85,7 +85,7 @@ Everything below is asserted by a test in this repository. Run `make test`.
 | --- | ---: | --- |
 | `approval.test.sh` | 813 | routine work is allowed and everything else escalates, clause by clause |
 | `guard-portability.test.sh` | 80 | the framework self-protection rule and the deployed hook paths both follow `$AI_DEV_HOME`, not a hardcoded path; the ceiling fails closed; a line continuation does not split a command past the rules; the ceiling answers inside the timeout that would otherwise cancel it |
-| `permission-posture.test.sh` | 31 | every spelling of every permission-bypass flag is refused |
+| `permission-posture.test.sh` | 35 | every spelling of every permission-bypass flag is refused; the managed version floor is at least the version the control it protects needs |
 | `prompt-injection.test.sh` | 22 | injection payloads are refused deterministically |
 | `codex-boundary.test.sh` | 32 | both callers of `codex exec` are contained; the reviewer can read its workspace and do nothing else |
 | `project-isolation.test.sh` | 16 | a hostile repository's customizations do not load |
@@ -150,6 +150,8 @@ Four enforcement layers, each catching what the one below it cannot:
 ```
   managed policy    /etc/claude-code/managed-settings.d/
     │               sandbox floor · credential denies · bypass-mode lock
+    │               version floor, so a build that would ignore a control
+    │               refuses to start instead of running without it
     │               no other scope can override it; applies to bare `claude`
     ▼
   user settings     ~/.claude/settings.json  (merged from the hub fragment)
@@ -436,7 +438,14 @@ guarantee.
   after every Claude Code upgrade.
 - **A domain allowlist alone is not a control.**
   `sandbox.network.strictAllowlist` must be set, and it takes effect only for
-  sessions started after it is written.
+  sessions started after it is written. It is also honoured only from Claude
+  Code 2.1.219 onwards; below that the key parses, is discarded, and the
+  allowlist reverts to *prompting* — which a non-interactive sandboxed command
+  cannot answer. The managed floor therefore carries
+  `requiredMinimumVersion: "2.1.219"`, which makes an older build refuse to
+  start rather than run without the control. `claude update`, `claude install`
+  and `claude doctor` are exempt from that check, so a machine below the floor
+  can still upgrade its way out.
 - **The isolation test proves what is loaded, not what a model would obey.** An
   instruction that never enters the context window cannot be obeyed, which is the
   stronger property — but it is not the same claim.

@@ -135,6 +135,55 @@ status instead of passing.
 **Links.** `bin/aidev` · `adapters/claude/managed-settings.json` ·
 `tests/permission-posture.test.sh`
 
+## A build that would ignore a control refuses to start
+
+**Problem.** `sandbox.network.strictAllowlist` is what makes the domain
+allowlist a control rather than a suggestion: without it an off-allowlist host
+merely *prompts*, and a non-interactive sandboxed command has nothing to prompt
+with, so only the explicit `deniedDomains` entries are refused. It is honoured
+from Claude Code 2.1.219. On anything older the key parses, is discarded, and
+the network posture reverts — with no warning, no log line, and a settings file
+that still reads `strictAllowlist: true`.
+
+That is not a hypothetical. `claude` auto-updates, but it also downgrades
+(`--version` pinning, a distribution package, a machine that never upgraded, a
+CI image built months ago), and the whole framework is designed to be deployed
+onto machines other than the author's.
+
+**Options.**
+
+- **A. Check the version in `bin/aidev`.** A check on one entry point; `claude`
+  typed directly walks around it, which is the shape this project already
+  rejected for bypass mode.
+- **B. Check it in `bin/doctor`.** Reports, but does not enforce, and only when
+  somebody runs it.
+- **C. `requiredMinimumVersion` in managed policy.** Claude Code exits at
+  startup, before the session exists.
+
+**Decision: C, with B alongside it.** The mechanism was verified against the
+2.1.232 binary rather than taken from the documentation, which does not describe
+it beyond noting it fails open on an invalid value: the check reads
+`policySettings` only, compares with semver, writes the message to stderr and
+calls `process.exit(1)`. Crucially, `update`, `install` and `doctor` are exempt,
+so a machine pinned below the floor can still upgrade its way out — which is
+what makes a hard version gate safe to ship. B stays because the floor is only
+deployed by `make manage`, and a floor defined in the hub but absent from
+`/etc` protects nothing; doctor checks the *running* build either way.
+
+Not chosen: `requiredMaximumVersion`. Pinning an upper bound would block the
+upgrades this project explicitly asks people to make, and the correct response
+to a new release is to re-run `project-isolation.test.sh`, not to refuse it.
+
+**Confidence: high.** `tests/permission-posture.test.sh` section 7 pins the
+number to its reason rather than to itself: it asserts the declared floor is at
+least the version `strictAllowlist` needs, and carries a positive control that
+the hub still deploys `strictAllowlist` at all — without which the floor would
+be pinning nothing. It also reports, rather than asserts, whether the installed
+build satisfies the floor, because that is an operator fact and not a contract.
+
+**Links.** `adapters/claude/managed-settings.json` ·
+`tests/permission-posture.test.sh` · `bin/doctor`
+
 ## Open: move the PreToolUse guard into managed policy
 
 **Not done. Recorded so it is not lost.**

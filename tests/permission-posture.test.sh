@@ -150,6 +150,77 @@ else
       "$MANAGED_LIVE is live but predates this change — run: make -C \"$AI_DEV_HOME\" sync (needs sudo)"
 fi
 
+# --------------------------------------- 7. the version floor under the floor
+# A SETTING AN OLD BUILD IGNORES IS NOT A CONTROL
+#
+# `sandbox.network.strictAllowlist` is what makes the domain allowlist a control
+# rather than a suggestion: without it an off-allowlist host merely PROMPTS, and
+# a non-interactive sandboxed command has nothing to prompt with. It arrived in
+# Claude Code 2.1.219. On an older build the key parses, is discarded, and
+# nothing anywhere says the network posture is gone — the settings file still
+# reads `strictAllowlist: true`.
+#
+# `requiredMinimumVersion` is the answer, and it is enforced only from managed
+# policy. The assertions below pin the number to its REASON: it is not enough
+# that a floor exists, it has to be at least the version of the control that
+# motivated it, or the floor is decoration.
+printf '\n%s7. the managed version floor covers the settings it exists for%s\n' "$B" "$N"
+
+# The oldest build on which every load-bearing setting this hub deploys is
+# actually honoured. Update alongside the floor, never independently.
+NEEDS_VERSION="2.1.219"
+NEEDS_REASON="sandbox.network.strictAllowlist"
+
+# semver_ge <a> <b> -> 0 when a >= b
+semver_ge() { [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -1)" = "$2" ]; }
+
+declared="$(jq -r '.requiredMinimumVersion // empty' "$MANAGED_SRC" 2>/dev/null)"
+if [ -z "$declared" ]; then
+  bad "the managed settings SOURCE declares requiredMinimumVersion" \
+      "absent from $MANAGED_SRC — an older Claude Code would silently ignore $NEEDS_REASON"
+elif semver_ge "$declared" "$NEEDS_VERSION"; then
+  ok "the managed settings SOURCE declares requiredMinimumVersion $declared, at or above the $NEEDS_VERSION that $NEEDS_REASON needs"
+else
+  bad "the managed version floor covers $NEEDS_REASON" \
+      "declared $declared, but $NEEDS_REASON is ignored below $NEEDS_VERSION — the floor would admit a build that drops the network control"
+fi
+
+# It is only a floor if the fragment actually relies on the setting; if the hub
+# stopped shipping strictAllowlist the version above would be pinning nothing.
+if jq -e '.sandbox.network.strictAllowlist == true' \
+     "$AI_DEV_HOME/adapters/claude/settings.fragment.json" >/dev/null 2>&1; then
+  ok "control: the hub really does deploy $NEEDS_REASON, so the floor is load-bearing"
+else
+  bad "control: the hub really does deploy $NEEDS_REASON, so the floor is load-bearing" \
+      "the settings fragment no longer sets it — either restore it or re-derive $NEEDS_VERSION from whatever replaced it"
+fi
+
+# A floor nobody can satisfy is an outage, not a control. Claude Code exempts
+# `update`, `install` and `doctor` from the check, so a machine below the floor
+# can upgrade its way out — but say so plainly rather than leave it to be
+# discovered when a session refuses to start.
+if [ -n "$declared" ] && command -v claude >/dev/null 2>&1; then
+  running="$(claude --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+  if [ -z "$running" ]; then
+    printf '  DEFER  the installed Claude Code satisfies the floor (could not read `claude --version`)\n'
+  elif semver_ge "$running" "$declared"; then
+    ok "the installed Claude Code ($running) satisfies the declared floor ($declared)"
+  else
+    sync_needed "the installed Claude Code satisfies the declared floor" \
+        "installed $running is below the floor $declared. Deploying this managed policy would stop `claude` from starting until you run: claude update (which is exempt from the check)."
+  fi
+fi
+
+if [ ! -r "$MANAGED_LIVE" ]; then
+  sync_needed "the DEPLOYED managed policy carries the version floor" \
+      "cannot read $MANAGED_LIVE — run: make -C \"$AI_DEV_HOME\" manage (needs sudo)"
+elif [ -n "$(jq -r '.requiredMinimumVersion // empty' "$MANAGED_LIVE" 2>/dev/null)" ]; then
+  ok "the DEPLOYED managed policy carries the version floor"
+else
+  sync_needed "the DEPLOYED managed policy carries the version floor" \
+      "$MANAGED_LIVE is live but predates this change — run: make -C \"$AI_DEV_HOME\" manage (needs sudo)"
+fi
+
 printf '\n'
 if [ "$FAIL" -eq 0 ] && [ "$SYNC" -eq 0 ]; then
   printf '%s%d passed%s\n' "$G" "$PASS" "$N"; exit 0

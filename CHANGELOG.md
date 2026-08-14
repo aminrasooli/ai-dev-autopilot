@@ -26,6 +26,17 @@ Notable changes to AI Dev Autopilot. Format follows
   re-measures the worst admitted case against the timeout registered in the
   deployed settings.
 
+- **The managed enforcement floor now pins a minimum Claude Code version.**
+  `sandbox.network.strictAllowlist` — the setting that makes the domain
+  allowlist a control rather than a prompt a sandboxed command cannot answer —
+  is honoured from 2.1.219; below that the key parses, is discarded, and nothing
+  reports it. `requiredMinimumVersion: "2.1.219"` in
+  `adapters/claude/managed-settings.json` makes an older build refuse to start
+  instead. `claude update`, `claude install` and `claude doctor` are exempt from
+  the check, so a machine below the floor can still upgrade its way out.
+  `tests/permission-posture.test.sh` asserts the floor is at least the version
+  the control it protects needs, and `bin/doctor` checks the running build.
+
 ## [0.1.0]
 
 Initial public release.
