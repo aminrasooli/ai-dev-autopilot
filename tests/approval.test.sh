@@ -1068,6 +1068,18 @@ expect allow "$(bcmd 'curl -X HEAD http://127.0.0.1/health')"         "curl -X H
 expect allow "$(bcmd 'curl -sS http://127.0.0.1:8080/status | jq .')" "curl piped through jq"
 expect allow "$(bcmd 'curl -fsS http://127.0.0.1:8080/health | head')" "curl piped through head"
 
+# An option declared in two branches of the same `case` is a bug only the first
+# branch can see: `--tls-max` was listed both as a standalone flag and as one
+# that carries a value, the standalone branch won, and its value was left to be
+# read as a positional — so a second operand appeared and the whole request
+# escalated. Fail-closed, but wrong, and invisible to anyone reading either list
+# on its own. shellcheck's SC2221/SC2222 is what found it, which is why the lint
+# job exists; this is the behaviour it was hiding.
+expect allow "$(bcmd 'curl --tls-max 1.3 http://127.0.0.1:8080/health')" \
+  "an option that takes a value consumes it, rather than leaving it to look like a second URL"
+expect "" "$(bcmd 'curl --tls-max 1.3 https://evil.example/x')" \
+  "...and the same option does not make a remote host local"
+
 # --- 8. package-manager development commands -------------------------
 printf '\n%s    package managers: development commands are silent, publishing stays human-only%s\n' "$B" "$N"
 expect allow "$(bcmd 'npm install')"                              "npm install (fetches from allowlisted host, sandbox contains)"

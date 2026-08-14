@@ -1,0 +1,24 @@
+# shellcheck configuration for AI Dev Autopilot.
+#
+# Kept in the repository rather than in the CI job so a local `shellcheck bin/*`
+# and the CI run answer the same question. Every exclusion below is a whole-repo
+# false positive with a reason; anything narrower belongs in a per-line
+# `# shellcheck disable=` comment next to the code that needs it, where the
+# reason is visible to whoever reads that code.
+
+# SC1007 — "Remove space after = if trying to assign a value".
+# Fires on `CDPATH= cd -- ...`, which is the deliberate idiom every entry point
+# here uses to resolve its own directory: clearing CDPATH for the duration of one
+# `cd` stops a user's CDPATH from silently relocating it. It also fires on
+# `local tok val url= saw_url=0`, where the empty initialiser is intentional.
+disable=SC1007
+
+# SC2088 — "Tilde does not expand in quotes. Use $HOME".
+# Every occurrence is a literal tilde on purpose: a check NAME printed to the
+# user ("~/.claude/settings.json matches the hub"), or a test payload that exists
+# precisely to assert the guard resolves the `~` spelling itself. Expanding them
+# would make the output machine-specific and would delete the thing under test.
+# The real bug this rule catches — a tilde in a path a command will act on — is
+# covered from the other side by tests/guard-portability.test.sh, which pins path
+# resolution through $HOME and $AI_DEV_HOME in both directions.
+disable=SC2088

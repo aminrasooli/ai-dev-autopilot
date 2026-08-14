@@ -37,6 +37,26 @@ Notable changes to AI Dev Autopilot. Format follows
   `tests/permission-posture.test.sh` asserts the floor is at least the version
   the control it protects needs, and `bin/doctor` checks the running build.
 
+### Added
+
+- **CI.** `.github/workflows/contracts.yml` runs every model-free suite and
+  `bin/doctor` on `ubuntu-24.04` for each push and pull request, on a machine
+  where AI-DEV has never been installed and neither Claude Code nor Codex is
+  present. A second job parses every script with `bash -n`, runs `shellcheck`
+  (exclusions and their reasons in `.shellcheckrc`), and fails if `core/` has
+  changed without `generated/AGENTS.md` being regenerated.
+
+### Fixed
+
+- **`curl --tls-max` escalated a request it should have allowed.** The option
+  was declared both as a standalone flag and as one that carries a value; the
+  standalone branch matched first, so its value was left to be read as a
+  positional and `curl --tls-max 1.3 http://localhost:8080/health` looked like
+  two URLs. Fail-closed, but wrong, and invisible to anyone reading either list
+  on its own — found by shellcheck's SC2221/SC2222, which is part of why the
+  lint job now exists. `tests/approval.test.sh` pins both the allow and the
+  control that the same option does not make a remote host local.
+
 ### Changed
 
 - **`bin/doctor` now answers three ways, and `make test` no longer says

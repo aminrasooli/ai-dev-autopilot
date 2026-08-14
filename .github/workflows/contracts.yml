@@ -1,0 +1,99 @@
+# Run the contract suites on a machine nobody has configured.
+#
+# The point of this workflow is not that the tests pass on the author's laptop.
+# It is that they pass on a machine where AI-DEV has never been installed, where
+# Claude Code and Codex are absent, and where nothing has been synced — because
+# that is the machine a contributor and a reviewer both have, and a suite that
+# only passes on one machine is not a contract.
+#
+# Everything here is model-free and costs nothing to run: the suites drive the
+# hooks directly with the JSON Claude Code sends. The two suites that need a
+# real Claude Code or Codex — project-isolation and codex-boundary — report
+# their dependency as missing and exit 3, which `tests/run-all.sh` reports as a
+# skip rather than scoring silence as a pass. They stay the maintainer's job to
+# run on every Claude Code upgrade, and README.md says so.
+#
+# `bin/doctor` runs too, and passes here for a reason worth stating: most of
+# what it inspects lives outside the repository and does not exist on a runner,
+# so those checks report PENDING and doctor exits 3. That distinction is itself
+# under test — see tests/doctor-reporting.test.sh, which requires a machine that
+# HAS been synced and then drifted to still report a hard failure.
+
+name: contracts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Read-only. This workflow inspects the tree and runs shell scripts; nothing it
+# does needs a token that can write to the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    # Pinned to the distribution the project documents as tested, rather than
+    # `ubuntu-latest`, so a runner-image rollover is a deliberate change with a
+    # commit behind it instead of a Tuesday morning surprise.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install sandbox dependencies
+        # The same two packages `make deps` installs. jq and python3 are already
+        # on the runner image; the suites check for them and skip by name if a
+        # future image drops one, so they are not installed defensively here.
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap socat
+
+      - name: Report the environment these results describe
+        run: |
+          printf 'bash      %s\n' "$BASH_VERSION"
+          printf 'jq        %s\n' "$(jq --version 2>/dev/null || echo absent)"
+          printf 'python3   %s\n' "$(python3 --version 2>/dev/null || echo absent)"
+          printf 'bwrap     %s\n' "$(bwrap --version 2>/dev/null || echo absent)"
+          printf 'claude    %s\n' "$(command -v claude >/dev/null && claude --version || echo 'absent (expected)')"
+          printf 'codex     %s\n' "$(command -v codex  >/dev/null && codex  --version || echo 'absent (expected)')"
+
+      - name: Contract suites
+        run: make test
+
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # A parse error in a hook is the worst failure this project can ship: the
+      # hook still "runs", exits non-zero without valid JSON, and Claude Code
+      # treats that as a non-blocking error and proceeds — so the ceiling is
+      # gone and nothing says so. Checked before shellcheck because it is the
+      # cheaper and stricter question.
+      - name: Every script parses
+        run: |
+          rc=0
+          for f in hooks/*.sh bin/* tests/*.sh; do
+            [ -f "$f" ] || continue
+            bash -n "$f" || { printf 'parse error: %s\n' "$f"; rc=1; }
+          done
+          exit $rc
+
+      # shellcheck is preinstalled on the runner image. Exclusions live in
+      # .shellcheckrc with their reasons, so this and a local run agree.
+      - name: shellcheck
+        run: shellcheck --version && shellcheck -S warning hooks/*.sh bin/* tests/*.sh
+
+      # `generated/AGENTS.md` is built from `core/`. Editing core/ without
+      # regenerating leaves Codex and every other AGENTS.md agent reading a
+      # policy the maintainers no longer believe, which is exactly the kind of
+      # drift a human reviewer does not notice in a diff.
+      - name: generated/AGENTS.md is current with core/
+        run: |
+          bin/ai-dev generate --check \
+            || { echo 'core/ has changed and generated/AGENTS.md has not. Run: make generate'; exit 1; }

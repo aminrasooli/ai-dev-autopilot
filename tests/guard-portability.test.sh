@@ -424,7 +424,7 @@ open(sys.argv[1], "w").write(json.dumps(
     {"hook_event_name": "PreToolUse", "tool_name": "Write", "cwd": "/tmp",
      "tool_input": {"file_path": "/tmp/x.txt", "content": "z" * (2 * 1024 * 1024)}}))
 PY
-read -r BIGW_MS BIGW_DEC <<<"$(guard_timed "$BIGWRITE")"
+read -r _ BIGW_DEC <<<"$(guard_timed "$BIGWRITE")"
 expect deny "$BIGW_DEC" "a hook payload past the payload ceiling is denied, not parsed"
 
 reason_of() { # $1 payload file -> the [rule-id] the guard reported

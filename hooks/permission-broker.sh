@@ -304,11 +304,17 @@ curl_ok() { # $@ = args after `curl`
       --location|--insecure|--verbose|--no-buffer|--globoff|--compressed|\
       --fail-with-body|--fail-early|--path-as-is|--no-alpn|--no-npn|--http0.9|\
       --http1.0|--http1.1|--http2|--http2-prior-knowledge|--http3|--tlsv1|\
-      --tlsv1.0|--tlsv1.1|--tlsv1.2|--tlsv1.3|--sslv2|--sslv3|--tls-max|\
+      --tlsv1.0|--tlsv1.1|--tlsv1.2|--tlsv1.3|--sslv2|--sslv3|\
       --ipv4|-4|--ipv6|-6|--anyauth|--basic|--digest|--negotiate|--ntlm|--ssl|\
       --ssl-reqd|--ssl-allow-beast|--tcp-nodelay|--tcp-fastopen|--tls13-ciphers|\
       --no-keepalive|--no-progress-meter|--progress-bar|--styled-output|--no-styled-output|\
       --stderr|--suppress-connect-headers|--disable|-q)
+        # NOTE: `--tls-max` is deliberately NOT here. It takes a value, and it
+        # is declared in the value-carrying list below. Listed in both, the
+        # first branch won and the value was left to be read as a positional,
+        # so `curl --tls-max 1.2 http://localhost/x` saw two operands and
+        # escalated. Fail-closed, but wrong — and a duplicate a human reading
+        # either list alone cannot see. shellcheck (SC2221/SC2222) can.
         : ;;
       # Attached short-flag combos of safe letters only.
       -[sSfiILkvNg46q]|-[sSfiILkvNg46q][sSfiILkvNg46q]|\

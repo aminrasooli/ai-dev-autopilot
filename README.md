@@ -81,6 +81,16 @@ The tests first prove the attack can happen, then prove the AI Dev Autopilot pat
 
 Everything below is asserted by a test in this repository. Run `make test`.
 
+[![contracts](https://github.com/aminrasooli/ai-dev-autopilot/actions/workflows/contracts.yml/badge.svg)](https://github.com/aminrasooli/ai-dev-autopilot/actions/workflows/contracts.yml)
+
+CI runs them on every push and pull request, on a machine where AI-DEV has never
+been installed and neither Claude Code nor Codex is present — because that is
+the machine a contributor and a reviewer both have, and a suite that only passes
+on the author's laptop is not a contract. The two suites that need a real Claude
+Code or Codex report their dependency as missing and exit 3 rather than scoring
+silence as a pass; running those stays a maintainer's job on every Claude Code
+upgrade.
+
 | Suite | Assertions | What it establishes |
 | --- | ---: | --- |
 | `approval.test.sh` | 813 | routine work is allowed and everything else escalates, clause by clause |
@@ -497,7 +507,8 @@ The rules that matter most:
 5. **New classifier doubt defaults to escalation.** Deterministic rules are added
    only when a safe operation becomes materially frequent.
 6. Edit `core/`, never `generated/AGENTS.md`. Run `make generate` and `make test`
-   before opening a pull request.
+   before opening a pull request — CI runs both, plus `shellcheck`, whose
+   exclusions live in `.shellcheckrc` with a reason each.
 
 ## License
 
