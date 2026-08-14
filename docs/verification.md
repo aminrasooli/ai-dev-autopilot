@@ -38,7 +38,7 @@ sandboxed. A result that cannot be obtained honestly is not reported.
 | `project-isolation.test.sh` | a hostile repository's skills, commands, agents, hooks, MCP servers and instruction files do not load into a session | starts real sessions |
 | `settings-isolation.test.sh` | a hostile repository cannot widen the sandbox through settings files | model-free |
 | | *(its two settings-scope assertions need `claude doctor` to print a report; where it cannot, they are reported UNMEASURED and the suite exits 3 rather than scoring silence)* | |
-| `permission-posture.test.sh` | every spelling of the permission-bypass flag is refused, the six safe modes still work, and the managed version floor is at least the version the control it protects needs | model-free |
+| `permission-posture.test.sh` | every spelling of the permission-bypass flag is refused, every flag that widens the session's scope or configuration is refused (including `--add-dir`, which grants tool access to another tree and loads its CLAUDE.md), the six safe modes still work, and the managed version floor is at least the version the control it protects needs | model-free |
 | `codex-boundary.test.sh` | the Codex reviewer can read its workspace and can do nothing else, and both callers of `codex exec` carry that containment | model-free |
 | `codex-preflight.test.sh` | login state is read by exit status, and "cannot determine" is never reported as "logged out" | model-free |
 | `prompt-injection.test.sh` | classic injection payloads are refused deterministically | model-free |

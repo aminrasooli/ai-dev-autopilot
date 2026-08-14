@@ -59,6 +59,17 @@ Notable changes to AI Dev Autopilot. Format follows
 
 ### Fixed
 
+- **`aidev` passed `--add-dir` straight through.** It does two things the
+  launcher exists to prevent: it grants tool access to another directory — and
+  with `sandbox.autoAllowBashIfSandboxed`, a sandboxed command writing inside an
+  allowed directory is approved with *no dialog*, so the flag widens the set of
+  paths that change without anyone being asked — and Claude Code's own `--bare`
+  help names it as the way to supply additional "CLAUDE.md dirs", so it also
+  loads instructions from an unvetted tree. `hooks/permission-broker.sh` already
+  refused to hand it to a nested session, so the judgement existed; it was
+  missing from the entry point where a human types it. Now refused in both
+  spellings, with a positive control that ordinary passthrough flags still work.
+
 - **The approval broker emitted a key Claude Code does not define.** Its `allow`
   path carried an optional `addPermissionRule` object, which is not in the
   `PermissionRequest` decision schema — Claude Code drops an unrecognised key

@@ -184,6 +184,58 @@ build satisfies the floor, because that is an operator fact and not a contract.
 **Links.** `adapters/claude/managed-settings.json` ·
 `tests/permission-posture.test.sh` · `bin/doctor`
 
+## `--add-dir` is refused at the front door, not only one level down
+
+**Problem.** `bin/aidev` refused five configuration-injection flags and passed
+`--add-dir` straight through. It does two things, and both are the launcher's
+subject:
+
+- It grants tool access to another directory. With
+  `sandbox.autoAllowBashIfSandboxed`, a sandboxed command writing inside an
+  allowed directory is approved with **no dialog** — so the flag widens the set
+  of paths that change without anyone being asked, which is the single property
+  the posture exists to control.
+- Claude Code's own `--bare` help names it as the way to supply additional
+  "CLAUDE.md dirs", so it loads instructions from a tree that went through none
+  of the vetting `--setting-sources user` performs.
+
+`hooks/permission-broker.sh` (`claude_ok`) already refuses to hand `--add-dir`
+to a *nested* claude session. So the judgement was made; it was simply absent
+from the entry point where a human types it — a control enforced one level down
+and not at the front door, which is a control with a documented way round it.
+
+**Options.**
+
+- **A. Pass it through**, on the grounds that the broker still contains the
+  consequences. It partly does — `in_ws` is anchored on the git root, so an
+  added directory fails `ws_ok` and escalates — but the sandbox's own auto-allow
+  path does not go through the broker, so this is a claim about one layer while
+  the widening happens in another.
+- **B. Accept it with a loud warning**, as `--trust-project` does.
+  `--trust-project` earns that treatment by being a flag this project invented
+  whose entire meaning is "I accept the consequences". `--add-dir` is a Claude
+  Code flag whose consequences are not on its label.
+- **C. Refuse it**, consistently with the other five, and name both effects.
+
+**Decision: C.** The message states what it would do and offers the two real
+alternatives: start the session from a directory containing both trees, or run
+`claude --add-dir` directly and own it. That is the same shape as the refusal
+for `--settings`, and it keeps the escape hatch outside the launcher rather than
+inside it.
+
+**Confidence: high for the refusal, medium for the completeness of the list.**
+`tests/permission-posture.test.sh` section 5 pins both spellings and the
+multi-value form, with a positive control that an ordinary passthrough flag is
+still forwarded — without which the assertions would also pass for a launcher
+that had started refusing everything. The list itself is enumerated from
+`claude --help` on the installed version, so a flag added by a future release is
+passed through until someone reads the changelog. That is the standing weakness
+of an entry-point denylist, and the reason the managed floor, not the launcher,
+is where the load-bearing refusals live.
+
+**Links.** `bin/aidev` · `hooks/permission-broker.sh` ·
+`tests/permission-posture.test.sh`
+
 ## Open: move the PreToolUse guard into managed policy
 
 **Not done. Recorded so it is not lost.**
@@ -823,6 +875,58 @@ what will report if either side of that judgement stops holding.
 
 **Links.** `hooks/security-guard.sh` · `hooks/permission-broker.sh` ·
 `tests/guard-portability.test.sh` · `bin/doctor`
+
+## The decision shape is a contract with Claude Code, and it is tested as one
+
+**Problem.** Every suite in this repository drove a hook and asserted what the
+hook *decided*. None asserted that Claude Code would act on the decision. Those
+are different claims, and only the second one is the product.
+
+Both directions of that gap fail silently. An `allow` Claude Code cannot parse
+is not a deny — it is *no decision*, so every routine command starts prompting
+again and the framework degrades into the approval fatigue it exists to solve,
+with 815 assertions still green. And a key outside the schema is not an error:
+it is dropped with one line in a debug log nobody reads.
+
+The second failure was already present. The broker's allow path carried an
+optional `addPermissionRule` object. The string does not appear anywhere in the
+2.1.232 executable. No caller ever passed it, so it was a loaded trap rather
+than a live bug — the first use would have produced an accepted allow with the
+rule silently discarded.
+
+**Evidence.** The schema was read out of the installed binary rather than from
+the documentation, which describes neither shape completely:
+
+```
+decision: { behavior: "allow", updatedInput?, updatedPermissions? }
+        | { behavior: "deny",  message?, interrupt? }
+```
+
+which confirmed the emitted shapes are correct, identified `addPermissionRule`
+as outside them, and showed that `deny` accepts a `message` the broker was not
+sending. It computed one for the audit log and then emitted a bare deny, leaving
+the model unable to distinguish "this needs a human tonight" from "this tool is
+broken" — the first is a reason to take a different route, the second is a
+reason to retry all night, and an unattended run is where that costs something.
+
+**Decision.** Remove `addPermissionRule` rather than repair it —
+`updatedPermissions` is the current mechanism and should arrive with a test when
+something needs it, not sit around as a shape that looks supported. Send the
+reason in `deny.message`. Add `tests/hook-contract.test.sh`, which pins the
+emitted shapes, asserts no decision object carries a key outside its schema, and
+greps the installed executable for every field name the hooks are built from.
+
+**Confidence: high for what it claims; the claim is deliberately narrow.** The
+binary search proves the *vocabulary* still exists, not that the CLI honours the
+decision — only a live session proves behaviour, and `project-isolation.test.sh`
+is the suite that starts real sessions. It carries an invented field name as a
+control that the search can tell present from absent, and it was mutation-checked
+in both directions: reintroducing `addPermissionRule` and renaming
+`permissionDecision` each make it fail. What it cannot catch is a build that
+keeps every name and changes their meaning.
+
+**Links.** `hooks/permission-broker.sh` · `hooks/security-guard.sh` ·
+`tests/hook-contract.test.sh`
 
 ## `cd` into the hub is a write to the hub
 

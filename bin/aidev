@@ -66,6 +66,15 @@
 #       are refused so that the isolation the tests measure is the isolation
 #       the launcher actually delivers.
 #
+#   --add-dir
+#       Refused for both of the things it does: it grants tool access to another
+#       directory — and under sandbox.autoAllowBashIfSandboxed a command writing
+#       inside an allowed directory needs no dialog, so the flag widens what
+#       changes without anyone being asked — and it is Claude Code's own
+#       documented way to supply additional "CLAUDE.md dirs", so it loads
+#       instructions from a tree that went through none of this vetting.
+#       Start the session from a directory containing both trees instead.
+#
 # Repository-provided configuration is untrusted data, not instructions. Real
 # per-project context comes from material AI-DEV inspects under the global
 # policy: .ai/decisions.md, .ai/architecture.md, research/, the README and the
@@ -142,6 +151,24 @@ while [ $# -gt 0 ]; do
     # not cover. Refused rather than silently trusted.
     --settings|--settings=*|--agents|--agents=*|--mcp-config|--mcp-config=*|--plugin-dir|--plugin-dir=*|--plugin-url|--plugin-url=*)
       die "refusing ${1%%=*} — it injects configuration that --setting-sources does not govern, so it would open the boundary tests/project-isolation.test.sh measures. Run 'claude' directly if you mean it." ;;
+
+    # --add-dir does two things, and both of them are this launcher's subject.
+    #
+    #   1. It grants tool access to another directory. With
+    #      sandbox.autoAllowBashIfSandboxed, a sandboxed command writing inside
+    #      an allowed directory is approved with no dialog — so the flag
+    #      silently widens the set of paths that change without anyone being
+    #      asked, which is the one thing the posture is for.
+    #   2. Claude Code's own `--bare` help names it as the way to supply
+    #      "CLAUDE.md dirs". So it also loads instructions out of a directory
+    #      that went through none of the vetting `--setting-sources user` does.
+    #
+    # hooks/permission-broker.sh already refuses to hand it to a NESTED claude
+    # session (claude_ok), which is the same judgement; it was simply missing
+    # from the entry point where a human types it. A control enforced one level
+    # down and not at the front door is a control with a documented way round it.
+    --add-dir|--add-dir=*)
+      die "refusing ${1%%=*} — it grants tool access to another directory AND loads that directory's CLAUDE.md, so it widens both what may change without a dialog and what the session is told. Start the session from a directory that contains both trees, or run 'claude --add-dir ...' directly and own the consequences." ;;
 
     --aidev-help)
       awk 'NR>1 { if (!/^#/) exit; sub(/^# ?/,""); print }' "$0"; exit 0 ;;

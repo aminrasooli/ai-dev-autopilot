@@ -131,6 +131,26 @@ refuses "--plugin-url <url>"       --plugin-url https://example.invalid/p.zip
 refuses "--setting-sources user,project" --setting-sources user,project
 refuses "--setting-sources=user,project" "--setting-sources=user,project"
 
+# --add-dir is not configuration injection in the narrow sense, which is how it
+# survived this list. It is worse than the narrow sense: it grants tool access to
+# another directory — and under sandbox.autoAllowBashIfSandboxed a sandboxed
+# command writing inside an allowed directory is approved with NO dialog, so the
+# flag widens the set of paths that change without anyone being asked — and
+# Claude Code's own `--bare` help names it as the way to supply additional
+# "CLAUDE.md dirs", so it also loads instructions from an unvetted tree.
+#
+# hooks/permission-broker.sh (claude_ok) already refuses to hand it to a nested
+# claude session. The same judgement was missing at the front door, where a human
+# types it, which is the shape of a control with a documented way round it.
+refuses "--add-dir <dir>"          --add-dir /etc
+refuses "--add-dir=<dir>"          "--add-dir=/etc"
+refuses "--add-dir <two dirs>"     --add-dir /etc /var
+
+# Positive control: the flags either side of it in the CLI still pass through, so
+# the refusal above is a rule about --add-dir and not the launcher rejecting
+# anything it does not recognise.
+accepts "an unrecognised passthrough flag" "--verbose" --verbose
+
 # ----------------------------------------------- 6. the enforcement layer
 printf '\n%s6. managed policy, which also covers bare `claude`%s\n' "$B" "$N"
 if [ -f "$MANAGED_SRC" ] && grep -q '"disableBypassPermissionsMode"[[:space:]]*:[[:space:]]*"disable"' "$MANAGED_SRC"; then
