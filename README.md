@@ -67,7 +67,7 @@ This is not another coding agent. **It is the control plane that lets coding age
 
 ### Tested against the ugly cases
 
-**875** approval-broker assertions · **80** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
+**921** approval-broker assertions · **80** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
 
 Including hostile repository hooks, hostile MCP servers, `curl | bash`, credential exfiltration, browser-cookie access, keyrings, `docker.sock`, permission-bypass flags, shell line-continuation bypasses, symlink escapes, `..` traversal, executable Git configuration, malicious Codex configuration, arbitrary network egress, cron and systemd jobs scheduled to run after the session ends, and destructive host operations.
 
@@ -93,7 +93,7 @@ upgrade.
 
 | Suite | Assertions | What it establishes |
 | --- | ---: | --- |
-| `approval.test.sh` | 875 | routine work is allowed and everything else escalates, clause by clause |
+| `approval.test.sh` | 921 | routine work is allowed and everything else escalates, clause by clause |
 | `guard-portability.test.sh` | 80 | the framework self-protection rule and the deployed hook paths both follow `$AI_DEV_HOME`, not a hardcoded path; the ceiling fails closed; a line continuation does not split a command past the rules; the ceiling answers inside the timeout that would otherwise cancel it |
 | `permission-posture.test.sh` | 39 | every spelling of every permission-bypass flag is refused, and every flag that widens the session's scope or configuration — including `--add-dir`; the managed version floor is at least the version the control it protects needs |
 | `prompt-injection.test.sh` | 22 | injection payloads are refused deterministically |
@@ -343,7 +343,7 @@ into an allow, because escalation exits before Codex is consulted.
 | Category | Examples |
 | --- | --- |
 | Privilege | `sudo`, `doas`, `pkexec` |
-| Publication | `git push`, `npm publish`, `cargo publish`, `twine upload`, `gh release create` |
+| Publication | `git push`, `npm publish`, `cargo publish`, `twine upload`, and the forge CLIs — `gh pr create`/`merge`, `gh repo delete`, `gh secret set`, `gh workflow run`, `gh api` with a method or a body, and the `glab` equivalents |
 | Deployment | `terraform apply`/`destroy`, `kubectl delete`, `helm`, `vercel --prod`, `fly deploy` |
 | Destruction | `git reset --hard`, `git clean -fd`, history rewriting, `docker volume rm`, `DROP TABLE` |
 | Credentials | anything naming `~/.ssh`, `~/.aws`, `~/.gnupg`, a keyring, a password store or a browser profile |

@@ -26,6 +26,28 @@ Notable changes to AI Dev Autopilot. Format follows
   re-measures the worst admitted case against the timeout registered in the
   deployed settings.
 
+- **The forge CLIs no longer write to a remote without a human.** The critical
+  set caught `gh ... release ...` and nothing else, so `gh pr create`,
+  `gh pr merge`, `gh repo delete`, `gh secret set`, `gh workflow run` and
+  `gh api -X DELETE` were all approved with no dialog. Nothing here contains
+  any of it — this machine is unchanged, which is exactly why the local
+  controls had nothing to say. It was also a contradiction rather than only a
+  gap: `permissions.ask` already lists `Bash(gh pr create *)` and the guard
+  already asks for `gh release create`, and the broker — the layer that actually
+  answers the dialog — overrode both. Matched as `<noun> <verb>` adjacently, so
+  `gh pr list --search "create"` stays a read, as do `list`, `view`, `diff`,
+  `checks` and a `gh api` GET. `glab` is covered the same way.
+
+- **The sensitive-path screen no longer depends on punctuation.** The broad
+  local-dev fallback resolved an operand only when it began `/`, `~/`, `./` or
+  `../`, which is a guess about how a path is written rather than a test of what
+  it names — so `somebuildtool ./.env` escalated while `somebuildtool .env`, the
+  spelling everyone actually uses, was allowed. Same for
+  `.github/workflows/ci.yml`, `.git/config` and `.mcp.json`. Any token
+  containing a `/` or beginning with `.` is now resolved and checked; an
+  ordinary word still is not, which is what keeps the loop from spawning a
+  canonicalisation per argument.
+
 - **`socat`, mounts and namespace tools are now human-only.** `socat` was
   missing from the network-egress list that already carried `nc`, `ncat`, `ssh`
   and `rsync`, while being strictly more capable than any of them —

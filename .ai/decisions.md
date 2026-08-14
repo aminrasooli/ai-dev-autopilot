@@ -876,6 +876,57 @@ what will report if either side of that judgement stops holding.
 **Links.** `hooks/security-guard.sh` · `hooks/permission-broker.sh` ·
 `tests/guard-portability.test.sh` · `bin/doctor`
 
+## The layer that answers the dialog was overriding the layers that raised it
+
+**Problem.** Two unrelated screens in `hooks/permission-broker.sh` were deciding
+on the wrong thing, and both were found by probing rather than by reading.
+
+**The forge CLIs.** The critical set matched `gh ... release ...` and nothing
+else, so every other mutating verb was approved with no dialog: `gh pr create`,
+`gh pr merge`, `gh repo delete`, `gh secret set`, `gh workflow run`,
+`gh api -X DELETE`. Nothing in this framework contains any of them — the machine
+is unchanged, which is precisely why the local controls have nothing to say.
+
+That was a contradiction, not merely a gap. `permissions.ask` in
+`adapters/claude/settings.fragment.json` already lists `Bash(gh pr create *)`,
+and `hooks/security-guard.sh` already asks for `gh release create`. So the
+intent was written down in two places and the third — the layer that actually
+*answers* the dialog those rules raise — overrode both. A broker that can
+override the ask list is a broker that has to re-assert everything on it, which
+is what the "critical set is re-asserted here" comment at the top of the file
+already says; `gh` was simply missing from the re-assertion.
+
+**The sensitive-path screen.** `broad_safe_ok` resolved a token only when it
+began `/`, `~/`, `./` or `../`. That is a guess about punctuation, not a test of
+what a token names, and it made the same file answer differently:
+
+```
+somebuildtool ./.env                    escalate
+somebuildtool .env                      ALLOW      <- how anyone writes it
+somebuildtool .github/workflows/ci.yml  ALLOW      <- executes
+somebuildtool .git/config               ALLOW      <- an execution channel
+```
+
+**Decision.** `gh` and `glab` mutations join the critical set, matched as
+`<noun> <verb>` adjacently because that is the CLI's real grammar — a looser
+match would make `gh pr list --search "create"` a write. `gh api` is a GET until
+an option says otherwise, so only `-X/--method`, a field or a body match.
+
+For paths: resolve any token containing a `/` or beginning with `.`. An ordinary
+word cannot be a path that `is_sensitive` matches, so skipping those is not a
+gap — and it is what keeps the loop from spawning a canonicalisation per
+argument on a long command line, which matters now that the subject can be
+64 KiB.
+
+**Confidence: high.** `tests/approval.test.sh` pins twelve forge mutations
+interactively and unattended, eight read forms that must stay silent — including
+`--search "create"`, the case a looser match would have caught — nine spellings
+of a sensitive path, and five positive controls that tightening the screen did
+not turn ordinary operands into escalations.
+
+**Links.** `hooks/permission-broker.sh` · `adapters/claude/settings.fragment.json` ·
+`tests/approval.test.sh`
+
 ## A rule that moves the ground the other rules stand on is not an ordinary rule
 
 **Problem.** Every containment decision in `hooks/permission-broker.sh` is made

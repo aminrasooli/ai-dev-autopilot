@@ -1068,6 +1068,73 @@ for c in 'crontab /tmp/evil.cron' \
   expect deny  "$(bcmd "$c" 1)"   "overnight denies:      $c"
 done
 
+# --- 4d. forge CLIs write to the remote, not to this machine --------
+#
+# The critical set caught `gh ... release ...` and nothing else, so every other
+# mutating verb was approved with no dialog — a pull request, a merge, deleting
+# a repository, writing a secret, an arbitrary API mutation, triggering a
+# workflow. Nothing here contains any of it: this machine is unchanged, which is
+# exactly why the local controls have nothing to say about it.
+#
+# It was a contradiction rather than only a gap. settings.fragment.json lists
+# `Bash(gh pr create *)` under permissions.ask and the guard asks for
+# `gh release create`, so the intent was written down twice — and this file, the
+# one that actually answers the dialog, overrode both with an allow.
+printf '\n%s    forge CLIs: writing to the remote is a human decision%s\n' "$B" "$N"
+for c in 'gh pr create --title x --body y' \
+         'gh pr merge 12 --squash' \
+         'gh repo delete me/x --yes' \
+         'gh secret set NPM_TOKEN --body xxx' \
+         'gh api -X DELETE /repos/me/x' \
+         'gh api /repos/me/x -f name=y' \
+         'gh workflow run deploy.yml' \
+         'gh issue comment 1 --body hi' \
+         'gh auth token' \
+         'gh repo clone me/x' \
+         'glab mr create' \
+         'glab repo delete me/x' ; do
+  expect ""    "$(bcmd "$c")"     "interactive escalates: $c"
+  expect deny  "$(bcmd "$c" 1)"   "overnight denies:      $c"
+done
+
+# Matched as `<noun> <verb>` adjacently, which is the CLI's real grammar. A
+# verb-shaped word anywhere in a read command must not turn it into a write —
+# `--search "create"` is the case that a looser match would have caught.
+expect allow "$(bcmd 'gh pr list')"                    "...while listing pull requests is a read"
+expect allow "$(bcmd 'gh pr list --search "create"')"  "...and a verb inside a search string is not a verb"
+expect allow "$(bcmd 'gh pr view 12')"                 "...and viewing one is a read"
+expect allow "$(bcmd 'gh pr diff 12')"                 "...as is its diff"
+expect allow "$(bcmd 'gh run list')"                   "...and listing workflow runs is a read"
+expect allow "$(bcmd 'gh api /repos/me/x')"            "...and gh api with no mutating option is a GET"
+expect allow "$(bcmd 'gh auth status')"                "...and auth status only reports"
+expect allow "$(bcmd 'glab mr list')"                  "...and the GitLab CLI reads the same way"
+
+# --- 4e. a sensitive file is sensitive however it is spelled --------
+#
+# The broad fallback resolved a token only when it began `/`, `~/`, `./` or
+# `../` — a guess about punctuation rather than a test of what the token names.
+# So the same file answered differently depending on how it was written, and the
+# spelling everyone actually uses was the one that got through.
+printf '\n%s    the sensitive-path screen does not depend on how a path is punctuated%s\n' "$B" "$N"
+expect ""    "$(bcmd 'somebuildtool ./.env')"                       "baseline: ./.env was already caught"
+expect ""    "$(bcmd 'somebuildtool .env')"                         "...and .env, written the way anyone writes it, is caught too"
+expect ""    "$(bcmd 'somebuildtool .env.local')"                   "...and .env.local"
+expect ""    "$(bcmd 'somebuildtool .github/workflows/ci.yml')"     "...and a workflow file, which executes"
+expect ""    "$(bcmd 'somebuildtool .git/config')"                  "...and .git/config, which is an execution channel"
+expect ""    "$(bcmd 'somebuildtool .mcp.json')"                    "...and .mcp.json"
+expect ""    "$(bcmd 'somebuildtool --config=.env')"                "...and the same path as an attached option value"
+expect ""    "$(bcmd 'somebuildtool -c.env')"                       "...and in the attached short form"
+expect ""    "$(bcmd 'tar -xf x.tar -C .github/workflows')"         "...and as an extraction target"
+
+# Positive controls: tightening a screen must not be a way to escalate
+# everything. An ordinary word cannot name a sensitive path and is not resolved,
+# which is also what stops this from spawning a canonicalisation per argument.
+expect allow "$(bcmd 'somebuildtool src/main.py')"                  "...while an ordinary source path is still routine"
+expect allow "$(bcmd 'somebuildtool build')"                        "...and a bare word is not treated as a path at all"
+expect allow "$(bcmd 'somebuildtool --verbose test')"               "...and neither is a bare word after a flag"
+expect allow "$(bcmd 'somebuildtool ../sibling/file.txt')"          "...and an ordinary relative path outside the repo is a read"
+expect allow "$(bcmd 'vite build --outDir dist')"                   "...and an ordinary build is untouched"
+
 # --- 4c. the ground every other rule stands on ----------------------
 #
 # Every containment decision in this broker canonicalises a path and asks

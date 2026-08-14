@@ -530,6 +530,38 @@ if m '\bdocker\b[^;|&]*\b(run|exec|build|create|kill|rm|rmi|start|stop|restart|p
 fi
 
 # =====================================================================
+# 1g. FORGE CLIs — `gh` and `glab` write to the remote, not to this machine.
+#
+# The critical set above caught `gh ... release ...` and nothing else, so every
+# other mutating verb of the GitHub CLI was approved with no dialog:
+#
+#   gh pr create      gh pr merge         gh repo delete
+#   gh secret set     gh api -X DELETE    gh workflow run
+#
+# Two of those are publication, one destroys a remote repository, one writes a
+# credential to GitHub, one is an arbitrary API mutation and one triggers remote
+# execution. None of it is contained by anything here: the machine is unchanged,
+# which is exactly why the local controls have nothing to say about it.
+#
+# It was also a contradiction inside this framework rather than merely a gap.
+# `adapters/claude/settings.fragment.json` lists `Bash(gh pr create *)` under
+# permissions.ask, and hooks/security-guard.sh asks for `gh release create`. So
+# the intent was written down in two places, and the third — this file, the one
+# that actually answers the dialog — overrode both with an allow.
+#
+# Matched as `<noun> <verb>` adjacently, which is the CLI's real grammar, so
+# `gh pr list --search "create"` stays a read. The read verbs are absent by
+# construction: list, view, status, diff, checks, download.
+#
+# `gh api` is a GET until an option says otherwise, so only the mutating options
+# are matched — `-X/--method`, a field, or a request body.
+if m '\bgh\b[^;|&]*\b(pr|issue|repo|release|secret|variable|workflow|run|gist|ruleset|label|codespace|extension|auth|ssh-key|gpg-key)[[:space:]]+(create|merge|close|reopen|edit|comment|delete|remove|rename|archive|transfer|set|upload|run|enable|disable|cancel|rerun|sync|fork|clone|ready|review|add|login|logout|refresh|token|setup-git)\b' \
+  || m '\bgh\b[^;|&]*\bapi\b[^;|&]*([[:space:]]-X\b|--method\b|[[:space:]]-f\b|[[:space:]]-F\b|--field\b|--raw-field\b|--input\b)' \
+  || m '\bglab\b[^;|&]*\b(mr|issue|repo|release|variable|snippet|ci|auth)[[:space:]]+(create|merge|close|delete|remove|edit|set|upload|run|retry|cancel|login|logout)\b' ; then
+  escalate forge-mutation "This writes to a remote forge — a pull request, a merge, a repository, a secret, a workflow run or an arbitrary API mutation. Nothing on this machine contains it, which is exactly why it is a human decision."
+fi
+
+# =====================================================================
 # 1c. JOURNALCTL — modifying operations delete or move host logs.
 # --vacuum-*, --rotate, --sync, --flush, --relinquish-var, --setup-keys,
 # --update-catalog change persistent system state on this machine. The
@@ -2083,30 +2115,45 @@ broad_safe_ok() { # $1 clause (already trimmed & wrapper-stripped by seg_ok)
   # .git/, .github/workflows, .claude, .ssh, credentials, etc.), refuse.
   # Absolute paths outside the workspace are fine for reads and are
   # constrained for writes by the sandbox's write allowlist.
+  #
+  # A SENSITIVE FILE IS SENSITIVE HOWEVER IT IS SPELLED
+  #
+  # This used to resolve a token only when it began `/`, `~/`, `./` or `../`,
+  # which is a guess about how a path is written rather than a test of what it
+  # names. It made the screen answer differently for the same file:
+  #
+  #   somebuildtool ./.env                    escalated
+  #   somebuildtool .env                      ALLOWED
+  #   somebuildtool .github/workflows/ci.yml  ALLOWED
+  #
+  # and `.env` is how anybody actually writes it. So the test is now what the
+  # token could name, not how it is punctuated: anything containing a `/` or
+  # beginning with `.` is resolved and checked. An ordinary word — `build`,
+  # `test`, a package name — cannot be a path in the working directory that
+  # is_sensitive would match, and is skipped, which is also what keeps this loop
+  # from spawning a canonicalisation per argument on a long command line.
+  sensitive_operand() { # $1 token -> 0 when it names a sensitive path
+    case "$1" in
+      */*|.*) : ;;
+      *) return 1 ;;
+    esac
+    local q; q="$(canon "$1")" || return 1
+    [ -n "$q" ] || return 1
+    is_sensitive "$q"
+  }
+
   set -f
   # shellcheck disable=SC2086
   set -- $s
   shift
   for tok in "$@"; do
     case "$tok" in
-      --*=*)
-        val="${tok#*=}"
-        case "$val" in
-          /*|~/*|./*|../*)
-            p="$(canon "$val")"; [ -n "$p" ] || continue
-            is_sensitive "$p" && return 1 ;;
-        esac ;;
-      -[a-zA-Z]?*)
-        val="${tok#??}"
-        case "$val" in
-          /*|~/*|./*|../*)
-            p="$(canon "$val")"; [ -n "$p" ] || continue
-            is_sensitive "$p" && return 1 ;;
-        esac ;;
-      /*|~/*|./*|../*)
-        p="$(canon "$tok")"; [ -n "$p" ] || continue
-        is_sensitive "$p" && return 1 ;;
+      --*=*)        val="${tok#*=}" ;;
+      -[a-zA-Z]?*)  val="${tok#??}" ;;
+      -*)           continue ;;
+      *)            val="$tok" ;;
     esac
+    sensitive_operand "$val" && return 1
   done
 
   return 0
