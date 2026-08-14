@@ -162,6 +162,90 @@ else
       "no '3)' arm after the doctor invocation — an undeployed machine would report CONTRACT TESTS FAILED again"
 fi
 
+
+# --- 5. host setup: absent before deployment is pending, broken after is fail ---
+#
+# GitHub's ubuntu-24.04 runner can have bubblewrap installed while AppArmor
+# prevents unprivileged namespaces. That is a host prerequisite, not a violated
+# deployed contract on a fresh clone. Once this hub IS deployed, the exact same
+# condition must fail hard.
+printf '\n%s5. host prerequisites are pending before deployment and failures after%s\n' "$B" "$N"
+
+FAKEBIN="$WORK/userns-bin"
+mkdir -p "$FAKEBIN"
+
+cat > "$FAKEBIN/sysctl" <<'EOF'
+#!/usr/bin/env bash
+printf '0\n'
+EOF
+
+cat > "$FAKEBIN/bwrap" <<'EOF'
+#!/usr/bin/env bash
+exit 1
+EOF
+
+chmod +x "$FAKEBIN/sysctl" "$FAKEBIN/bwrap"
+
+run_userns_case() {
+  OUT="$(env HOME="$1" PATH="$FAKEBIN:$PATH" \
+    bash "$DOCTOR" --quick --only sandbox:userns 2>&1)"
+  RC=$?
+}
+
+USERNS_FRESH="$WORK/userns-fresh"
+mkdir -p "$USERNS_FRESH"
+
+run_userns_case "$USERNS_FRESH"
+
+userns_line="$(printf '%s\n' "$OUT" |
+  grep -F 'bubblewrap actually starts a namespace' |
+  head -1)"
+
+case "$userns_line" in
+  *PEND*)
+    ok "undeployed: failed bubblewrap namespace smoke test is pending"
+    ;;
+  *)
+    bad "undeployed: failed bubblewrap namespace smoke test is pending" \
+      "got: ${userns_line:-<missing>}"
+    ;;
+esac
+
+if [ "$RC" -eq 3 ]; then
+  ok "undeployed host prerequisite exits 3"
+else
+  bad "undeployed host prerequisite exits 3" "exit $RC"
+fi
+
+USERNS_DEPLOYED="$WORK/userns-deployed"
+mkdir -p "$USERNS_DEPLOYED/.claude"
+
+jq -n --arg c "bash $AI_DEV_HOME/hooks/security-guard.sh" \
+  '{hooks:{PreToolUse:[{matcher:"Bash",hooks:[{type:"command",command:$c}]}]}}' \
+  > "$USERNS_DEPLOYED/.claude/settings.json"
+
+run_userns_case "$USERNS_DEPLOYED"
+
+userns_line="$(printf '%s\n' "$OUT" |
+  grep -F 'bubblewrap actually starts a namespace' |
+  head -1)"
+
+case "$userns_line" in
+  *FAIL*)
+    ok "deployed: failed bubblewrap namespace smoke test is a real failure"
+    ;;
+  *)
+    bad "deployed: failed bubblewrap namespace smoke test is a real failure" \
+      "got: ${userns_line:-<missing>}"
+    ;;
+esac
+
+if [ "$RC" -eq 1 ]; then
+  ok "deployed broken host prerequisite exits 1"
+else
+  bad "deployed broken host prerequisite exits 1" "exit $RC"
+fi
+
 printf '\n'
 if [ "$FAIL" -eq 0 ]; then printf '%s%d passed%s\n' "$G" "$PASS" "$N"; exit 0; fi
 printf '%s%d passed · %d FAILED%s\n' "$R" "$PASS" "$FAIL" "$N"; exit 1
