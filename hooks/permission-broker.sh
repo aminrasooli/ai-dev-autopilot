@@ -464,9 +464,42 @@ if m '(^|[;&|[:space:]])(sudo|doas)([[:space:]]|$)|\bpkexec\b' \
   || m '\bgit\b[^;|&]*\b(reset[^;|&]*--hard|clean[^;|&]*-[[:alnum:]]*[fd]|filter-branch|filter-repo)\b' \
   || m '\b(shutdown|reboot|poweroff|halt)\b|\bsystemctl\b[^;|&]*\b(stop|disable|mask)\b' \
   || m '\bufw\b[^;|&]*disable|\bsetenforce\b[[:space:]]+0|\biptables\b[^;|&]*-F\b' \
-  || m '\b(wget|nc|ncat|scp|sftp|rsync|ssh|telnet)\b' \
+  || m '\b(wget|nc|ncat|socat|scp|sftp|rsync|ssh|telnet)\b' \
   || m '\$\(|`|<\(|>\(|\beval\b|\bexec\b|\bsource\b|\bbase64\b[^;|&]*-d|\bxxd\b[^;|&]*-r' ; then
   escalate critical "This is on the human-only list (privilege, credentials, publication, deployment, destruction, network egress or shell obfuscation)."
+fi
+
+# =====================================================================
+# 1f. THE GROUND EVERY OTHER RULE STANDS ON
+#
+# Everything below decides containment by canonicalising a path and asking
+# whether it is inside the workspace. That reasoning has one premise: that a
+# path means the same thing after the command runs as it did when it was
+# classified. Two families of tool make that premise false rather than break
+# any individual rule:
+#
+#   mount / umount / fusermount / pivot_root
+#       A bind mount changes what a path resolves to. `canon`, `in_ws`,
+#       `is_sensitive` and every denyWrite entry are then reasoning about a
+#       location that no longer holds what they think it holds.
+#
+#   unshare / nsenter / chroot / setpriv / capsh
+#       These launch an arbitrary program — the same reason `env` and `xargs`
+#       are refused below — and they launch it in a different namespace,
+#       credential set or root. So argv[0] does not say what runs, and the
+#       environment it runs in is not the one any of this was measured against.
+#
+# This screen sits with the critical set, above Codex, deliberately: a verdict
+# that these "only read" is exactly the mistake available here, and a rule that
+# invalidates the containment argument itself must not be answerable by a model.
+#
+# `mount` and `umount` are anchored to a clause boundary rather than matched as
+# words anywhere, because they are ordinary English inside other tokens:
+# `npm run mount-test` and `cat /proc/mounts` are not mounts.
+if m '(^|[;&|][[:space:]]*)(mount|umount)([[:space:]]|$)' \
+  || m '\b(fusermount3?|pivot_root|switch_root)\b' \
+  || m '\b(unshare|nsenter|chroot|setpriv|capsh)\b' ; then
+  escalate containment-primitive "This changes what a path resolves to, or runs a program in a different namespace, credential set or root — so it moves the ground every other rule in this broker stands on. A human decides."
 fi
 
 # =====================================================================
