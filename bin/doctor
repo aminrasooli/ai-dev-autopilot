@@ -609,10 +609,10 @@ fi
 if want "sandbox:userns"; then
   v="$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || echo 0)"
   if [ "$v" = "1" ] && [ ! -e /etc/apparmor.d/bwrap ]; then
-    bad "bubblewrap can create user namespaces" "AppArmor restricts unprivileged userns and /etc/apparmor.d/bwrap is absent"
+    needs_setup "bubblewrap can create user namespaces" "AppArmor restricts unprivileged userns and /etc/apparmor.d/bwrap is absent"
   elif bwrap --ro-bind / / --dev /dev --unshare-all true 2>/dev/null; then
     ok "bubblewrap actually starts a namespace"
-  else bad "bubblewrap actually starts a namespace" "bwrap smoke test failed"; fi
+  else needs_setup "bubblewrap actually starts a namespace" "bwrap smoke test failed"; fi
 fi
 if want "sandbox:seccomp"; then
   if [ -d "$HOME/.npm-global/lib/node_modules/@anthropic-ai/sandbox-runtime" ] \
