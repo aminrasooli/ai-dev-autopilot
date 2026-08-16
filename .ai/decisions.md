@@ -463,6 +463,61 @@ path the caller chose and must be proven.
 
 **Links.** `hooks/permission-broker.sh` · `tests/approval.test.sh`
 
+## An empty value is not a program, for the one key where git says so
+
+**Problem.** `git_config_gate` screens inherited `GIT_CONFIG_*` entries with the
+same execution test the file-backed configuration gets. `credential.helper` is
+on that list because its value names a program. The daily runner exports
+
+```
+GIT_CONFIG_COUNT=6  GIT_CONFIG_KEY_0=credential.helper  GIT_CONFIG_VALUE_0=
+```
+
+to stop git prompting for credentials it does not have, and the gate read that
+as an execution channel. Since the gate is deliberately not partitioned by verb,
+the result was that **every** git command escalated: 95 of
+`tests/approval.test.sh`'s assertions failed on the machine the project's own
+unattended runs happen on, and `git status`, `git diff`, `git add` and
+`git commit` each cost a dialog in the runs least able to answer one.
+
+That is not conservatism, it is the failure mode this file warns about one
+section up — "sandboxes commonly export `GIT_CONFIG_COUNT` themselves, so
+'present => escalate' would escalate every git command on the machine and the
+control would be switched off within a day". The `safe.directory` half of that
+prediction was handled. The empty-helper half was not.
+
+**Options.**
+
+- **A. Exempt an empty value for every program-valued key.** One rule, no list.
+- **B. Exempt an empty value only where git documents it as a disable.**
+- **C. Trust the inherited environment tier wholesale**, on the grounds that it
+  is the human's shell rather than the classified command line.
+
+**Decision: B.** A is wrong on its own terms: gitcredentials(7) says of this key
+that "if `credential.helper` is configured to the empty string, this resets the
+helper list to empty", so the empty value is *provably* not a program — but git
+documents no such thing for `core.hooksPath`, where an empty value is a **path**,
+and an empty path is not provably nowhere. Generalising would have been the same
+"a rule that reads plausible" mistake the classifier rules forbid. C is rejected
+because the environment reaches this hook through a harness that is itself
+scriptable; the tier is more trusted than the command line, not trusted.
+
+**What did not change.** The command-line route. `GIT_CONFIG_COUNT=1
+GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0= git status` still
+escalates on the `SEG_ASSIGN` screen, because an assignment written in front of
+the command being classified is chosen by whatever is driving the session. The
+two routes were never the same trust level and the exemption must not blur them.
+
+**Confidence: high.** `tests/approval.test.sh` section 17 pins the shape that
+motivated it, the per-URL spelling of the same key, both writing and reading
+verbs, and four negative controls — a helper naming a program, a `!`-prefixed
+shell helper, an empty `core.pager` and an empty `core.hooksPath` — plus the
+command-line route staying refused. The suite went from 826 passed / 95 failed
+to 929 passed on the runner, which is the measurement, not a side effect.
+
+**Links.** `hooks/permission-broker.sh` (`git_cfg_entry_dangerous`) ·
+`tests/approval.test.sh`
+
 ## Git transport is demoted, not parsed
 
 **Problem.** Repository-local configuration is an execution channel for
