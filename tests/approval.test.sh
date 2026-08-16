@@ -820,6 +820,36 @@ expect ""    "$(bcmd_env 'git status' "GIT_CONFIG_PARAMETERS='core.pager=/tmp/ev
 expect allow "$(bcmd_env 'git status' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0=/x)" \
                                                        "...while an inert inherited injection is allowed, as a sandbox that exports one requires"
 
+# AN EMPTY CREDENTIAL HELPER IS A RESET, NOT A PROGRAM
+#
+# gitcredentials(7): "If credential.helper is configured to the empty string,
+# this resets the helper list to empty". It is the spelling that guarantees no
+# program runs, and it is what a CI runner, a container image and this project's
+# own unattended runner export to stop git prompting. Classified as an execution
+# channel it made git_config_gate refuse on every invocation, so `git status`,
+# `git diff`, `git add` and `git commit` each cost a dialog on precisely the
+# machines with nobody to answer one.
+expect allow "$(bcmd_env 'git status' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0=)" \
+                                                       "an inherited empty credential.helper is a documented reset and stays routine"
+expect allow "$(bcmd_env 'git commit -m wip' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0=)" \
+                                                       "...on a writing verb too, since the gate is not partitioned by verb"
+expect allow "$(bcmd_env 'git status' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0='credential.https://example.com.helper' GIT_CONFIG_VALUE_0=)" \
+                                                       "...including the per-URL spelling of the same key"
+# The exemption is exactly one key wide, and it is the value that earns it.
+expect ""    "$(bcmd_env 'git status' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0="$WORK/evil")" \
+                                                       "control: a credential.helper that names a program still escalates"
+expect ""    "$(bcmd_env 'git status' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0='!sh -c id')" \
+                                                       "control: a !-prefixed shell helper still escalates"
+expect ""    "$(bcmd_env 'git status' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.pager GIT_CONFIG_VALUE_0=)" \
+                                                       "control: an empty core.pager is NOT exempted — git says nothing about it, so it stays unproven"
+expect ""    "$(bcmd_env 'git status' GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=)" \
+                                                       "control: an empty core.hooksPath is a path, not a disabled program, and stays unproven"
+# The two routes are not the same trust level, and the exemption must not blur
+# them: written in front of the command being classified, the assignment is
+# chosen by whatever is driving the session.
+expect ""    "$(bcmd 'GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0= git status')" \
+                                                       "control: the same entry written on the command line still escalates"
+
 # --- 5. the hook check this fix must not have disturbed --------------
 printf '#!/bin/sh\nexit 0\n' > "$REPO/.git/hooks/pre-commit"
 chmod +x "$REPO/.git/hooks/pre-commit"

@@ -1369,6 +1369,32 @@ git_cfg_entry_dangerous() { # $1 key  $2 value  $3 has-value -> 0 = can execute
   # shell": aliases, submodule.<name>.update, and others. One rule covers them.
   case "$v" in '!'*) return 0 ;; esac
 
+  # AN EMPTY CREDENTIAL HELPER IS THE DOCUMENTED WAY TO SWITCH HELPERS OFF
+  #
+  # gitcredentials(7): "If credential.helper is configured to the empty string,
+  # this resets the helper list to empty (so you may override a helper set by a
+  # lower-priority config file...)". So the empty value is provably not a
+  # program — it is the spelling that guarantees no program runs.
+  #
+  # Reading it as an execution channel is not the conservative choice, it is the
+  # expensive wrong one. `GIT_CONFIG_COUNT=... credential.helper=` is what a CI
+  # runner, a container image and this project's own unattended runner all
+  # export to stop git prompting for credentials, and the entry is inherited
+  # rather than written by the command being classified. Treated as dangerous,
+  # it makes git_config_gate refuse on EVERY invocation, so `git status`,
+  # `git diff`, `git add` and `git commit` — the four most frequent commands in
+  # this workflow — each cost a dialog, on exactly the machines that are least
+  # able to answer one.
+  #
+  # The exemption is deliberately not generalised to every program-valued key
+  # below. An empty value is inert for this key because git says so; for
+  # `core.hooksPath` an empty value is a *path*, and an empty path is not
+  # provably nowhere. A key that is unproven stays dangerous.
+  case "$k" in
+    credential.helper|credential.*.helper)
+      [ "${3:-1}" = 1 ] && [ -z "$v" ] && return 1 ;;
+  esac
+
   case "$k" in
     # a file this gate has not read decides the rest of the configuration
     include.*|includeif.*) return 0 ;;

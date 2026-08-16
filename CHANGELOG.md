@@ -133,6 +133,25 @@ Notable changes to AI Dev Autopilot. Format follows
 
 ### Fixed
 
+- **An empty `credential.helper` escalated every git command.** The broker
+  screens inherited `GIT_CONFIG_*` entries with the same execution test the
+  file-backed configuration gets, and `credential.helper` is on that list
+  because its value names a program. But the *empty* value is not a program:
+  gitcredentials(7) documents it as the way to **reset the helper list to
+  empty**, and it is exactly what a CI runner, a container image and this
+  project's own unattended runner export to stop git prompting for credentials.
+  Read as an execution channel, it made `git_config_gate` refuse on every
+  invocation, so `git status`, `git diff`, `git add` and `git commit` — the four
+  most frequent commands in this workflow — each cost a dialog, on precisely the
+  machines with nobody there to answer one. Measured on the daily runner, it was
+  95 of `approval.test.sh`'s assertions. The exemption is one key wide and the
+  value is what earns it: a helper that names a program still escalates, a
+  `!`-prefixed shell helper still escalates, and an empty `core.pager` or
+  `core.hooksPath` is **not** exempted, because git documents nothing that makes
+  either provably inert. The command-line route is unchanged — an assignment
+  written in front of the command being classified is chosen by whatever is
+  driving the session, and still escalates.
+
 - **`aidev` passed `--add-dir` straight through.** It does two things the
   launcher exists to prevent: it grants tool access to another directory — and
   with `sandbox.autoAllowBashIfSandboxed`, a sandboxed command writing inside an
