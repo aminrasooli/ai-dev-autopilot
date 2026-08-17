@@ -177,9 +177,17 @@ CMD=""
 FILE=""
 case "$TOOL_NAME" in
   Bash|BashOutput)          CMD="$(json_get '.tool_input.command')" ;;
-  Read|Edit|Write|NotebookEdit)
-                            FILE="$(json_get '.tool_input.file_path')" ;;
+  Read|Edit|Write)          FILE="$(json_get '.tool_input.file_path')" ;;
   Glob|Grep)                FILE="$(json_get '.tool_input.path')" ;;
+  # The notebook tools carry their subject in `notebook_path`, not `file_path`.
+  # Reading the wrong field here is not a weaker rule, it is no rule: the
+  # subject comes back empty and the guard reaches `pass` having tested
+  # nothing, for exactly the tools the settings fragment registers this hook
+  # for. `file_path` is kept as a fallback so a build that ever spells it the
+  # other way is screened rather than waved through.
+  NotebookEdit|NotebookRead)
+                            FILE="$(json_get '.tool_input.notebook_path')"
+                            [ -n "$FILE" ] || FILE="$(json_get '.tool_input.file_path')" ;;
   *)                        pass ;;
 esac
 
@@ -267,12 +275,13 @@ fi
     "$AI_DEV_HOME"|"$AI_DEV_HOME"/*|"$HOME/.ai-dev"|"$HOME"/.ai-dev/*)
       case "$CWD" in
         "$AI_DEV_HOME"|"$AI_DEV_HOME"/*) pass ;;
-        # Read, Glob and Grep cannot write anything, and the rule being enforced
-        # here is "the framework is READ-ONLY from a project session". Refusing
-        # them would contradict the message they are refused with, and would
-        # make the hub unsearchable from the projects it governs, for no
-        # security gain. The credential rules above have already run.
-        *) case "$TOOL_NAME" in Read|Glob|Grep) pass ;; esac
+        # Read, Glob, Grep and NotebookRead cannot write anything, and the rule
+        # being enforced here is "the framework is READ-ONLY from a project
+        # session". Refusing them would contradict the message they are refused
+        # with, and would make the hub unsearchable from the projects it
+        # governs, for no security gain. The credential rules above have
+        # already run. NotebookEdit writes, so it stays on the deny path.
+        *) case "$TOOL_NAME" in Read|Glob|Grep|NotebookRead) pass ;; esac
            deny framework-write "$FRAMEWORK_MSG" ;;
       esac ;;
   esac

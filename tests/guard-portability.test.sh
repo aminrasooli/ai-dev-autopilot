@@ -100,6 +100,44 @@ expect ""   "$(gfile "$PROJECT" Read  "$HUB/core/security.md")"        "Read of 
 expect ""   "$(gpath "$PROJECT" Glob "$HUB/core")"                     "Glob over the hub is a read, and is still allowed"
 expect ""   "$(gpath "$PROJECT" Grep "$HUB/core")"                     "Grep over the hub is a read, and is still allowed"
 
+# --- 3b. the notebook tools carry their subject in notebook_path --------------
+# NotebookEdit does not send `file_path`; its path arrives in `notebook_path`
+# (verified against the tool schema of the running build). A guard that reads
+# the wrong field gets an empty subject and reaches its final `pass` having
+# tested nothing — so every rule in this file was absent for exactly one of the
+# tools the settings fragment registers the hook for. The baseline drives a
+# copy of the SAME shipped guard with the extraction reverted to the pre-fix
+# field, and asserts the payload really got through it, so this section cannot
+# pass by asserting something that was never broken.
+printf '\n%s3b. notebook tools carry their subject in notebook_path%s\n' "$B" "$N"
+gnb() { decide "$1" "$2" "{\"notebook_path\":\"$(jstr "$3")\"}"; }
+
+OLDGUARD="$WORK/oldshape-guard.sh"
+sed 's/notebook_path/file_path/g' "$GUARD" > "$OLDGUARD"
+if cmp -s "$GUARD" "$OLDGUARD"; then
+  bad "baseline guard with the pre-fix extraction differs from the shipped one" \
+      "the mutation did not apply — the shipped guard no longer reads notebook_path?"
+else
+  ok "baseline guard with the pre-fix extraction differs from the shipped one"
+fi
+old_gnb() { # cwd tool path -> verdict from the pre-fix guard
+  printf '{"hook_event_name":"PreToolUse","tool_name":"%s","cwd":"%s","tool_input":{"notebook_path":"%s"}}' \
+      "$2" "$1" "$(jstr "$3")" \
+    | env AI_DEV_UNATTENDED=0 AI_DEV_OVERNIGHT=0 AI_DEV_HOME="$HUB" bash "$OLDGUARD" 2>/dev/null \
+    | grep -o '"permissionDecision":"[a-z]*"' | head -1 | sed 's/.*:"//;s/"//'
+}
+expect ""   "$(old_gnb "$PROJECT" NotebookEdit "$HUB/core/policy.ipynb")" \
+    "baseline: the pre-fix guard waves a hub NotebookEdit through"
+
+expect deny "$(gnb "$PROJECT" NotebookEdit "$HUB/core/policy.ipynb")"  "NotebookEdit of a hub notebook is denied like Edit"
+expect deny "$(gnb "$PROJECT" NotebookEdit '$AI_DEV_HOME/core/x.ipynb')" "...for the \$AI_DEV_HOME spelling too"
+expect deny "$(gnb "$PROJECT" NotebookEdit "$HOME/.ssh/x.ipynb")"      "a notebook under a credential path is denied, whatever the tool"
+expect deny "$(gnb "$PROJECT" NotebookRead "$HOME/.aws/x.ipynb")"      "...and reading one is denied like Read"
+expect deny "$(gfile "$PROJECT" NotebookEdit "$HUB/core/policy.ipynb")" "a build that spells the subject file_path is still screened"
+expect ""   "$(gnb "$PROJECT" NotebookRead "$HUB/core/policy.ipynb")"  "NotebookRead of a hub notebook is a read, and is still allowed"
+expect ""   "$(gnb "$HUB" NotebookEdit "$HUB/core/policy.ipynb")"      "from inside the hub, NotebookEdit is allowed"
+expect ""   "$(gnb "$PROJECT" NotebookEdit "$PROJECT/analysis.ipynb")" "an ordinary project notebook is untouched"
+
 # --- 4. the rule is a boundary, not a blanket ---------------------------------
 # If these denied too, the test above would pass for the wrong reason.
 printf '\n%s4. positive controls — the boundary has two sides%s\n' "$B" "$N"

@@ -174,8 +174,14 @@ fi
 
 # A name no hook emits and no CLI defines. Without it, "every name was found"
 # could equally mean the search matches everything.
+#
+# `notebook_path` is consumed rather than emitted: it is the field NotebookEdit
+# carries its subject in, and the one field whose rename would re-open a hole
+# in the guard's ceiling silently (an empty subject is a `pass`, not an error).
+# The generic consumed names (`command`, `file_path`, `path`) are too common in
+# any executable for their presence to mean anything, so they are not pinned.
 CANARY="aidevAbsentHookKeyDoNotDefine"
-NAMES="hookSpecificOutput|hookEventName|PreToolUse|PermissionRequest|SessionStart|permissionDecision|permissionDecisionReason|additionalContext|behavior|updatedInput|updatedPermissions|interrupt"
+NAMES="hookSpecificOutput|hookEventName|PreToolUse|PermissionRequest|SessionStart|permissionDecision|permissionDecisionReason|additionalContext|behavior|updatedInput|updatedPermissions|interrupt|notebook_path"
 
 if [ -z "$CLAUDE_BIN" ] || [ ! -r "$CLAUDE_BIN" ]; then
   defer "the installed Claude Code contains the hook vocabulary" \

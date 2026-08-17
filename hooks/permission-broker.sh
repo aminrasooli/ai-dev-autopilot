@@ -122,6 +122,11 @@ CWD="$(json_get '.cwd')"; [ -n "$CWD" ] || CWD="$PWD"
 CMD="$(json_get '.tool_input.command')"
 FILE="$(json_get '.tool_input.file_path')"
 [ -n "$FILE" ] || FILE="$(json_get '.tool_input.path')"
+# The notebook tools carry their subject in `notebook_path`. Without this line
+# every NotebookEdit reached section 4 with no path and escalated as
+# edit-no-path — the safe direction, but it made the human approve every
+# routine notebook edit the broker exists to classify.
+[ -n "$FILE" ] || FILE="$(json_get '.tool_input.notebook_path')"
 URL="$(json_get '.tool_input.url')"
 QUERY="$(json_get '.tool_input.query')"
 SUBJECT="${CMD:-${FILE:-${URL:-$QUERY}}}"
@@ -834,9 +839,15 @@ host_matches() { # $1 host  $2 pattern
 # 4. PER-TOOL DETERMINISTIC ALLOW — fail-closed, positive proof required.
 # =====================================================================
 case "$TOOL_NAME" in
-  Glob|Grep|NotebookRead|TodoWrite|Task)
+  Glob|Grep|TodoWrite|Task)
     allow read-only "Searching and planning change nothing; credential paths were denied upstream by PreToolUse." ;;
-  Read)
+  # NotebookRead sits with Read, not with Glob/Grep: it names a concrete file,
+  # so the file can be checked. It used to be allowed from the arm above under
+  # a justification that was false for it — "credential paths were denied
+  # upstream by PreToolUse" — because neither hook read `notebook_path`, so a
+  # notebook under ~/.aws was allowed here while the same directory escalated
+  # for Read. A read tool that names a path gets the path screened.
+  Read|NotebookRead)
     [ -n "$FILE" ] || allow read-only "A read with no path argument changes nothing."
     read_ok "$FILE" || escalate read-sensitive "Reading executable configuration or a secrets file is a human decision."
     allow read-only "Reads change nothing; credential paths were denied upstream by PreToolUse." ;;
