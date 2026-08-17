@@ -67,9 +67,9 @@ This is not another coding agent. **It is the control plane that lets coding age
 
 ### Tested against the ugly cases
 
-**921** approval-broker assertions · **80** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
+**971** approval-broker assertions · **124** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
 
-Including hostile repository hooks, hostile MCP servers, `curl | bash`, credential exfiltration, browser-cookie access, keyrings, `docker.sock`, permission-bypass flags, shell line-continuation bypasses, symlink escapes, `..` traversal, executable Git configuration, malicious Codex configuration, arbitrary network egress, cron and systemd jobs scheduled to run after the session ends, and destructive host operations.
+Including hostile repository hooks, hostile MCP servers, `curl | bash`, credential exfiltration, browser-cookie access, keyrings, `docker.sock`, permission-bypass flags, shell line-continuation bypasses, shell quote and escape splicing (`su""do`, `"curl" … | "bash"`, `~/.s""sh/id_rsa`), symlink escapes, `..` traversal, executable Git configuration, malicious Codex configuration, arbitrary network egress, cron and systemd jobs scheduled to run after the session ends, and destructive host operations.
 
 The tests first prove the attack can happen, then prove the AI Dev Autopilot path stops it.
 
@@ -93,8 +93,8 @@ upgrade.
 
 | Suite | Assertions | What it establishes |
 | --- | ---: | --- |
-| `approval.test.sh` | 921 | routine work is allowed and everything else escalates, clause by clause |
-| `guard-portability.test.sh` | 80 | the framework self-protection rule and the deployed hook paths both follow `$AI_DEV_HOME`, not a hardcoded path; the ceiling fails closed; a line continuation does not split a command past the rules; the ceiling answers inside the timeout that would otherwise cancel it |
+| `approval.test.sh` | 971 | routine work is allowed and everything else escalates, clause by clause |
+| `guard-portability.test.sh` | 124 | the framework self-protection rule and the deployed hook paths both follow `$AI_DEV_HOME`, not a hardcoded path; the ceiling fails closed; neither a line continuation nor the shell's own quote and escape removal splits a command past the rules; the ceiling answers inside the timeout that would otherwise cancel it |
 | `permission-posture.test.sh` | 39 | every spelling of every permission-bypass flag is refused, and every flag that widens the session's scope or configuration — including `--add-dir`; the managed version floor is at least the version the control it protects needs |
 | `prompt-injection.test.sh` | 22 | injection payloads are refused deterministically |
 | `codex-boundary.test.sh` | 32 | both callers of `codex exec` are contained; the reviewer can read its workspace and do nothing else |
@@ -106,11 +106,11 @@ upgrade.
 | `doctor-reporting.test.sh` | 9 | an uninstalled machine reports pending, a drifted one still reports failed |
 | `hook-contract.test.sh` | 14 | the hooks emit exactly the decision shape Claude Code parses, and the installed build still contains every field name they are built from |
 
-`bin/doctor` adds 100+ configuration and behaviour checks, including 54 guard
+`bin/doctor` adds 100+ configuration and behaviour checks, including 63 guard
 canaries. Every suite except `project-isolation.test.sh` is model-free and costs
 nothing to run.
 
-Three properties are worth stating plainly, because they are the ones people
+Four properties are worth stating plainly, because they are the ones people
 assume rather than test:
 
 **The isolation test proves the attack is real before it proves the defence.**
@@ -129,6 +129,19 @@ the guard absent — measured at **13.3 seconds** for a 2 MiB command against a
 broker either. The guard refuses an input large enough for its deadline to
 matter, before scanning it, and `guard-portability.test.sh` proves the slow path
 is real before proving the bound holds.
+
+**The rules match the command the shell runs, not the command as written.**
+Quote removal is a step of shell word expansion, so `su""do`, `"sudo"` and
+`su\do` are one word by the time anything is looked up — and a rule written for
+`sudo` matches none of them. Every rule here is therefore matched against two
+views, the command as written and the command as the shell will run it, and a
+match in either counts. The rewrite is scoped so it cannot invent dialogs: a
+quoted run with no whitespace in it is collapsed, a quoted run that contains
+whitespace is one argument whose interior is data, so `"curl"` reads as curl and
+`echo "sudo is required"` stays silent. Claude Code's own permission
+documentation normalises separators, wrappers and leading assignments before
+matching a `Bash` rule, and says nothing about quoting — so there is nothing
+upstream to lean on here.
 
 **The reviewer boundary is tested under an adversarial config.**
 `codex-boundary.test.sh` drives the reviewer's exact policy while a project-local
@@ -473,9 +486,13 @@ guarantee.
   expressions.** A class nobody has modelled escalates rather than being wrong,
   which is the correct failure, but coverage improves only when someone adds a
   class deliberately. It normalises the shapes that would otherwise split a
-  command past its own rules — `$HOME`, `~` and `$AI_DEV_HOME` spellings, and
-  line continuations — and each of those is a regression test rather than a
-  claim. It is a ceiling against mistakes and straightforward misuse; it is not
+  command past its own rules — `$HOME`, `~` and `$AI_DEV_HOME` spellings, line
+  continuations, and the shell's own quote and escape removal, so `su""do` and
+  `"curl" … | "bash"` reach the same rules as their plain spellings — and each
+  of those is a regression test rather than a claim. What it does **not** model
+  is the shapes the shell decodes from a *value* rather than from punctuation:
+  ANSI-C quoting (`$'\x73udo'`), substring expansions and variable indirection.
+  Those are contained by the sandbox and the managed floor, not by this layer. It is a ceiling against mistakes and straightforward misuse; it is not
   a sandbox-escape defence, and the layers below it are what contain a
   deliberate attempt.
 - **Remote Control**: anyone who can sign into your Claude account can drive a

