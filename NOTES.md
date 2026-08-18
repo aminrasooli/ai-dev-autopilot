@@ -58,6 +58,44 @@ section 12 expands the shipped fragment against that hub and asserts every
 registered hook resolves to a real file there. Extend it when you add another
 path-based rule, or another path to the deployed configuration.
 
+## The rule for matching a command
+
+Both hooks decide by matching a command string, and the string they are handed
+is not the string the shell runs. The shell performs quote removal, escape
+removal and line-continuation joining as part of word expansion, so `su""do`,
+`"sudo"`, `su\do` and `su\<newline>do` are one word by the time anything is
+looked up.
+
+So every rule is matched against **two views**, and a match in either counts:
+
+- `$NORM` — the command as written, with `~`, `$HOME` and `$AI_DEV_HOME`
+  resolved.
+- `$QNORM` — the same command after `shellwords`, i.e. as the shell will run it.
+
+Two consequences for anyone adding a rule:
+
+- **Write the rule for the plain spelling.** The second view is what makes it
+  hold for the spliced ones; a rule that tries to anticipate quoting itself is
+  the shape of the bug, not a fix for it.
+- **Matching either view can only add a decision.** That is what makes this safe
+  to extend, and it is the reason the views are ORed rather than the haystack
+  being replaced. Do not "simplify" it into a single stripped subject: rules
+  bound to a clause (`[^|;&]*`) would then see separators that were quoted data.
+
+`shellwords` is deliberately scoped. A quoted run with **no whitespace** in it
+is collapsed, because its only effect is to splice; a quoted run that contains
+whitespace is one argument whose interior is data and is left alone. That scope
+is what keeps `echo "sudo is required"` from raising a dialog, and it is
+asserted by positive controls rather than assumed. What is **not** modelled, and
+should not be added without a measurement: ANSI-C `$'...'` escapes, substring
+expansions and variable indirection — the shell decodes those from values, and
+this layer matches punctuation.
+
+In `hooks/permission-broker.sh` the same reading applies one level down, at the
+token level, where it is unambiguous: `unword` for the name a clause dispatches
+on, and inside `canon` for every path a containment decision rests on. A path
+policy that reasons about `<cwd>/"$HOME"` is not reasoning about anything.
+
 ## The rule for the guard's work budget
 
 `hooks/security-guard.sh` runs as a `PreToolUse` command hook, and Claude Code
