@@ -961,6 +961,52 @@ is denied when a parser is present.
 
 **Links.** `hooks/security-guard.sh` · `tests/guard-portability.test.sh`
 
+## A tool's subject is read from the field that tool actually sends
+
+**Problem.** The same fail-open shape as the missing parser, one layer down and
+much quieter: the parser is present, but it is pointed at the wrong key.
+`NotebookEdit` sends its path as `tool_input.notebook_path` — verified against
+the tool schema of the running Claude Code build, which has no `file_path` on
+that tool — and both hooks read only `file_path`/`path`. The subject came back
+empty, so every path rule was silently absent for exactly one of the tools the
+settings fragment registers the hooks for. Three consequences, one cause: the
+guard passed `NotebookEdit` of a hub or credential-path notebook where `Edit`
+of the same location is denied; the broker escalated every routine in-repo
+`NotebookEdit` as `edit-no-path`, making the human the approval engine for
+notebook work; and the broker *allowed* `NotebookRead` from the search-tools
+arm under the justification "credential paths were denied upstream by
+PreToolUse" — false for this tool, since upstream never saw the path — so a
+notebook under `~/.aws` was approved with no screening at any layer while
+`Read` of the same directory escalates.
+
+**Decision.** Both hooks read `notebook_path` for the notebook tools, keeping
+`file_path` as a fallback so a build that ever spells it the other way is
+screened rather than waved through. The guard treats `NotebookEdit` as the
+write it is (the framework rule denies it from a project session) and
+`NotebookRead` as a read; the broker gives `NotebookEdit` the same `ws_ok`
+containment as `Edit`/`Write`, and moves `NotebookRead` out of the
+search-tools arm to sit with `Read`, where the path it names is screened by
+`read_ok`. A tool that names a concrete file never rides an arm whose
+justification it does not satisfy.
+
+**Confidence: high.** `tests/guard-portability.test.sh` §3b and
+`tests/approval.test.sh` §7b each build a copy of the same shipped hook with
+the extraction reverted to the pre-fix field, assert the mutation applied, and
+prove the pre-fix verdicts — the guard waves a hub `NotebookEdit` through, the
+broker allows the `~/.aws` notebook read — before asserting the fixed
+behaviour, with positive controls that in-repo notebook work stays silent.
+
+**Known uncertainty.** The extraction is still an enumeration, and the next
+tool Claude Code adds with a novel subject field lands in the guard's final
+`pass` (and, in the broker, in `unknown-tool` → escalate — the two layers fail
+in opposite directions, which is why the ceiling's enumeration matters more).
+There is no schema feed to check against; the tools-reference page documents
+behaviour, not `tool_input` field names, so the canary in `bin/doctor` and the
+regressions here are the tripwire.
+
+**Links.** `hooks/security-guard.sh` · `hooks/permission-broker.sh` ·
+`tests/guard-portability.test.sh` · `tests/approval.test.sh` · `bin/doctor`
+
 ## A ceiling with a deadline bounds its own work
 
 **Problem.** Claude Code's hook contract states it plainly: *"A command, http, or

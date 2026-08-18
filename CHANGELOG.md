@@ -8,6 +8,29 @@ Notable changes to AI Dev Autopilot. Format follows
 
 ### Security
 
+- **The notebook tools are no longer invisible to both hooks.** NotebookEdit
+  sends its path as `tool_input.notebook_path` (verified against the tool
+  schema of the running Claude Code build), and both hooks read only
+  `file_path`/`path`, so the subject came back empty and every path rule was
+  absent for exactly one of the tools the settings fragment registers the
+  hooks for. In the guard that was a hole in the ceiling: `NotebookEdit` of a
+  notebook under the hub, or under `~/.ssh`, passed where `Edit` of the same
+  location is denied. In the broker it was two different defects with the same
+  cause: every `NotebookEdit` escalated as `edit-no-path` — safe, but the
+  human approved every routine in-repo notebook edit — and `NotebookRead` was
+  allowed from the search-tools arm under a justification that was false for
+  it ("credential paths were denied upstream by PreToolUse"), so reading a
+  notebook under `~/.aws` was approved with no screening at any layer while
+  `Read` of the same directory escalates. Both hooks now read
+  `notebook_path` (with `file_path` kept as a fallback), the guard treats
+  NotebookEdit as the write it is and NotebookRead as a read, and the broker
+  gives NotebookEdit the same `ws_ok` containment as Edit/Write and moves
+  NotebookRead next to Read, where its path is screened by `read_ok`.
+  Regressions in `tests/guard-portability.test.sh` §3b and
+  `tests/approval.test.sh` §7b drive a copy of the same shipped hook with the
+  extraction reverted and prove both pre-fix verdicts before asserting the
+  fix; `bin/doctor` gains three notebook canaries.
+
 - **Both hooks now read a command the way the shell reads it, so quoting no
   longer walks past every rule.** Quote removal is a step of the shell's word
   expansion: `su""do`, `"sudo"`, `su\do` and `su\<newline>do` are four spellings

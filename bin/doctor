@@ -780,6 +780,15 @@ guard_says deny "guard: framework write from project" \
   "$(jq -nc --arg p "$AI_DEV_HOME/core/security.md" --arg cwd "$HOME/projects/demo" \
      '{hook_event_name:"PreToolUse",tool_name:"Edit",cwd:$cwd,tool_input:{file_path:$p}}')"
 guard_says deny "guard: framework rm from project" "$(bash_payload "rm -rf $AI_DEV_HOME/core" "$HOME/projects/demo")"
+# NotebookEdit carries its subject in `notebook_path`, not `file_path`. A guard
+# that reads the wrong field gets an empty subject and passes — no rule in the
+# ceiling runs at all for that tool — so the field is exercised by name here.
+guard_says deny "guard: NotebookEdit on a hub notebook from project" \
+  "$(jq -nc --arg p "$AI_DEV_HOME/core/x.ipynb" --arg cwd "$HOME/projects/demo" \
+     '{hook_event_name:"PreToolUse",tool_name:"NotebookEdit",cwd:$cwd,tool_input:{notebook_path:$p,new_source:"x"}}')"
+guard_says deny "guard: NotebookEdit on a credential-path notebook" \
+  "$(jq -nc --arg p "$HOME/.ssh/x.ipynb" --arg cwd "$HOME/projects/demo" \
+     '{hook_event_name:"PreToolUse",tool_name:"NotebookEdit",cwd:$cwd,tool_input:{notebook_path:$p,new_source:"x"}}')"
 
 guard_says ask  "guard: sudo"                     "$(bash_payload 'sudo apt-get install ripgrep')"
 guard_says ask  "guard: git push"                 "$(bash_payload 'git push origin main')"
@@ -834,6 +843,9 @@ guard_says allow "guard: framework edit from hub" \
   "$(jq -nc --arg p "$AI_DEV_HOME/core/security.md" --arg cwd "$AI_DEV_HOME" \
      '{hook_event_name:"PreToolUse",tool_name:"Edit",cwd:$cwd,tool_input:{file_path:$p}}')"
 guard_says allow "guard: framework read from project" "$(read_payload "$AI_DEV_HOME/core/security.md")"
+guard_says allow "guard: NotebookEdit on a project notebook" \
+  "$(jq -nc --arg p "$HOME/projects/demo/analysis.ipynb" --arg cwd "$HOME/projects/demo" \
+     '{hook_event_name:"PreToolUse",tool_name:"NotebookEdit",cwd:$cwd,tool_input:{notebook_path:$p,new_source:"x"}}')"
 
 # A CEILING IS ONLY A CEILING IF IT ANSWERS BEFORE IT IS CANCELLED
 #

@@ -283,6 +283,51 @@ expect ""    "$(wsearch 'anything at all')"                           "WebSearch
 expect deny  "$(wsearch 'anything at all' 1)"                         "WebSearch denies overnight"
 
 # =====================================================================
+printf '\n%s7b. the notebook tools carry their subject in notebook_path%s\n' "$B" "$N"
+# NotebookEdit sends its path as `notebook_path` (verified against the tool
+# schema of the running build), and the broker used to read only `file_path`
+# and `path`. Two different failures came out of that one missing field:
+# NotebookEdit arrived with no path and escalated as edit-no-path — safe, but
+# the human approved every routine notebook edit — and NotebookRead was
+# allowed from the search-tools arm under a justification that was false for
+# it, so a notebook under ~/.aws was approved while Read of the same
+# directory escalated. The baseline drives a copy of the SAME shipped broker
+# with the extraction reverted, and asserts both pre-fix verdicts, so this
+# section cannot pass by asserting something that was never broken.
+bnbe() { broker NotebookEdit "{\"notebook_path\":\"$(jstr "$1")\",\"new_source\":\"x\"}" "${2:-0}"; }
+bnbr() { broker NotebookRead "{\"notebook_path\":\"$(jstr "$1")\"}" "${2:-0}"; }
+
+OLDBROKER="$WORK/oldshape-broker.sh"
+sed 's/notebook_path/file_path/g' "$BROKER" > "$OLDBROKER"
+if cmp -s "$BROKER" "$OLDBROKER"; then
+  bad "baseline broker with the pre-fix extraction differs from the shipped one" \
+      "the mutation did not apply — the shipped broker no longer reads notebook_path?"
+else
+  ok "baseline broker with the pre-fix extraction differs from the shipped one"
+fi
+old_b() { # tool tool_input-json -> verdict from the pre-fix broker
+  mkjson "$1" "$2" | AI_DEV_HOME="$AI_DEV_HOME" AI_DEV_OVERNIGHT=0 \
+    PATH="$WORK/nocodex:$PATH" bash "$OLDBROKER" 2>/dev/null \
+    | grep -o '"behavior":"[a-z]*"' | head -1 | sed 's/.*:"//;s/"//'
+}
+expect "" "$(old_b NotebookEdit "{\"notebook_path\":\"$(jstr "$REPO/analysis.ipynb")\",\"new_source\":\"x\"}")" \
+    "baseline: the pre-fix broker escalates a routine in-repo NotebookEdit"
+expect allow "$(old_b NotebookRead "{\"notebook_path\":\"$(jstr "$HOME/.aws/x.ipynb")\"}")" \
+    "baseline: the pre-fix broker ALLOWS reading a notebook under ~/.aws"
+
+expect allow "$(bnbe "$REPO/analysis.ipynb")"          "an in-repo NotebookEdit is silent, like Edit"
+expect ""    "$(bnbe "$HOME/notes.ipynb")"             "a notebook outside the workspace escalates"
+expect deny  "$(bnbe "$HOME/notes.ipynb" 1)"           "...and denies overnight instead of waiting"
+expect ""    "$(bnbe "$REPO/.github/workflows/x.ipynb")" "a notebook inside executable CI configuration escalates"
+expect ""    "$(broker NotebookEdit '{"new_source":"x"}')" "a NotebookEdit with no path still escalates: fail-closed is kept"
+expect ""    "$(bnbr "$HOME/.aws/x.ipynb")"            "reading a notebook under ~/.aws now escalates"
+expect deny  "$(bnbr "$HOME/.aws/x.ipynb" 1)"          "...and denies overnight"
+expect allow "$(bnbr "$REPO/analysis.ipynb")"          "reading an in-repo notebook is silent"
+expect allow "$(bnbr "$HOME/docs/notes.ipynb")"        "reading an ordinary notebook outside the repo is still a read"
+expect allow "$(broker TodoWrite '{"todos":"[]"}')"    "control: TodoWrite is still silent"
+expect allow "$(broker Task '{"prompt":"plan the next step"}')" "control: Task is still silent"
+
+# =====================================================================
 printf '\n%s8. command BEHAVIOUR is classified, not argv[0]%s\n' "$B" "$N"
 
 printf '%s   interpreters and scripts: sandboxed local dev is silent, obfuscation and privilege still escalate%s\n' "$B" "$N"
