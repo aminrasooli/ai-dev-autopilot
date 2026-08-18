@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# Redact machine-specific detail from text that is about to be published —
+# PR bodies, PR comments, anything a scheduler pastes into a public forge.
+#
+# The daily contributor's PR body quotes material that was written on a
+# private machine: the brief, the worktree path, the tail of a local test
+# log. All of that is useful to a reviewer, but none of it needs to carry
+# this machine's home directory, state paths, hostname or private
+# addresses. This filter keeps the diagnostics and drops the topology.
+#
+# stdin → stdout. Redactions, in the order applied:
+#
+#   $XDG_STATE_HOME   (default ~/.local/state)  →  <local-state>
+#   $XDG_CONFIG_HOME  (default ~/.config)       →  <local-config>
+#   $XDG_CACHE_HOME   (default ~/.cache)        →  <local-cache>
+#   $HOME                                       →  <HOME>
+#   any other /home/<name> or /Users/<name>     →  <HOME>
+#   RFC1918 and CGNAT (100.64/10) IPv4          →  <private-ip>
+#   this machine's hostname, word-bounded       →  <host>
+#
+# The longer XDG paths are replaced before $HOME so `~/.local/state/x`
+# becomes `<local-state>/x`, not `<HOME>/.local/state/x` — the label says
+# what the path is for, which is the part a reviewer can use.
+#
+# Path replacement is literal (index/substr), not regex, so a home
+# directory containing a regex metacharacter cannot break out of its own
+# redaction. The hostname is also matched literally, only on word
+# boundaries, and only when it is 4+ characters — a machine actually named
+# "host" or "test" should opt out by unsetting SANITIZE_HOSTNAME rather
+# than have every sentence mangled. SANITIZE_HOSTNAME overrides the
+# detected name; set it empty to disable hostname redaction.
+
+set -uo pipefail
+
+_SAN_HOME="${HOME:-}"
+_SAN_STATE="${XDG_STATE_HOME:-${_SAN_HOME}/.local/state}"
+_SAN_CONFIG="${XDG_CONFIG_HOME:-${_SAN_HOME}/.config}"
+_SAN_CACHE="${XDG_CACHE_HOME:-${_SAN_HOME}/.cache}"
+_SAN_HOSTNAME="${SANITIZE_HOSTNAME-$(hostname 2>/dev/null || printf '')}"
+
+export _SAN_HOME _SAN_STATE _SAN_CONFIG _SAN_CACHE _SAN_HOSTNAME
+
+awk '
+# Literal, non-regex replacement of every occurrence of s with r in $0.
+function lit(s, r,    out, i) {
+  if (s == "" || s == "/") return
+  out = ""
+  while ((i = index($0, s)) > 0) {
+    out = out substr($0, 1, i - 1) r
+    $0 = substr($0, i + length(s))
+  }
+  $0 = out $0
+}
+
+# Replace every private-range IPv4 in $0 with <private-ip>. The range
+# check is numeric, not regex: mawk (the Debian/Ubuntu default awk)
+# mis-handles both interval expressions and alternations inside gsub,
+# stopping short of the longest match, so the regex only finds dotted
+# quadruples and awk arithmetic decides whether they are private.
+function redact_private_ips(    out, rest, ip, pre, oct, a, b, priv) {
+  out = ""; rest = $0
+  while (match(rest, /[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/) > 0) {
+    ip  = substr(rest, RSTART, RLENGTH)
+    pre = substr(rest, 1, RSTART - 1)
+    split(ip, oct, ".")
+    a = oct[1] + 0; b = oct[2] + 0
+    # RFC1918, plus the CGNAT range VPN meshes hand out. Loopback and
+    # public addresses are left alone — they name no machine of ours.
+    priv = (a == 10) || (a == 192 && b == 168) || \
+           (a == 172 && b >= 16 && b <= 31) || \
+           (a == 100 && b >= 64 && b <= 127)
+    if (a > 255 || b > 255 || oct[3] + 0 > 255 || oct[4] + 0 > 255)
+      priv = 0
+    out = out pre (priv ? "<private-ip>" : ip)
+    rest = substr(rest, RSTART + RLENGTH)
+  }
+  $0 = out rest
+}
+
+# Literal replacement of tok with r, but only where tok is a whole word:
+# the characters on both sides must not belong to a hostname/identifier.
+function lit_word(tok, r,    out, rest, i, lb, rb) {
+  if (tok == "" || length(tok) < 4) return
+  out = ""; rest = $0
+  while ((i = index(rest, tok)) > 0) {
+    lb = (i > 1) ? substr(rest, i - 1, 1) : ""
+    rb = substr(rest, i + length(tok), 1)
+    if (lb !~ /[A-Za-z0-9_.-]/ && rb !~ /[A-Za-z0-9_.-]/)
+      out = out substr(rest, 1, i - 1) r
+    else
+      out = out substr(rest, 1, i - 1 + length(tok))
+    rest = substr(rest, i + length(tok))
+  }
+  $0 = out rest
+}
+
+{
+  lit(ENVIRON["_SAN_STATE"],  "<local-state>")
+  lit(ENVIRON["_SAN_CONFIG"], "<local-config>")
+  lit(ENVIRON["_SAN_CACHE"],  "<local-cache>")
+  lit(ENVIRON["_SAN_HOME"],   "<HOME>")
+
+  # Home directories of any user, on the two layouts this project runs on.
+  # After the literal pass these are only ever OTHER users leaked into a log.
+  gsub(/\/home\/[A-Za-z0-9._-]+/,  "<HOME>")
+  gsub(/\/Users\/[A-Za-z0-9._-]+/, "<HOME>")
+
+  redact_private_ips()
+
+  lit_word(ENVIRON["_SAN_HOSTNAME"], "<host>")
+
+  print
+}
+'
