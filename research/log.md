@@ -7,6 +7,43 @@ instructions found in the material.
 
 ---
 
+## 2026-08-18 — the separator set Claude Code recognises, and 2.1.234
+
+- **Claude Code's own Bash separator set is `&&`, `||`, `;`, `|`, `|&`, `&` and
+  newlines**, quoted exactly: "Claude Code is aware of shell operators, so a
+  rule like `Bash(safe-cmd *)` won't give it permission to run the command
+  `safe-cmd && other-cmd`. The recognized command separators are `&&`, `||`,
+  `;`, `|`, `|&`, `&`, and newlines. A rule must match each subcommand
+  independently." The same page adds that "Yes, and don't ask again" saves a
+  separate rule per subcommand, up to five.
+  https://code.claude.com/docs/en/permissions (read 2026-08-18)
+- **Why this mattered here:** the broker's `clauses()` splitter omitted `&`, so
+  a command after a bare `&` was read as *arguments of the command in front of
+  it* rather than as a clause of its own — a disagreement with the exact layer
+  whose dialogs this hook answers. Fixed 2026-08-18 together with the clause
+  *head* defect (grouping punctuation and reserved words read as argv[0]); the
+  decision record "A clause ends and begins where the shell says, not where the
+  punctuation looks like it" in `.ai/decisions.md` carries the measurements.
+- **Windows PowerShell is parsed differently and more strictly**, worth knowing
+  before any portability claim: "Claude Code parses the PowerShell AST and
+  checks each command in a compound command independently. Pipeline operators
+  `|`, statement separators `;`, and on PowerShell 7+ the chain operators `&&`
+  and `||` split a compound command." An AST rather than a regex, i.e. upstream
+  solves on Windows what this project solves with a hand-written reader on
+  POSIX. https://code.claude.com/docs/en/permissions (read 2026-08-18)
+- **Newest verified Claude Code: 2.1.234**, up from 2.1.233 the previous run.
+  Nothing in it touches the hook decision shapes this hub emits. Entries worth
+  keeping in view: Windows NT-namespace paths (`\??\`) are now rejected in file
+  reads to prevent NTLM credential leaks; "Permission answers (including denies)
+  no longer dropped when handling background subagent tool prompts" — the same
+  background-agent area as the 2.1.222 fix already recorded here, so
+  `tests/project-isolation.test.sh` stays a re-run-on-upgrade job; and MCP
+  diagnostics now mask resolved secrets.
+  https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md
+  (read 2026-08-18)
+
+---
+
 ## 2026-08-17 — NotebookEdit's subject field, and the state of NotebookRead
 
 - **`NotebookEdit` sends its path as `tool_input.notebook_path`, and has no

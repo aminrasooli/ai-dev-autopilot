@@ -96,6 +96,54 @@ token level, where it is unambiguous: `unword` for the name a clause dispatches
 on, and inside `canon` for every path a containment decision rests on. A path
 policy that reasons about `<cwd>/"$HOME"` is not reasoning about anything.
 
+## The rule for splitting a command into clauses
+
+The broker allows nothing as a whole. It splits the command, recognises every
+clause individually, counts them, and allows only when the counts match. That
+proof is worth exactly as much as the split is faithful, and a split is faithful
+only if it agrees with the shell about two things:
+
+- **Where a clause ends.** `&&`, `||`, `;`, `|` and `&`, plus an unquoted
+  newline. `&` is the one that was missing, and missing it does not lose a
+  clause — it turns the next command into *arguments of the previous one*, which
+  is the shape that gets allowed rather than escalated. The exception is
+  redirection, where `&` belongs to the operator: `&>file`, `2>&1`, `>&2`,
+  `<&3`. Claude Code's own permission engine splits on the same set, so a
+  disagreement here is also a disagreement with the layer whose dialogs this
+  hook answers.
+- **Where a clause begins.** The first word is the command only when it is a
+  command. `(`, `{`, `!`, `if`, `then`, `elif`, `else`, `do`, `while`, `until`,
+  a loop header and a `VAR=value` assignment all stand in front of it. Anything
+  that dispatches on "the first word" — the family grammars, the curl screen,
+  the refuse list in `broad_safe_ok` — is looking at the wrong word until they
+  are stripped.
+
+So `clause_head` answers three ways rather than two: a command remains, the
+clause runs nothing (`fi`, `done`, a closing brace, a redirection on its own),
+or it cannot be taken apart. The third is not a curiosity — `case x in a) rm -rf
+~` carries a command with no separator in front of it, and a keyword whose
+grammar is not modelled here escalates rather than being read as argv[0] with
+harmless-looking operands.
+
+Two consequences for anyone extending it:
+
+- **A prefix that changes what a command IS must be screened where it is still
+  visible.** The `LD_PRELOAD`/`PATH`/`GIT_CONFIG_*` screen used to sit in
+  `broad_safe_ok`, one layer below the strip that removed the names it looked
+  for, so it never ran at all. It lives in `seg_ok` now, above the dispatch, and
+  applies to every clause whichever classifier it goes on to reach. Any new
+  screen for a leading token belongs there for the same reason.
+- **Adding a keyword to the "runs nothing" set is a claim, not a convenience.**
+  It says the clause executes no command, so nothing in it is ever classified.
+  Get that wrong and the clause disappears from the proof entirely.
+
+`tests/approval.test.sh` section 16f drives a copy of the shipped broker with
+the three corrections reverted and asserts the pre-fix `allow` for every payload
+before asserting the fix, and it carries the positive controls — `2>&1`, `&>`,
+a trailing `&`, a quoted ampersand, brace groups, subshells, loops and
+conditionals over routine work — that keep the split from becoming a tax on
+ordinary shell.
+
 ## The rule for the guard's work budget
 
 `hooks/security-guard.sh` runs as a `PreToolUse` command hook, and Claude Code
@@ -120,6 +168,19 @@ So the guard is bounded rather than trusted to be quick:
   and fails if the worst admitted case exceeds half the budget.
 - The broker reads the same two variables. Keep them in step; two layers that
   disagree about what is screenable is a gap in the shape of an argument.
+
+**The broker's own bound is a different quantity, and it needs its own ceiling.**
+The two byte limits bound the guard because the guard's cost is one scan per
+rule over the subject. The broker's cost is per *clause* — each is decomposed,
+dispatched and canonicalised with its own subprocesses — so a command of many
+short clauses sits far inside the byte ceiling while costing far more: measured
+against the 20 s timeout the fragment registers for it, 400 clauses took 7.1 s
+and a 64 KiB command of clauses took 43 s. `AI_DEV_MAX_CLAUSES` (default 64,
+~1.2 s) caps the quantity that actually drives the cost. A cancelled broker is
+less dangerous than a cancelled guard — no decision means Claude Code asks the
+human — but not harmless: unattended there is no human, so a cancelled broker
+raises a dialog for nobody instead of denying and queueing. Adding per-clause
+work means re-measuring, the same as adding a guard rule does.
 
 ## The rule for tests
 
