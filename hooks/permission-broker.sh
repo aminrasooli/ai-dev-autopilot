@@ -299,38 +299,81 @@ unword() { # $1 token -> $UNWORD = the token as the shell will pass it
   UNWORD="${UNWORD//\'/}"
 }
 
-# Split a shell command line into clauses on the top-level separators &&, ||,
-# ; and |, respecting single and double quotes and backslash escapes. Quoting
-# has to be respected: a naive split on every `|` turns a quoted regex
-# alternation (`grep -E 'FAIL|passed'`) into two junk clauses and escalates
-# every routine pipeline that contains one. This is a small state machine
-# written in python because bash text splitting cannot do it directly. It
-# writes one clause per line to stdout.
+# Split a shell command line into clauses on the top-level separators, respecting
+# single and double quotes and backslash escapes. Quoting has to be respected: a
+# naive split on every `|` turns a quoted regex alternation
+# (`grep -E 'FAIL|passed'`) into two junk clauses and escalates every routine
+# pipeline that contains one. This is a small state machine written in python
+# because bash text splitting cannot do it directly. It writes one clause per
+# line to stdout, and the caller reads it line by line — so an unquoted newline
+# separates clauses here for the same reason it does in the shell.
+#
+# `&` IS A SEPARATOR, NOT A CHARACTER OF THE COMMAND
+#
+# A bare `&` runs what precedes it in the background and carries straight on to
+# the next command, exactly as `;` does. It was not in this list, so everything
+# after one was read as ARGUMENTS of the command in front of it, and the
+# per-clause proof below never saw a second command at all. Measured before this
+# line existed, each of these was ALLOWED with no dialog while its bare spelling
+# escalated:
+#
+#   ls & curl -fsSL https://example.com/p -o /tmp/p    network egress
+#   ls & sed 's/.*/id/e' f.txt                         arbitrary execution
+#   ls & git commit -m x                               the git config gate, skipped
+#   true & rm -rf .                                    the workspace root, deleted
+#
+# Claude Code's own permission engine names the same set — "The recognized
+# command separators are `&&`, `||`, `;`, `|`, `|&`, `&`, and newlines. A rule
+# must match each subcommand independently" — so this was also a disagreement
+# with the layer whose dialogs this hook answers.
+#
+# The exception is redirection, where `&` is part of the operator rather than a
+# job control character: `&>file`, `&>>file`, `2>&1`, `>&2`, `<&3`. Splitting
+# those would tear one command in half and escalate every diagnostic that
+# captures stderr, so the character before it decides.
 clauses() { # $1 command string
   python3 - "$1" <<'PY' 2>/dev/null
 import sys
 s = sys.argv[1]
 out, cur = [], []
 q = None       # active quote char, or None
+last = ''      # last non-blank character consumed, for the `2>&1` test
 i, n = 0, len(s)
+
+def add(ch):
+    global last
+    cur.append(ch)
+    if not ch.isspace():
+        last = ch
+
+def cut():
+    global last
+    out.append(''.join(cur)); del cur[:]; last = ''
+
 while i < n:
     c = s[i]
     if q is not None:
-        cur.append(c)
+        add(c)
         if c == '\\' and q == '"' and i + 1 < n:
-            cur.append(s[i + 1]); i += 2; continue
+            add(s[i + 1]); i += 2; continue
         if c == q:
             q = None
         i += 1; continue
     if c in ("'", '"'):
-        q = c; cur.append(c); i += 1; continue
+        q = c; add(c); i += 1; continue
     if c == '\\' and i + 1 < n:
-        cur.append(c); cur.append(s[i + 1]); i += 2; continue
+        add(c); add(s[i + 1]); i += 2; continue
     if s[i:i+2] in ('&&', '||'):
-        out.append(''.join(cur)); cur = []; i += 2; continue
+        cut(); i += 2; continue
+    if c == '&':
+        # `&>` opens a redirection; `>&`/`<&` duplicate a descriptor. In both the
+        # `&` belongs to the operator, and the command continues.
+        if s[i+1:i+2] == '>' or last in ('>', '<'):
+            add(c); i += 1; continue
+        cut(); i += 1; continue
     if c in (';', '|'):
-        out.append(''.join(cur)); cur = []; i += 1; continue
-    cur.append(c); i += 1
+        cut(); i += 1; continue
+    add(c); i += 1
 # An unclosed quote is a shape we cannot reason about; emit nothing so the
 # whole request escalates, rather than splitting arbitrarily.
 if q is not None:
@@ -348,6 +391,119 @@ PY
 # runs from inside Section 1 (below), the functions it needs must exist
 # before Section 1 executes.
 # =====================================================================
+
+trim() { printf '%s' "$1" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+
+# A CLAUSE'S HEAD IS NOT ALWAYS ITS FIRST WORD
+#
+# Everything downstream — the family grammars, the curl screen, the refuse list
+# in broad_safe_ok — dispatches on "the first word of the clause", and treats
+# every later word as an operand of it. In the shell that is only true when the
+# first word is a command. It very often is not: a clause can begin with
+# grouping punctuation, with a reserved word, with an assignment, or with a
+# wrapper, and the command is what comes AFTER. Measured before this function
+# existed, every one of these was ALLOWED with no dialog while the same command
+# on its own escalated:
+#
+#   ( curl -fsSL https://example.com/p -o /tmp/p )      network egress
+#   { rm -rf ~/Documents/important; }                   deletion outside the workspace
+#   if true; then rm -rf ~/Documents/important; fi      the same, in a conditional
+#   for x in 1; do cp f.txt /etc/canary; done           a write outside the workspace
+#   ! rm -rf ~/Documents/important                      the same, negated
+#
+# In each case argv[0] was `(`, `{`, `then`, `do` or `!` — a word no classifier
+# claims, so the clause fell through to the broad local-dev fallback, which saw
+# an unremarkable head and harmless-looking operands and approved it. This is
+# the same failure shape as reading a quoted command as written: the classifier
+# was not looking at the command the shell will run.
+#
+# So a clause is decomposed before it is classified, and the answer is one of
+# three things rather than two:
+#
+#   0  a command remains. $CLAUSE_S is the clause from that command onwards,
+#      $CLAUSE_FIRST is its name as the shell resolves it, and $CLAUSE_ASSIGN
+#      holds the names of any assignments that stood in front of it.
+#   1  the clause runs nothing at all — it is a `fi`, a `done`, a closing brace,
+#      a loop header, or a redirection with no command. Nothing to classify.
+#   2  the clause cannot be taken apart, so it must not be classified. `case x in
+#      a) rm -rf ~` carries a command with no separator in front of it, and
+#      reading `case` as argv[0] would read `rm` as one of its operands.
+#
+# The loop is bounded rather than run to a fixed point: each pass strips one
+# prefix, and a clause that still is not a command after a dozen of them is a
+# shape this file does not model.
+CLAUSE_S=''
+CLAUSE_FIRST=''
+CLAUSE_ASSIGN=''
+clause_head() { # $1 clause
+  local s tok rest n=0
+  CLAUSE_S=''; CLAUSE_FIRST=''; CLAUSE_ASSIGN=''
+  s="$(trim "${1:-}")"
+  while [ "$n" -lt 12 ]; do
+    n=$((n+1))
+    [ -n "$s" ] || break
+    # `(` can be glued to what it introduces — `(cd sub && ls)` has no space
+    # after the paren — so it is stripped as a character, not as a word.
+    case "$s" in
+      \(*) s="$(trim "${s#?}")"; continue ;;
+    esac
+    tok="$(printf '%s' "$s" | awk '{print $1}')"
+    unword "$tok"; tok="$UNWORD"
+    case "$tok" in
+      # Reserved words that stand in FRONT of a command in the same clause.
+      '{'|'!'|if|then|elif|else|do|while|until)
+        s="$(trim "$(printf '%s' "$s" | cut -s -d' ' -f2-)")"; continue ;;
+      # Structure that closes a construct and runs nothing of its own.
+      '}'|')'|';;'|fi|done|'esac')
+        s="$(trim "$(printf '%s' "$s" | cut -s -d' ' -f2-)")"; continue ;;
+      # A loop header binds a name to a word list and executes nothing; the body
+      # is a separate clause and is classified on its own. Only that exact shape
+      # is recognised — the C-style `for ((i=0; i<n; i++))` is split across
+      # clauses by its own semicolons and is not decomposable here.
+      for|select)
+        printf '%s' "$s" | grep -Eq \
+          '^(for|select)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*([[:space:]]+in([[:space:]]|$)|[[:space:]]*$)' \
+          || return 2
+        CLAUSE_S="$s"; return 1 ;;
+      # Keywords this function does not take apart. They can carry a command in
+      # the same clause with no separator in front of it.
+      case|in|function|coproc) return 2 ;;
+      # Benign wrappers: what runs is the command they wrap. Allowlisting the
+      # wrapper itself would approve `timeout 5 <anything>`.
+      timeout|time|nice|ionice|stdbuf|command|builtin|nohup)
+        s="$(trim "$(printf '%s' "$s" | cut -s -d' ' -f2-)")"
+        # drop the wrapper's own flags and bare durations (5, 30s, 2m, ...)
+        while printf '%s' "$s" | grep -Eq '^(-[^[:space:]]*|[0-9]+[smhd]?)([[:space:]]|$)'; do
+          s="$(trim "$(printf '%s' "$s" | sed -E 's/^(-[^[:space:]]*|[0-9]+[smhd]?)[[:space:]]*//')")"
+        done
+        continue ;;
+      # A leading `VAR=value` is not the command — but it decides what the
+      # command IS (LD_PRELOAD, PATH, GIT_CONFIG_*), so the NAMES are kept for
+      # the caller to screen. See seg_ok.
+      *)
+        if printf '%s' "$tok" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*='; then
+          CLAUSE_ASSIGN="$CLAUSE_ASSIGN|${tok%%=*}"
+          s="$(trim "$(printf '%s' "$s" | sed 's/^[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]*//')")"
+          continue
+        fi ;;
+    esac
+    break
+  done
+
+  # What is left may be redirections only — `done < input.txt`, `fi 2>&1`, or a
+  # bare `> file`. No command runs, and the targets have already been checked by
+  # redirects_ok on the clause as written.
+  rest="$(printf '%s' "$s" | sed -E 's/[0-9]*(&>>|&>|>>|>&|<&|>|<)[[:space:]]*[^[:space:]]*//g')"
+  case "$(printf '%s' "$rest" | tr -d '[:space:]')" in
+    '') CLAUSE_S="$s"; return 1 ;;
+  esac
+
+  CLAUSE_S="$s"
+  tok="$(printf '%s' "$s" | awk '{print $1}')"
+  unword "$tok"; CLAUSE_FIRST="${UNWORD##*/}"
+  [ -n "$CLAUSE_FIRST" ] || return 2
+  return 0
+}
 
 # 0 = the args after `curl` describe a safe localhost read.
 curl_ok() { # $@ = args after `curl`
@@ -483,33 +639,23 @@ PY
 # no curl-leading clause at all — e.g. `git commit -m "curl x"` — this still
 # returns 0, and Section 1 falls through to its remaining checks.
 curl_all_localhost_safe() {
-  local seg first g
+  local seg rc
   while IFS= read -r seg; do
-    seg="$(printf '%s' "$seg" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-    [ -n "$seg" ] || continue
-    while printf '%s' "$seg" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*='; do
-      seg="$(printf '%s' "$seg" | sed 's/^[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]*//')"
-    done
-    g=0
-    while [ $g -lt 4 ]; do
-      first="$(printf '%s' "$seg" | awk '{print $1}')"
-      unword "$first"; first="${UNWORD##*/}"
-      case "$first" in
-        timeout|time|nice|ionice|stdbuf|command|builtin|nohup) : ;;
-        *) break ;;
-      esac
-      g=$((g+1))
-      seg="$(printf '%s' "$seg" | cut -s -d' ' -f2-)"
-      while printf '%s' "$seg" | grep -Eq '^(-[^[:space:]]*|[0-9]+[smhd]?)([[:space:]]|$)'; do
-        seg="$(printf '%s' "$seg" | sed -E 's/^(-[^[:space:]]*|[0-9]+[smhd]?)[[:space:]]*//')"
-      done
-    done
-    first="$(printf '%s' "$seg" | awk '{print $1}')"
-    unword "$first"; first="${UNWORD##*/}"
-    [ "$first" = "curl" ] || continue
+    [ -n "$(printf '%s' "$seg" | tr -d '[:space:]')" ] || continue
+    clause_head "$seg"; rc=$?
+    if [ "$rc" = 2 ]; then
+      # A clause whose head cannot be resolved is not evidence that curl is
+      # absent from it: `case x in a) curl https://evil.example` never reaches a
+      # head at all. This screen sits above Codex, so skipping such a clause
+      # would hand a network-egress decision to an adjudicator. Refuse instead.
+      printf '%s' "$seg" | grep -Eq '\bcurl\b' && return 1
+      continue
+    fi
+    [ "$rc" = 0 ] || continue          # the clause runs no command
+    [ "$CLAUSE_FIRST" = "curl" ] || continue
     set -f
     # shellcheck disable=SC2086
-    set -- $seg
+    set -- $CLAUSE_S
     shift
     curl_ok "$@" || return 1
   done <<EOF
@@ -1045,7 +1191,8 @@ GO_SUB='build|test|vet|fmt|list|version|env'
 DOTNET_SUB='build|test|--version'
 JVM_SUB='test|check|compile|assemble|verify|build|lint'
 
-trim() { printf '%s' "$1" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+# `trim` is defined with the section 0 helpers, because clause_head — which the
+# critical section's curl screen calls — needs it before this point is reached.
 
 # --- redirection ------------------------------------------------------
 # Every `>`/`>>` target must be a writable workspace path, and every `<` source
@@ -2160,26 +2307,19 @@ chmod_ok() { # $@ — skip the mode word, check the paths, screen the options
 #
 # Everything else: allow.
 # =====================================================================
-broad_safe_ok() { # $1 clause (already trimmed & wrapper-stripped by seg_ok)
-  local s="$1" first tok val p assigns=""
+broad_safe_ok() { # $1 clause (already decomposed to its command by seg_ok)
+  local s="$1" first tok val
   [ -n "$s" ] || return 1
 
   redirects_ok "$s" || return 1
 
-  # Strip leading VAR=val, refusing the injection shapes that hijack later
-  # commands. GIT_CONFIG_COUNT/KEY/VALUE injects repository configuration
-  # runtime; LD_PRELOAD/LD_LIBRARY_PATH/LD_AUDIT load an arbitrary shared
-  # object; BASH_ENV/ENV runs a script at shell startup; PATH overriding
-  # tricks the loader into a different binary.
-  while printf '%s' "$s" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*='; do
-    assigns="$(printf '%s' "$s" | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p')"
-    case "$assigns" in
-      GIT_CONFIG*|LD_PRELOAD|LD_LIBRARY_PATH|LD_AUDIT|BASH_ENV|ENV|PATH|CDPATH|SHELLOPTS|BASHOPTS|PYTHONSTARTUP|PYTHONPATH|NODE_OPTIONS|PROMPT_COMMAND)
-        return 1 ;;
-    esac
-    s="$(printf '%s' "$s" | sed 's/^[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]*//')"
-  done
-  [ -n "$s" ] || return 1
+  # Assignments are stripped and screened by seg_ok, the only caller, because
+  # that is the only place they are still visible — the injection list used to
+  # live here, below the strip, where it never ran. If one is still in front of
+  # the command the clause was not decomposed the way this function assumes, and
+  # an assignment decides what the command after it IS, so there is nothing left
+  # to reason about.
+  printf '%s' "$s" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=' && return 1
 
   first="$(printf '%s' "$s" | awk '{print $1}')"
   unword "$first"; first="${UNWORD##*/}"
@@ -2189,6 +2329,19 @@ broad_safe_ok() { # $1 clause (already trimmed & wrapper-stripped by seg_ok)
   # positive signal that they are safe. Escalate rather than "no-op allow".
   case "$first" in
     ""|"#"|"#"*) return 1 ;;
+  esac
+
+  # Shell reserved words and grouping punctuation. clause_head strips the ones
+  # that stand in front of a command and answers separately for the ones that
+  # run nothing, so a keyword reaching HERE means the clause was not decomposed
+  # — and the whole point of that function is that `case x in a) rm -rf ~` must
+  # not be read as a command named `case` with harmless-looking operands. This
+  # list is the second lock on that door: it is unreachable while clause_head is
+  # correct, and it is what stops a future clause shape from being approved on
+  # the strength of a head nobody claimed.
+  case "$first" in
+    if|then|elif|else|fi|for|while|until|do|done|case|'esac'|select|function|\
+    coproc|in|'{'|'}'|'('|')'|'!'|';;') return 1 ;;
   esac
 
   # Refuse the small set of shapes where argv[0] genuinely does not tell you
@@ -2291,49 +2444,55 @@ broad_safe_ok() { # $1 clause (already trimmed & wrapper-stripped by seg_ok)
 }
 
 seg_ok() {
-  local s first
-  s="$(trim "$1")"
+  local s first rc
+  # Decompose first: grouping punctuation, reserved words, assignments and
+  # wrappers all stand in front of the command without being it. $CLAUSE_FIRST
+  # is the name the shell will really resolve — `su""do`, `"rm"` and `gi\t`
+  # reach the classifier that exists for them rather than falling through to the
+  # broad fallback, where an unrecognised argv[0] with innocuous operands is
+  # ALLOWED.
+  clause_head "$1"; rc=$?
+  s="$CLAUSE_S"
+  first="$CLAUSE_FIRST"
+  # `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.pager ... git status` is
+  # configuration injection wearing an assignment, and the git gate reads
+  # SEG_ASSIGN to see it.
+  SEG_ASSIGN="$CLAUSE_ASSIGN|"
+
+  # Redirections belong to the clause however it is introduced, so they are
+  # checked on the clause as written rather than on what is left of it: a
+  # structure-only clause can still carry `> file`.
+  redirects_ok "$1" || return 1
+
+  # AN ASSIGNMENT IN FRONT OF A COMMAND CHOOSES WHAT THAT COMMAND IS
+  #
+  # This screen used to live in broad_safe_ok, one layer below the strip that
+  # removes the very thing it looks for — seg_ok deleted the assignments before
+  # calling it, so the loop there never fired and the check was dead code. Both
+  # halves of that were measurable: `LD_PRELOAD=/tmp/evil.so ls` and
+  # `PATH=/tmp/evil ls` were ALLOWED with no dialog, and so was every strict-path
+  # command carrying one, which broad_safe_ok never sees at all. Each of these
+  # names loads code into, or re-points, whatever command follows it, so the
+  # screen belongs where the names are still in hand — here, for every clause,
+  # whichever classifier the clause goes on to reach.
+  case "$SEG_ASSIGN" in
+    *"|GIT_CONFIG"*|*"|LD_PRELOAD|"*|*"|LD_LIBRARY_PATH|"*|*"|LD_AUDIT|"*|\
+    *"|BASH_ENV|"*|*"|ENV|"*|*"|PATH|"*|*"|CDPATH|"*|*"|SHELLOPTS|"*|\
+    *"|BASHOPTS|"*|*"|PYTHONSTARTUP|"*|*"|PYTHONPATH|"*|*"|NODE_OPTIONS|"*|\
+    *"|PROMPT_COMMAND|"*)
+      return 1 ;;
+  esac
+
+  case "$rc" in
+    # The clause runs no command: a `fi`, a `done`, a closing brace, a loop
+    # header, a redirection on its own. There is nothing to classify, and its
+    # redirections have been checked above. Counting it as recognised is what
+    # keeps `{ ls; }` and `if ...; then ls; fi` from costing a dialog.
+    1) return 0 ;;
+    # Not decomposable — see clause_head. Doubt is escalation.
+    2) return 1 ;;
+  esac
   [ -n "$s" ] || return 1
-  # A leading `VAR=value` is stripped so the command itself can be classified.
-  # The names are kept: `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.pager ... git
-  # status` is configuration injection wearing an assignment, and the git gate
-  # reads SEG_ASSIGN to see it.
-  SEG_ASSIGN=''
-  while printf '%s' "$s" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*='; do
-    SEG_ASSIGN="$SEG_ASSIGN|$(printf '%s' "$s" | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p')"
-    s="$(printf '%s' "$s" | sed 's/^[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]*//')"
-  done
-  SEG_ASSIGN="$SEG_ASSIGN|"
-  [ -n "$s" ] || return 1
-
-  redirects_ok "$s" || return 1
-
-  # The name a clause dispatches on is the name the shell will resolve, not the
-  # punctuation around it: `su""do`, `"rm"` and `gi\t` reach the classifier that
-  # exists for them rather than falling through to the broad fallback, where an
-  # unrecognised argv[0] with innocuous operands is ALLOWED.
-  first="$(printf '%s' "$s" | awk '{print $1}')"
-  unword "$first"; first="${UNWORD##*/}"
-
-  # Benign wrappers are stripped and the command they wrap is classified
-  # instead. Allowlisting `timeout` itself would approve `timeout 5 <anything>`,
-  # which is a hole shaped exactly like the one this file exists to close.
-  local guard_count=0
-  while [ $guard_count -lt 4 ]; do
-    case "$first" in
-      timeout|time|nice|ionice|stdbuf|command|builtin|nohup) : ;;
-      *) break ;;
-    esac
-    guard_count=$((guard_count+1))
-    s="$(printf '%s' "$s" | cut -s -d' ' -f2-)"
-    # drop the wrapper's own flags and bare durations (5, 30s, 2m, ...)
-    while printf '%s' "$s" | grep -Eq '^(-[^[:space:]]*|[0-9]+[smhd]?)([[:space:]]|$)'; do
-      s="$(printf '%s' "$s" | sed -E 's/^(-[^[:space:]]*|[0-9]+[smhd]?)[[:space:]]*//')"
-    done
-    [ -n "$s" ] || return 1
-    first="$(printf '%s' "$s" | awk '{print $1}')"
-    unword "$first"; first="${UNWORD##*/}"
-  done
   [ -n "$first" ] || return 1
 
   # Tokenise once; `set -f` is on, so no operand can glob against the cwd.
@@ -2377,12 +2536,42 @@ seg_ok() {
   return 1
 }
 
+# THE BYTE CEILING IS NOT THIS FILE'S WORK BOUND
+#
+# The oversize check at the top of this file caps the payload and the subject in
+# bytes, because that is what bounds the GUARD's cost: every rule there is one
+# scan of the subject, so time is a function of its length. This file is not
+# shaped like that. Its cost is a function of the number of CLAUSES — each one
+# is decomposed, dispatched and canonicalised with its own subprocesses — so the
+# byte ceiling bounds the wrong quantity, and a command made of many short
+# clauses sits far inside it while costing far more. Measured on the development
+# machine, against the 20 s timeout the fragment registers for this hook:
+#
+#     1 clause      ~0.18 s
+#     4 clauses     ~0.19 s
+#   400 clauses      7.1 s
+#   64 KiB of clauses (the byte ceiling)   43 s      — over the timeout
+#
+# A broker that reaches its timeout is cancelled and renders no decision. That
+# is the safe direction interactively — Claude Code asks the human — and it is
+# the wrong one unattended, which is the run that has no human to ask: the
+# dialog is raised for nobody instead of the request being denied and queued.
+#
+# So the count is capped, and the cap is on the quantity that drives the cost.
+# 64 leaves an order of magnitude of headroom (~1.3 s) and is far above anything
+# a real command contains; a command with more clauses than this is escalated
+# deliberately rather than classified slowly and cancelled silently.
+MAX_CLAUSES="${AI_DEV_MAX_CLAUSES:-64}"
+
 # Positive proof: count clauses, count the ones recognised, require equality
 # and a non-zero total. Any degradation lowers `ok` and produces ESCALATE.
 total=0; ok=0
 while IFS= read -r seg; do
   [ -n "$(printf '%s' "$seg" | tr -d '[:space:]')" ] || continue
   total=$((total+1))
+  if [ "$total" -gt "$MAX_CLAUSES" ]; then
+    escalate oversize-clauses "This command has more than $MAX_CLAUSES clauses, which is more than this hook can classify inside its timeout — and a cancelled broker decides nothing, so it is escalated deliberately instead. Run it in smaller pieces."
+  fi
   seg_ok "$seg" && ok=$((ok+1))
 done <<EOF
 $(clauses "$CMD")
