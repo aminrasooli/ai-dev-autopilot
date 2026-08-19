@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/aminrasooli/ai-dev-autopilot/security/advisories/new
+    about: >-
+      Private vulnerability reporting. Use this — not a public issue — for
+      anything that bypasses a documented boundary, makes the broker fail open,
+      or lets a repository influence the session that inspects it.

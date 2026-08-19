@@ -1,0 +1,69 @@
+name: Bug report
+description: Something behaves differently from what the documentation or tests claim.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        **Is this a security vulnerability?** A way to reach an allow for a
+        human-only boundary, make the broker fail open, or let a checked-out
+        repository influence the session that inspects it must go through
+        [private vulnerability reporting](https://github.com/aminrasooli/ai-dev-autopilot/security/advisories/new)
+        instead — see
+        [SECURITY.md](https://github.com/aminrasooli/ai-dev-autopilot/blob/main/SECURITY.md).
+        No details in public issues.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you observe, and what did you expect instead?
+      placeholder: >-
+        `bin/doctor` reports X, but the deployed settings say Y…
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Smallest reproduction
+      description: >-
+        A command, a settings fragment, a repository layout — the smallest thing
+        that shows it. If a permission decision is involved, the command you ran
+        and the decision you got.
+      render: sh
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: >-
+        Much of what this project asserts is measured against vendor behaviour
+        that changes between releases, so versions matter.
+      placeholder: |
+        AI Dev Autopilot commit:
+        Claude Code version (claude --version):
+        Codex CLI version, if installed:
+        OS:
+    validations:
+      required: true
+  - type: textarea
+    id: suite
+    attributes:
+      label: What the test suite says
+      description: >-
+        Output of `make test` (or the one suite that covers the area), if you
+        ran it. `PENDING` on an undeployed machine is normal.
+      render: text
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Before submitting
+      options:
+        - label: >-
+            This is not a security vulnerability (those go through private
+            vulnerability reporting, with no details in public).
+          required: true
+        - label: >-
+            The report contains no credentials, tokens, private hostnames or
+            other machine-identifying detail.
+          required: true

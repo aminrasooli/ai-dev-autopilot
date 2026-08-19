@@ -504,7 +504,8 @@ Report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
 ## Contributing
 
 Contributions, testing, simplification and alternative implementations are all
-welcome.
+welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has the workflow — how to run the
+suites on an undeployed machine, and what CI checks.
 
 Start with [NOTES.md](NOTES.md), which holds the standing rules for the parts of
 this framework that are easy to widen by accident, and
