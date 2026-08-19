@@ -1,0 +1,61 @@
+name: Hardening proposal
+description: Propose a new screen, a tightened rule, or verification for a control that is currently asserted but not measured.
+labels: ["hardening"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        This form is for making a control stronger or better-verified. If you
+        have found a way to **defeat** a control — an allow the boundaries say
+        cannot happen — that is a vulnerability: use
+        [private vulnerability reporting](https://github.com/aminrasooli/ai-dev-autopilot/security/advisories/new)
+        and put no details here. Before proposing, skim
+        [NOTES.md](https://github.com/aminrasooli/ai-dev-autopilot/blob/main/NOTES.md)
+        (the standing rules) and
+        [.ai/decisions.md](https://github.com/aminrasooli/ai-dev-autopilot/blob/main/.ai/decisions.md)
+        (what was already decided, and why).
+  - type: textarea
+    id: gap
+    attributes:
+      label: The gap
+      description: >-
+        What is unprotected, unverified or over-trusted today, and which file
+        implements the current behaviour?
+    validations:
+      required: true
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: Current behaviour, measured
+      description: >-
+        What does the framework do right now — allow, escalate, deny, or nothing
+        — and how did you measure it? A rule that changes classifier behaviour
+        is reviewed against evidence, not plausibility.
+      render: sh
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: >-
+        What should happen instead, and where does the change belong? Note the
+        house rules — new classifier doubt defaults to escalation, widenings
+        need a frequency measurement, and anything behind the mechanical
+        security boundary must stay above Codex.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: How it would be proven
+      description: >-
+        Which suite the regressions belong in, and what the positive controls
+        are — the routine spellings that must stay dialog-free.
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Before submitting
+      options:
+        - label: >-
+            This proposal does not describe a working bypass of an existing
+            control (bypasses go through private vulnerability reporting).
+          required: true
