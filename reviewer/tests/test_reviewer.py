@@ -1,0 +1,439 @@
+"""Deterministic tests for the pluggable reviewer.
+
+No GPU, no Ollama daemon, no Codex login, no network — every backend call
+here goes through a stub (an `opener` for Ollama's HTTP door, a `runner`
+for Codex's subprocess door, or the FakeReviewer's script) so this suite
+runs the same on a laptop and in CI.
+
+Run directly:  python3 -m unittest discover -s reviewer/tests -v
+Run via suite: tests/reviewer.test.sh
+"""
+
+import json
+import os
+import tempfile
+import unittest
+from unittest import mock
+
+from reviewer import config, evaluate, net, prompt, result
+from reviewer.backends import create_backend
+from reviewer.backends.codex import NOT_METERED, CodexReviewer
+from reviewer.backends.fake import FakeReviewer
+from reviewer.backends.ollama import LOCAL_COST_STATEMENT, OllamaReviewer
+from reviewer.errors import ConfigError, MalformedResponse, ModelUnavailable, \
+    ReviewerUnavailable
+
+
+class _FakeResponse:
+    def __init__(self, status, body_bytes):
+        self.status = status
+        self._body = body_bytes
+
+    def read(self):
+        return self._body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        return False
+
+
+class _FakeOpener:
+    """Stands in for urllib's opener: returns a fixed status/body, never
+    touches a socket."""
+
+    def __init__(self, status, body_obj):
+        self.status = status
+        self.body = json.dumps(body_obj).encode("utf-8")
+        self.requests = []
+
+    def open(self, request, timeout=None):
+        self.requests.append(request.full_url)
+        return _FakeResponse(self.status, self.body)
+
+
+class _RaisingOpener:
+    def __init__(self, exc):
+        self.exc = exc
+
+    def open(self, request, timeout=None):
+        raise self.exc
+
+
+class ConfigTests(unittest.TestCase):
+    def test_codex_is_the_default_with_no_config_present(self):
+        with tempfile.TemporaryDirectory() as home:
+            with mock.patch.dict(os.environ,
+                                  {"AI_DEV_HOME": home}, clear=False):
+                os.environ.pop("AI_DEV_REVIEWER_CONFIG", None)
+                cfg = config.load_config()
+        self.assertEqual(cfg, {"backend": "codex"})
+
+    def test_selecting_ollama_via_config_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "reviewer.json")
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump({"backend": "ollama", "model": "qwen3.6:27b",
+                          "endpoint": "http://127.0.0.1:11434", "timeout": 120}, fh)
+            cfg = config.load_config(explicit=path)
+        self.assertEqual(cfg["backend"], "ollama")
+        self.assertEqual(cfg["model"], "qwen3.6:27b")
+
+    def test_unknown_config_keys_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "reviewer.json")
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump({"backend": "codex", "surprise": True}, fh)
+            with self.assertRaises(ConfigError):
+                config.load_config(explicit=path)
+
+    def test_malformed_json_is_rejected_not_defaulted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "reviewer.json")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write("{not json")
+            with self.assertRaises(ConfigError):
+                config.load_config(explicit=path)
+
+    def test_missing_backend_key_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "reviewer.json")
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump({"model": "x"}, fh)
+            with self.assertRaises(ConfigError):
+                config.load_config(explicit=path)
+
+
+class BackendSelectionTests(unittest.TestCase):
+    def test_unknown_backend_name_is_a_config_error_not_a_fallback(self):
+        with self.assertRaises(ConfigError):
+            create_backend({"backend": "gpt-magic"})
+
+    def test_codex_selected_by_default_config(self):
+        backend = create_backend({"backend": "codex"})
+        self.assertIsInstance(backend, CodexReviewer)
+        self.assertTrue(backend.external_service_required)
+
+    def test_ollama_selected_with_model(self):
+        backend = create_backend({"backend": "ollama", "model": "llama3"})
+        self.assertIsInstance(backend, OllamaReviewer)
+        self.assertFalse(backend.external_service_required)
+
+
+class NetLoopbackTests(unittest.TestCase):
+    def test_default_localhost_endpoint_accepted(self):
+        self.assertTrue(net.is_local_url("http://127.0.0.1:11434"))
+        self.assertTrue(net.is_local_url("http://localhost:11434"))
+        net.require_local("http://127.0.0.1:11434")  # must not raise
+
+    def test_remote_endpoint_rejected_by_default(self):
+        for url in ("http://example.com:11434", "http://10.0.0.5:11434",
+                    "https://ollama.internal.corp"):
+            with self.assertRaises(ConfigError):
+                net.require_local(url)
+
+    def test_ollama_backend_refuses_remote_endpoint_at_construction(self):
+        with self.assertRaises(ConfigError):
+            OllamaReviewer(model="llama3", endpoint="http://example.com:11434")
+
+    def test_ollama_backend_never_falls_back_to_a_second_host(self):
+        # A remote-endpoint attempt must fail before any request — including
+        # one dressed up as loopback in the path but not the host.
+        with self.assertRaises(ConfigError):
+            OllamaReviewer(model="llama3",
+                           endpoint="http://attacker.example/127.0.0.1")
+
+
+class OllamaBackendTests(unittest.TestCase):
+    def test_daemon_unreachable_is_reviewerunavailable(self):
+        backend = OllamaReviewer(model="llama3",
+                                 opener=_RaisingOpener(OSError("connection refused")))
+        with self.assertRaises(ReviewerUnavailable):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_missing_model_is_modelunavailable(self):
+        backend = OllamaReviewer(
+            model="ghost-model",
+            opener=_FakeOpener(404, {"error": "model 'ghost-model' not found"}))
+        with self.assertRaises(ModelUnavailable):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_preflight_reports_missing_model_without_raising(self):
+        backend = OllamaReviewer(
+            model="ghost-model",
+            opener=_FakeOpener(404, {"error": "model 'ghost-model' not found"}))
+        check = backend.preflight()
+        self.assertFalse(check["ok"])
+        self.assertIn("not installed", check["detail"])
+
+    def test_preflight_ok_when_model_present(self):
+        backend = OllamaReviewer(model="llama3", opener=_FakeOpener(200, {}))
+        check = backend.preflight()
+        self.assertTrue(check["ok"])
+
+    def test_prose_instead_of_json_is_malformed(self):
+        body = {"response": "Looks fine to me, no issues here!",
+                "prompt_eval_count": 10, "eval_count": 5}
+        backend = OllamaReviewer(model="llama3", opener=_FakeOpener(200, body))
+        with self.assertRaises(MalformedResponse):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_happy_path_reports_tokens_and_local_cost_statement(self):
+        reply = json.dumps({"findings": [], "verdict": "approve"})
+        body = {"response": reply, "prompt_eval_count": 42, "eval_count": 7,
+                "total_duration": 2_500_000_000}
+        backend = OllamaReviewer(model="llama3", opener=_FakeOpener(200, body))
+        review = backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertEqual(review.verdict, "approve")
+        self.assertEqual(review.metrics.input_tokens, 42)
+        self.assertEqual(review.metrics.output_tokens, 7)
+        self.assertEqual(review.metrics.local_execution_seconds, 2.5)
+        self.assertEqual(review.metrics.external_cost, LOCAL_COST_STATEMENT)
+        self.assertFalse(review.metrics.external_service_required)
+
+    def test_no_silent_cloud_fallback_on_failure(self):
+        opener = _RaisingOpener(OSError("connection refused"))
+        backend = OllamaReviewer(model="llama3", opener=opener)
+        with self.assertRaises(ReviewerUnavailable):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+        # The only door this backend has is its own opener against its own
+        # loopback endpoint; there is no code path that reaches for another.
+        self.assertTrue(backend.endpoint.startswith("http://127.0.0.1"))
+
+
+class CodexBackendTests(unittest.TestCase):
+    class _AlwaysOk(CodexReviewer):
+        def preflight(self):
+            return {"ok": True, "detail": "stub"}
+
+    def test_cost_is_reported_as_not_metered_never_invented(self):
+        reply = json.dumps({"findings": [], "verdict": "approve"})
+        backend = self._AlwaysOk(runner=lambda *a, **k: (0, reply))
+        review = backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertEqual(review.metrics.external_cost, NOT_METERED)
+        self.assertIsNone(review.metrics.input_tokens)
+        self.assertIsNone(review.metrics.output_tokens)
+        self.assertTrue(review.metrics.external_service_required)
+
+    def test_timeout_is_reviewerunavailable(self):
+        backend = self._AlwaysOk(runner=lambda *a, **k: (124, ""))
+        with self.assertRaises(ReviewerUnavailable):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_empty_output_is_malformed(self):
+        backend = self._AlwaysOk(runner=lambda *a, **k: (0, ""))
+        with self.assertRaises(MalformedResponse):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_credential_env_vars_are_not_forwarded(self):
+        seen_env = {}
+
+        def capture_runner(cmd, stdin_text, timeout, env):
+            seen_env.update(env)
+            return 0, json.dumps({"findings": [], "verdict": "approve"})
+
+        with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "sk-should-not-leak"}):
+            backend = self._AlwaysOk(runner=capture_runner)
+            backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertNotIn("OPENAI_API_KEY", seen_env)
+
+
+class FakeBackendTests(unittest.TestCase):
+    def test_scripted_json_reply_goes_through_the_real_contract(self):
+        script = {"default": {"findings": [], "verdict": "approve"}}
+        backend = FakeReviewer(script=script)
+        review = backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertEqual(review.verdict, "approve")
+
+    def test_scripted_prose_reply_proves_the_malformed_path(self):
+        backend = FakeReviewer(script={"default": "not json at all"})
+        with self.assertRaises(MalformedResponse):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_unhealthy_backend_raises_reviewerunavailable(self):
+        backend = FakeReviewer(healthy=False)
+        with self.assertRaises(ReviewerUnavailable):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+
+class ResultSchemaTests(unittest.TestCase):
+    def test_ollama_and_fake_produce_the_same_result_shape(self):
+        reply = json.dumps({"findings": [], "verdict": "approve"})
+        ollama = OllamaReviewer(
+            model="llama3",
+            opener=_FakeOpener(200, {"response": reply}))
+        fake = FakeReviewer(script={"default": {"findings": [], "verdict": "approve"}})
+        r1 = ollama.review_diff("--- a/f\n+++ b/f\n").to_dict()
+        r2 = fake.review_diff("--- a/f\n+++ b/f\n").to_dict()
+        self.assertEqual(set(r1), set(r2))
+        self.assertEqual(set(r1["metrics"]), set(r2["metrics"]))
+
+    def test_cost_unknown_never_defaults_to_zero(self):
+        metrics = result.ReviewMetrics(backend="x", model="y", latency_seconds=1.0)
+        self.assertEqual(metrics.external_cost, "unknown")
+        self.assertIsNone(metrics.input_tokens)
+
+    def test_malformed_findings_reject_off_vocabulary_category(self):
+        obj = result.parse_json_output(json.dumps(
+            {"findings": [{"category": "vibes", "severity": "high",
+                          "file": None, "note": "x"}], "verdict": "changes_required"}))
+        with self.assertRaises(MalformedResponse):
+            result.validate_review_output(obj)
+
+    def test_bare_and_fenced_json_both_parse(self):
+        obj = {"findings": [], "verdict": "approve"}
+        bare = result.parse_json_output(json.dumps(obj))
+        fenced = result.parse_json_output("```json\n" + json.dumps(obj) + "\n```")
+        self.assertEqual(bare, fenced)
+
+    def test_prompt_is_identical_regardless_of_backend(self):
+        # The eval only means something if no backend gets an easier prompt.
+        p1 = prompt.build_review_prompt("diff-a")
+        p2 = prompt.build_review_prompt("diff-a")
+        self.assertEqual(p1, p2)
+        self.assertIn("diff-a", p1)
+
+
+class EvalHarnessTests(unittest.TestCase):
+    def _write_case(self, tmp, case):
+        path = os.path.join(tmp, case["id"] + ".json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(case, fh)
+        return path
+
+    def test_ground_truth_parses_valid_case(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_case(tmp, {
+                "id": "x", "title": "t", "diff": ["a", "b"],
+                "ground_truth": {"defect": True, "category": "logic-error",
+                                "severity": ["medium", "high"],
+                                "explanation": "why"}})
+            cases = evaluate.load_cases(tmp)
+        self.assertEqual(len(cases), 1)
+        self.assertEqual(cases[0]["diff"], "a\nb\n")
+
+    def test_unknown_category_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_case(tmp, {
+                "id": "x", "title": "t", "diff": "d",
+                "ground_truth": {"defect": True, "category": "vibes",
+                                "severity": ["low", "low"], "explanation": "why"}})
+            with self.assertRaises(ConfigError):
+                evaluate.load_cases(tmp)
+
+    def test_inverted_severity_range_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_case(tmp, {
+                "id": "x", "title": "t", "diff": "d",
+                "ground_truth": {"defect": True, "category": "logic-error",
+                                "severity": ["high", "low"], "explanation": "why"}})
+            with self.assertRaises(ConfigError):
+                evaluate.load_cases(tmp)
+
+    def test_duplicate_ids_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case = {"id": "dup", "title": "t", "diff": "d",
+                   "ground_truth": {"defect": False, "explanation": "why"}}
+            with open(os.path.join(tmp, "a.json"), "w", encoding="utf-8") as fh:
+                json.dump(case, fh)
+            with open(os.path.join(tmp, "b.json"), "w", encoding="utf-8") as fh:
+                json.dump(case, fh)
+            with self.assertRaises(ConfigError):
+                evaluate.load_cases(tmp)
+
+    def test_empty_cases_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ConfigError):
+                evaluate.load_cases(tmp)
+
+    def test_false_positive_scoring_on_clean_case(self):
+        case = {"ground_truth": {"defect": False}}
+        review = result.ReviewResult(
+            "changes_required",
+            [{"category": "other", "severity": "low", "file": None, "note": "n"}],
+            result.ReviewMetrics(backend="x", model="y", latency_seconds=0))
+        score = evaluate.score_case(case, review)
+        self.assertTrue(score["false_positive"])
+        self.assertIsNone(score["detected"])
+
+    def test_miss_scoring_on_defect_case_with_no_findings(self):
+        case = {"ground_truth": {"defect": True, "category": "logic-error",
+                                 "severity": ["medium", "high"]}}
+        review = result.ReviewResult(
+            "approve", [], result.ReviewMetrics(backend="x", model="y", latency_seconds=0))
+        score = evaluate.score_case(case, review)
+        self.assertFalse(score["detected"])
+        self.assertFalse(score["category_correct"])
+
+    def test_category_and_severity_correct_when_finding_matches(self):
+        case = {"ground_truth": {"defect": True, "category": "logic-error",
+                                 "severity": ["medium", "high"]}}
+        review = result.ReviewResult(
+            "changes_required",
+            [{"category": "logic-error", "severity": "high", "file": None, "note": "n"}],
+            result.ReviewMetrics(backend="x", model="y", latency_seconds=0))
+        score = evaluate.score_case(case, review)
+        self.assertTrue(score["detected"])
+        self.assertTrue(score["category_correct"])
+        self.assertTrue(score["severity_correct"])
+
+    def test_severity_outside_range_is_not_severity_correct(self):
+        case = {"ground_truth": {"defect": True, "category": "logic-error",
+                                 "severity": ["medium", "high"]}}
+        review = result.ReviewResult(
+            "changes_required",
+            [{"category": "logic-error", "severity": "low", "file": None, "note": "n"}],
+            result.ReviewMetrics(backend="x", model="y", latency_seconds=0))
+        score = evaluate.score_case(case, review)
+        self.assertTrue(score["detected"])
+        self.assertTrue(score["category_correct"])
+        self.assertFalse(score["severity_correct"])
+
+    def test_aggregation_keeps_unknown_tokens_as_none_not_zero(self):
+        records = [
+            {"status": "ok", "defect": True,
+             "score": {"detected": True, "false_positive": False,
+                      "category_correct": True, "severity_correct": True},
+             "metrics": {"latency_seconds": 1.0, "input_tokens": None,
+                        "output_tokens": None,
+                        "external_cost": NOT_METERED}},
+            {"status": "error", "defect": True, "error": "boom"},
+        ]
+        summary = evaluate.aggregate(records)
+        self.assertEqual(summary["cases"], 2)
+        self.assertEqual(summary["errors"], 1)
+        self.assertIsNone(summary["total_input_tokens"])
+        self.assertEqual(summary["external_cost"], [NOT_METERED])
+
+    def test_aggregation_sums_tokens_when_at_least_one_record_reports_them(self):
+        records = [
+            {"status": "ok", "defect": False,
+             "score": {"detected": None, "false_positive": False,
+                      "category_correct": None, "severity_correct": None},
+             "metrics": {"latency_seconds": 1.0, "input_tokens": 10,
+                        "output_tokens": 5, "external_cost": "unknown"}},
+        ]
+        summary = evaluate.aggregate(records)
+        self.assertEqual(summary["total_input_tokens"], 10)
+        self.assertEqual(summary["total_output_tokens"], 5)
+
+    def test_real_corpus_loads_and_the_oracle_scores_it_perfectly(self):
+        # Regression guard for the actual eval/cases/ shipped in the repo:
+        # the oracle (built straight from ground truth) must score 100% or
+        # the harness itself — not any model — has a bug.
+        cases = evaluate.load_cases(evaluate.DEFAULT_CASES_DIR)
+        self.assertEqual(len(cases), 20)
+        backend = evaluate.oracle_backend(cases)
+        report = evaluate.run_eval(backend, cases)
+        summary = report["summary"]
+        self.assertEqual(summary["errors"], 0)
+        self.assertEqual(summary["detected"], summary["defect_cases"])
+        self.assertEqual(summary["missed"], 0)
+        self.assertEqual(summary["false_positives"], 0)
+        self.assertEqual(summary["category_correct"], summary["defect_cases"])
+        self.assertEqual(summary["severity_correct"], summary["defect_cases"])
+
+
+if __name__ == "__main__":
+    unittest.main()
