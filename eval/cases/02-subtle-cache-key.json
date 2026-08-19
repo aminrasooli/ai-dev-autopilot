@@ -1,0 +1,26 @@
+{
+  "id": "02-subtle-cache-key",
+  "title": "Cache key drops the user id",
+  "diff": [
+    "--- a/src/profile.py",
+    "+++ b/src/profile.py",
+    "@@ -21,9 +21,9 @@ def load_profile(user_id, locale):",
+    "-    key = f\"profile:{user_id}:{locale}\"",
+    "+    key = f\"profile:{locale}\"",
+    "     cached = cache.get(key)",
+    "     if cached is not None:",
+    "         return cached",
+    "     profile = db.fetch_profile(user_id, locale)",
+    "     cache.set(key, profile, ttl=3600)",
+    "     return profile"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "logic-error",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "The cache key no longer includes user_id, so one user's cached profile is served to every other user with the same locale."
+  }
+}

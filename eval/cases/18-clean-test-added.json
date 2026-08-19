@@ -1,0 +1,20 @@
+{
+  "id": "18-clean-test-added",
+  "title": "Clean: regression test added for a past bug",
+  "diff": [
+    "--- a/tests/test_pricing.py",
+    "+++ b/tests/test_pricing.py",
+    "@@ -20,3 +20,9 @@ def test_no_discount_below_fifty():",
+    "     assert volume_discount(49) == 0.0",
+    "+",
+    "+",
+    "+def test_discount_boundary_at_hundred():",
+    "+    # Regression: 100 units must receive the volume rate.",
+    "+    assert volume_discount(100) == 0.15",
+    "+    assert volume_discount(99) == 0.05"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "Adds a correct boundary regression test; strengthening coverage is not a defect."
+  }
+}

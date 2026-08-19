@@ -1,0 +1,24 @@
+{
+  "id": "03-missing-validation",
+  "title": "Quantity accepted without bounds check",
+  "diff": [
+    "--- a/src/checkout.py",
+    "+++ b/src/checkout.py",
+    "@@ -30,10 +30,8 @@ def add_line_item(cart, sku, quantity):",
+    "-    if quantity < 1 or quantity > MAX_PER_ORDER:",
+    "-        raise ValueError(f\"quantity out of range: {quantity}\")",
+    "     price = catalog.price(sku)",
+    "     cart.items.append(LineItem(sku=sku, quantity=quantity,",
+    "                                total=price * quantity))",
+    "     return cart"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "missing-validation",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Removing the range check lets a negative quantity produce a negative line total, i.e. a credit, and lets absurd quantities through."
+  }
+}

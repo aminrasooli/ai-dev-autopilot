@@ -1,0 +1,24 @@
+{
+  "id": "11-misleading-test",
+  "title": "Test mocks the function under test",
+  "diff": [
+    "--- a/tests/test_totals.py",
+    "+++ b/tests/test_totals.py",
+    "@@ -5,9 +5,10 @@ from src import totals",
+    " def test_order_total_applies_tax():",
+    "-    order = make_order(subtotal=100, region=\"CA\")",
+    "-    assert totals.order_total(order) == 108.25",
+    "+    with mock.patch.object(totals, \"order_total\", return_value=108.25):",
+    "+        order = make_order(subtotal=100, region=\"CA\")",
+    "+        assert totals.order_total(order) == 108.25"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "misleading-test",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The test now patches order_total itself, so it asserts the mock returns the mock's value and passes whatever the real code does."
+  }
+}

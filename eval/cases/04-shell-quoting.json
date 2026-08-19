@@ -1,0 +1,22 @@
+{
+  "id": "04-shell-quoting",
+  "title": "Unquoted variable in cleanup script",
+  "diff": [
+    "--- a/scripts/cleanup.sh",
+    "+++ b/scripts/cleanup.sh",
+    "@@ -12,6 +12,6 @@ prune_workdir() {",
+    "   workdir=\"$1\"",
+    "-  rm -rf -- \"${workdir:?}/build\"",
+    "+  rm -rf -- $workdir/build",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "shell-quoting",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Unquoted $workdir word-splits and globs; a path with spaces deletes the wrong targets, and an empty value makes the target /build."
+  }
+}

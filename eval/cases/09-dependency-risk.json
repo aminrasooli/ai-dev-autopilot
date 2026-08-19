@@ -1,0 +1,22 @@
+{
+  "id": "09-dependency-risk",
+  "title": "Pinned dependency replaced by a git URL",
+  "diff": [
+    "--- a/requirements.txt",
+    "+++ b/requirements.txt",
+    "@@ -3,4 +3,4 @@ click==8.1.7",
+    " jinja2==3.1.4",
+    "-requests==2.32.3",
+    "+requests @ git+https://github.com/someuser/requests-fork.git@main",
+    " urllib3==2.2.2"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "dependency-risk",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "A pinned release from PyPI becomes an unpinned branch of a personal fork: unreviewed code, mutable history, no integrity guarantee."
+  }
+}

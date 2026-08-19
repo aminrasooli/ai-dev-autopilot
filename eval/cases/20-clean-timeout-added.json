@@ -1,0 +1,16 @@
+{
+  "id": "20-clean-timeout-added",
+  "title": "Clean: HTTP call gains a timeout",
+  "diff": [
+    "--- a/src/status.py",
+    "+++ b/src/status.py",
+    "@@ -9,6 +9,6 @@ def upstream_healthy():",
+    "-    response = requests.get(STATUS_URL)",
+    "+    response = requests.get(STATUS_URL, timeout=5)",
+    "     return response.status_code == 200"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "Adding a timeout to a blocking call is a strict improvement; no findings expected."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "15-subtle-timezone",
+  "title": "Expiry compared against naive local time",
+  "diff": [
+    "--- a/src/tokens.py",
+    "+++ b/src/tokens.py",
+    "@@ -30,7 +30,7 @@ def is_expired(token):",
+    "-    now = datetime.now(timezone.utc)",
+    "+    now = datetime.now()",
+    "     return token.expires_at <= now"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "logic-error",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "expires_at is timezone-aware UTC; comparing it with a naive local now either raises or shifts expiry by the host's UTC offset."
+  }
+}

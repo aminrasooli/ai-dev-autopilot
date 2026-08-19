@@ -1,0 +1,18 @@
+{
+  "id": "19-clean-error-message",
+  "title": "Clean: error message made actionable",
+  "diff": [
+    "--- a/src/config.py",
+    "+++ b/src/config.py",
+    "@@ -19,7 +19,8 @@ def load(path):",
+    "     if not os.path.exists(path):",
+    "-        raise ConfigError(\"config missing\")",
+    "+        raise ConfigError(",
+    "+            f\"config file not found at {path}; copy config.example.toml to start\")",
+    " "
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "Same failure, better message; no behavioural or security change."
+  }
+}

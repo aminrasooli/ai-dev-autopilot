@@ -1,0 +1,22 @@
+{
+  "id": "05-command-injection",
+  "title": "User input interpolated into a shell command",
+  "diff": [
+    "--- a/src/thumbs.py",
+    "+++ b/src/thumbs.py",
+    "@@ -8,7 +8,7 @@ def make_thumbnail(upload_name):",
+    "-    subprocess.run([\"convert\", upload_name, \"-resize\", \"128x128\",",
+    "-                    thumb_path(upload_name)], check=True)",
+    "+    os.system(f\"convert {upload_name} -resize 128x128 \"",
+    "+              f\"{thumb_path(upload_name)}\")"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "command-injection",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "A filename like 'x; rm -rf ~' is executed by the shell; the argv-list form never went through a shell."
+  }
+}
