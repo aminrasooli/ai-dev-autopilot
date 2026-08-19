@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# AI-DEV — independent review through the configured reviewer backend.
+#
+# The reviewer is pluggable; the default is not. With no configuration this
+# execs bin/codex-review exactly as before — existing users see no change.
+# A config file can select the local Ollama backend instead:
+#
+#   $AI_DEV_HOME/config/reviewer.json      (or $AI_DEV_REVIEWER_CONFIG)
+#   {"backend": "ollama", "model": "qwen3.6:27b"}
+#
+# An unknown or malformed configuration is an error, never a silent
+# fallback: a user who configured a local reviewer must not have their diff
+# sent to an external service by a typo.
+#
+# Usage:
+#   review [args...]        forwarded to the selected backend
+#   review --which          print the resolved backend and exit
+#
+# Exit codes: 0 review produced · 3 reviewer unavailable · 2 usage/config error
+
+set -uo pipefail
+
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+CONFIG="${AI_DEV_REVIEWER_CONFIG:-$AI_DEV_HOME/config/reviewer.json}"
+
+backend="codex"
+if [ -f "$CONFIG" ]; then
+  command -v python3 >/dev/null 2>&1 \
+    || { printf 'review: python3 is required to read %s\n' "$CONFIG" >&2; exit 2; }
+  if ! backend="$(python3 - "$CONFIG" <<'PY'
+import json, sys
+with open(sys.argv[1], encoding="utf-8") as fh:
+    obj = json.load(fh)
+if not isinstance(obj, dict) or "backend" not in obj:
+    raise SystemExit("missing 'backend'")
+print(obj["backend"])
+PY
+  )"; then
+    printf 'review: %s is not a valid reviewer config\n' "$CONFIG" >&2
+    exit 2
+  fi
+fi
+
+if [ "${1:-}" = "--which" ]; then
+  printf '%s\n' "$backend"
+  exit 0
+fi
+
+case "$backend" in
+  codex)
+    # The existing reviewer, byte for byte. Its containment, auth handling
+    # and review semantics are unchanged.
+    exec "$AI_DEV_HOME/bin/codex-review" "$@"
+    ;;
+  ollama|fake)
+    command -v python3 >/dev/null 2>&1 \
+      || { printf 'review: python3 is required for the %s backend\n' "$backend" >&2; exit 2; }
+    PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+      exec python3 -m reviewer.cli "$@"
+    ;;
+  *)
+    printf 'review: unknown reviewer backend "%s" in %s (known: codex, ollama)\n' \
+      "$backend" "$CONFIG" >&2
+    exit 2
+    ;;
+esac

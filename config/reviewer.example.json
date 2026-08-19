@@ -1,0 +1,6 @@
+{
+  "backend": "ollama",
+  "model": "qwen3.6:27b",
+  "endpoint": "http://127.0.0.1:11434",
+  "timeout": 300
+}
