@@ -274,21 +274,35 @@ class ClaudeCodeBackendTests(unittest.TestCase):
         return json.dumps(env)
 
     def test_cost_is_measured_from_the_tool_never_invented(self):
+        # The dollar figure lives in external_cost_usd, never baked into
+        # the external_cost label — a label with a different number on
+        # every call can't be deduped by evaluate.aggregate().
         reply = self._envelope(json.dumps({"findings": [], "verdict": "approve"}))
         backend = ClaudeCodeReviewer(runner=lambda *a, **k: (0, reply))
         review = backend.review_diff("--- a/f\n+++ b/f\n")
-        self.assertIn("0.012300", review.metrics.external_cost)
+        self.assertEqual(review.metrics.external_cost_usd, 0.0123)
         self.assertIn("measured", review.metrics.external_cost)
-        self.assertEqual(review.metrics.input_tokens, 10)
+        self.assertNotIn("0.0123", review.metrics.external_cost)
         self.assertEqual(review.metrics.output_tokens, 5)
 
-    def test_missing_cost_field_stays_unknown_not_zero(self):
+    def test_input_tokens_include_cache_creation_and_cache_read(self):
+        # 'input_tokens' alone only counts uncached tokens; prompt caching
+        # can put nearly the whole prompt into cache_creation/cache_read
+        # instead, which must still count as real input for this call.
+        reply = self._envelope(json.dumps({"findings": [], "verdict": "approve"}),
+                               usage={"input_tokens": 1, "cache_creation_input_tokens": 800,
+                                     "cache_read_input_tokens": 50, "output_tokens": 20})
+        backend = ClaudeCodeReviewer(runner=lambda *a, **k: (0, reply))
+        review = backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertEqual(review.metrics.input_tokens, 851)
+
+    def test_missing_cost_field_stays_none_not_zero(self):
         reply = self._envelope(json.dumps({"findings": [], "verdict": "approve"}))
         env = json.loads(reply)
         del env["total_cost_usd"]
         backend = ClaudeCodeReviewer(runner=lambda *a, **k: (0, json.dumps(env)))
         review = backend.review_diff("--- a/f\n+++ b/f\n")
-        self.assertEqual(review.metrics.external_cost, "unknown")
+        self.assertIsNone(review.metrics.external_cost_usd)
 
     def test_timeout_is_reviewerunavailable(self):
         backend = ClaudeCodeReviewer(runner=lambda *a, **k: (124, ""))
@@ -534,6 +548,65 @@ class EvalHarnessTests(unittest.TestCase):
         summary = evaluate.aggregate(records)
         self.assertEqual(summary["total_input_tokens"], 10)
         self.assertEqual(summary["total_output_tokens"], 5)
+
+    def test_aggregation_sums_real_dollar_costs_across_calls(self):
+        # Each call reports its OWN dollar figure (unlike Codex/Ollama's
+        # fixed label) — aggregate() must sum them, not just dedupe
+        # distinct strings, or a 20-case run never shows a total.
+        records = [
+            {"status": "ok", "defect": False,
+             "score": {"detected": None, "false_positive": False,
+                      "category_correct": None, "severity_correct": None},
+             "metrics": {"latency_seconds": 1.0, "input_tokens": 10, "output_tokens": 5,
+                        "external_cost": "measured (claude --output-format json)",
+                        "external_cost_usd": 0.01}},
+            {"status": "ok", "defect": False,
+             "score": {"detected": None, "false_positive": False,
+                      "category_correct": None, "severity_correct": None},
+             "metrics": {"latency_seconds": 1.0, "input_tokens": 10, "output_tokens": 5,
+                        "external_cost": "measured (claude --output-format json)",
+                        "external_cost_usd": 0.02}},
+        ]
+        summary = evaluate.aggregate(records)
+        self.assertEqual(summary["total_external_cost_usd"], 0.03)
+        # The label itself still dedupes to one entry, same as Codex/Ollama.
+        self.assertEqual(summary["external_cost"],
+                         ["measured (claude --output-format json)"])
+
+    def test_aggregation_cost_stays_none_when_nothing_reports_a_dollar_figure(self):
+        records = [
+            {"status": "ok", "defect": False,
+             "score": {"detected": None, "false_positive": False,
+                      "category_correct": None, "severity_correct": None},
+             "metrics": {"latency_seconds": 1.0, "input_tokens": 10, "output_tokens": 5,
+                        "external_cost": "no external model API charge (local compute time is not free)"}},
+        ]
+        summary = evaluate.aggregate(records)
+        self.assertIsNone(summary["total_external_cost_usd"])
+
+    def test_comparison_columns_stay_separated_for_long_values(self):
+        # Column width used to be sized from the header alone; a value
+        # longer than the header (e.g. a long external_cost label) ran
+        # straight into the next column with no separating space.
+        long_label = "measured (claude --output-format json)"
+        report_a = {"backend": "claude", "model": "claude-sonnet-5",
+                   "summary": {"detected": 15, "defect_cases": 15, "missed": 0,
+                              "false_positives": 0, "category_correct": 14,
+                              "severity_correct": 14, "errors": 0,
+                              "mean_latency_seconds": 4.1,
+                              "external_cost": [long_label],
+                              "total_external_cost_usd": 0.107230}}
+        report_b = {"backend": "ollama", "model": "qwen3.6:27b",
+                   "summary": {"detected": 15, "defect_cases": 15, "missed": 0,
+                              "false_positives": 0, "category_correct": 11,
+                              "severity_correct": 10, "errors": 0,
+                              "mean_latency_seconds": 7.8,
+                              "external_cost": ["no external model API charge"],
+                              "total_external_cost_usd": None}}
+        table = evaluate.render_comparison(report_a, report_b)
+        cost_line = next(line for line in table.splitlines()
+                         if line.startswith("external cost"))
+        self.assertIn(long_label + " ", cost_line)
 
     def test_real_corpus_loads_and_the_oracle_scores_it_perfectly(self):
         # Regression guard for the actual eval/cases/ shipped in the repo:
