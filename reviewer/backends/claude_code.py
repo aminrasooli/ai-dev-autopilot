@@ -116,15 +116,28 @@ class ClaudeCodeReviewer(ReviewerBackend):
         verdict, findings = validate_review_output(parse_json_output(text))
         usage = envelope.get("usage") or {}
         cost_usd = envelope.get("total_cost_usd")
+        # Prompt-caching splits the true input token count across up to
+        # three fields — plain 'input_tokens' only covers tokens NOT served
+        # from or written to cache. A cache write (cache_creation) or hit
+        # (cache_read) still reflects real prompt tokens for this call, so
+        # all three must be summed for an honest total, or Claude looks
+        # like it used a fraction of the tokens it actually processed.
+        input_tokens = (usage.get("input_tokens", 0)
+                        + usage.get("cache_creation_input_tokens", 0)
+                        + usage.get("cache_read_input_tokens", 0))
         metrics = ReviewMetrics(
             backend=self.name, model=self.model, latency_seconds=latency,
             calls=1,
-            input_tokens=usage.get("input_tokens"),
+            input_tokens=input_tokens if usage else None,
             output_tokens=usage.get("output_tokens"),
             external_service_required=True,
-            # Directly measured by the tool itself, not estimated — the one
-            # backend where a dollar figure is honest rather than invented.
-            external_cost=(f"${cost_usd:.6f} (measured, claude --output-format json)"
-                           if isinstance(cost_usd, (int, float)) else None),
+            # A stable label, not the dollar figure itself — so aggregate()
+            # can dedupe it across many calls the same way it does for
+            # Codex/Ollama's fixed strings. The actual number is
+            # external_cost_usd, directly measured by the tool, never
+            # estimated — the one backend where a dollar figure is honest
+            # rather than invented.
+            external_cost="measured (claude --output-format json)",
+            external_cost_usd=cost_usd if isinstance(cost_usd, (int, float)) else None,
         )
         return ReviewResult(verdict, findings, metrics)
