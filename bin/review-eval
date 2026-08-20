@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# AI-DEV — seeded-defect reviewer evaluation.
+#
+# Runs identical review semantics over ~20 small diffs with known ground
+# truth and scores detection, misses, false positives, category and
+# severity correctness, latency and honestly-measurable cost.
+#
+#   review-eval --backend fake                  # deterministic; what CI runs
+#   review-eval --backend ollama --model NAME   # local model, no cloud
+#   review-eval --backend codex                 # needs codex login
+#   review-eval --compare a.json b.json         # side-by-side of two reports
+#
+# Exit codes: 0 report produced · 3 backend unavailable · 2 usage error
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-eval: python3 is required\n' >&2; exit 2; }
+PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+  exec python3 -m reviewer.evaluate "$@"

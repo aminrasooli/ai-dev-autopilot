@@ -10,6 +10,11 @@ backups/
 tests/fixtures/.run-hostile/
 .ai/reviews/
 
+# User-owned reviewer backend selection — a repo default of "codex" ships via
+# config/reviewer.example.json; a real config/reviewer.json is local choice
+# (e.g. selecting the ollama backend) and never the public repo's business.
+config/reviewer.json
+
 # Local editor / IDE / OS junk.
 # Deliberately without a trailing slash: the sandbox's scrub mode can leave a
 # /dev/null bind mount at these names, and that is a character device, not a

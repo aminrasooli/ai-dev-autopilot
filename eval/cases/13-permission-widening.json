@@ -1,0 +1,22 @@
+{
+  "id": "13-permission-widening",
+  "title": "Install step makes config world-writable",
+  "diff": [
+    "--- a/scripts/install.sh",
+    "+++ b/scripts/install.sh",
+    "@@ -22,6 +22,6 @@ install_config() {",
+    "   cp etc/app.conf /etc/app/app.conf",
+    "-  chmod 640 /etc/app/app.conf",
+    "+  chmod 777 /etc/app/app.conf",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "permission-widening",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "World-writable configuration lets any local user rewrite settings the service trusts, a straightforward privilege escalation path."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "07-sensitive-logging",
+  "title": "Authorization header written to the log",
+  "diff": [
+    "--- a/src/http_client.py",
+    "+++ b/src/http_client.py",
+    "@@ -25,7 +25,8 @@ def call_api(url, token):",
+    "     headers = {\"Authorization\": f\"Bearer {token}\"}",
+    "+    logger.info(\"calling %s with headers %s\", url, headers)",
+    "     response = requests.get(url, headers=headers, timeout=10)",
+    "     return response.json()"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "sensitive-logging",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The bearer token is written verbatim into application logs, which outlive and outreach the credential."
+  }
+}

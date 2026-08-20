@@ -1,0 +1,20 @@
+{
+  "id": "17-clean-docs",
+  "title": "Clean: README wording improved",
+  "diff": [
+    "--- a/README.md",
+    "+++ b/README.md",
+    "@@ -14,8 +14,9 @@ ## Getting started",
+    "-Run the setup script, then start the server.",
+    "+Run the setup script first, then start the server. The setup script",
+    "+creates the local database the server expects on first boot.",
+    "",
+    " ```sh",
+    " ./setup.sh && ./serve.sh",
+    " ```"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "Documentation-only clarification with no behavioural surface; no findings expected."
+  }
+}

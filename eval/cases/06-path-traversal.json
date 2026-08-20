@@ -1,0 +1,25 @@
+{
+  "id": "06-path-traversal",
+  "title": "Attachment path joined without containment",
+  "diff": [
+    "--- a/src/attachments.py",
+    "+++ b/src/attachments.py",
+    "@@ -14,9 +14,7 @@ def read_attachment(name):",
+    "-    base = os.path.realpath(ATTACHMENT_DIR)",
+    "-    path = os.path.realpath(os.path.join(base, name))",
+    "-    if not path.startswith(base + os.sep):",
+    "-        raise ValueError(\"attachment name escapes the store\")",
+    "+    path = os.path.join(ATTACHMENT_DIR, name)",
+    "     with open(path, \"rb\") as fh:",
+    "         return fh.read()"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "path-traversal",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "A name like ../../etc/passwd now resolves outside the attachment store; the removed realpath check was the containment."
+  }
+}

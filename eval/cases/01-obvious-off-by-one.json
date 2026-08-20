@@ -1,0 +1,22 @@
+{
+  "id": "01-obvious-off-by-one",
+  "title": "Loop bound overruns the list",
+  "diff": [
+    "--- a/src/report.py",
+    "+++ b/src/report.py",
+    "@@ -10,7 +10,7 @@ def latest_entries(entries, count):",
+    "-    for i in range(min(count, len(entries))):",
+    "+    for i in range(min(count, len(entries)) + 1):",
+    "         out.append(entries[i])",
+    "     return out"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "logic-error",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The +1 makes the loop index one past the end, raising IndexError whenever count >= len(entries)."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "16-clean-rename",
+  "title": "Clean: variable renamed for clarity",
+  "diff": [
+    "--- a/src/invoice.py",
+    "+++ b/src/invoice.py",
+    "@@ -8,9 +8,9 @@ def build_invoice(order):",
+    "-    t = 0.0",
+    "+    running_total = 0.0",
+    "     for item in order.items:",
+    "-        t += item.total",
+    "-    return Invoice(order_id=order.id, total=t)",
+    "+        running_total += item.total",
+    "+    return Invoice(order_id=order.id, total=running_total)"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "A pure rename with identical behaviour; a reviewer should have no findings."
+  }
+}
