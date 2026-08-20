@@ -17,6 +17,7 @@ from unittest import mock
 
 from reviewer import config, evaluate, net, prompt, result
 from reviewer.backends import create_backend
+from reviewer.backends.claude_code import ClaudeCodeReviewer
 from reviewer.backends.codex import NOT_METERED, CodexReviewer
 from reviewer.backends.fake import FakeReviewer
 from reviewer.backends.ollama import LOCAL_COST_STATEMENT, OllamaReviewer
@@ -50,6 +51,8 @@ class _FakeOpener:
 
     def open(self, request, timeout=None):
         self.requests.append(request.full_url)
+        self.payloads = getattr(self, "payloads", [])
+        self.payloads.append(json.loads(request.data.decode("utf-8")))
         return _FakeResponse(self.status, self.body)
 
 
@@ -192,6 +195,28 @@ class OllamaBackendTests(unittest.TestCase):
         self.assertEqual(review.metrics.external_cost, LOCAL_COST_STATEMENT)
         self.assertFalse(review.metrics.external_service_required)
 
+    def test_request_disables_thinking_mode(self):
+        # Some reasoning models route the whole answer into a separate
+        # 'thinking' field and leave 'response' empty unless told not to
+        # reason at all — see test_entire_answer_in_thinking_field_is_
+        # reported_clearly below for the failure this prevents.
+        opener = _FakeOpener(200, {"response": json.dumps(
+            {"findings": [], "verdict": "approve"})})
+        backend = OllamaReviewer(model="llama3", opener=opener)
+        backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertEqual(opener.payloads[0]["think"], False)
+
+    def test_entire_answer_in_thinking_field_is_reported_clearly(self):
+        # Reproduces the real qwen3.6:27b failure mode: done_reason "stop",
+        # a valid JSON answer sitting in 'thinking', and an empty
+        # 'response' — not truncation, not garbage, just the wrong field.
+        body = {"response": "", "thinking": '{"findings": [], "verdict": "approve"}',
+                "done_reason": "stop"}
+        backend = OllamaReviewer(model="llama3", opener=_FakeOpener(200, body))
+        with self.assertRaises(MalformedResponse) as ctx:
+            backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertIn("thinking", str(ctx.exception))
+
     def test_no_silent_cloud_fallback_on_failure(self):
         opener = _RaisingOpener(OSError("connection refused"))
         backend = OllamaReviewer(model="llama3", opener=opener)
@@ -237,6 +262,98 @@ class CodexBackendTests(unittest.TestCase):
             backend = self._AlwaysOk(runner=capture_runner)
             backend.review_diff("--- a/f\n+++ b/f\n")
         self.assertNotIn("OPENAI_API_KEY", seen_env)
+
+
+class ClaudeCodeBackendTests(unittest.TestCase):
+    @staticmethod
+    def _envelope(result_text, **extra):
+        env = {"is_error": False, "result": result_text,
+              "usage": {"input_tokens": 10, "output_tokens": 5},
+              "total_cost_usd": 0.0123}
+        env.update(extra)
+        return json.dumps(env)
+
+    def test_cost_is_measured_from_the_tool_never_invented(self):
+        reply = self._envelope(json.dumps({"findings": [], "verdict": "approve"}))
+        backend = ClaudeCodeReviewer(runner=lambda *a, **k: (0, reply))
+        review = backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertIn("0.012300", review.metrics.external_cost)
+        self.assertIn("measured", review.metrics.external_cost)
+        self.assertEqual(review.metrics.input_tokens, 10)
+        self.assertEqual(review.metrics.output_tokens, 5)
+
+    def test_missing_cost_field_stays_unknown_not_zero(self):
+        reply = self._envelope(json.dumps({"findings": [], "verdict": "approve"}))
+        env = json.loads(reply)
+        del env["total_cost_usd"]
+        backend = ClaudeCodeReviewer(runner=lambda *a, **k: (0, json.dumps(env)))
+        review = backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertEqual(review.metrics.external_cost, "unknown")
+
+    def test_timeout_is_reviewerunavailable(self):
+        backend = ClaudeCodeReviewer(runner=lambda *a, **k: (124, ""))
+        with self.assertRaises(ReviewerUnavailable):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_is_error_envelope_is_reviewerunavailable_not_malformed(self):
+        reply = self._envelope("permission denied", **{"is_error": True})
+        backend = ClaudeCodeReviewer(runner=lambda *a, **k: (0, reply))
+        with self.assertRaises(ReviewerUnavailable):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_non_json_stdout_is_malformed(self):
+        backend = ClaudeCodeReviewer(runner=lambda *a, **k: (0, "not an envelope"))
+        with self.assertRaises(MalformedResponse):
+            backend.review_diff("--- a/f\n+++ b/f\n")
+
+    def test_isolation_flags_present_in_the_real_command(self):
+        # The default runner must run isolated from this repository and
+        # this session: no tools, a system prompt that replaces (not
+        # appends to) the default one, and no user/project settings — see
+        # reviewer/backends/claude_code.py for why each of these matters.
+        from reviewer.backends.claude_code import _default_runner
+
+        captured = {}
+
+        def fake_run(cmd, cwd=None, capture_output=None, text=None, timeout=None, env=None):
+            captured["cmd"] = cmd
+            captured["cwd"] = cwd
+            captured["env"] = env
+
+            class _Proc:
+                returncode = 0
+                stdout = json.dumps({"is_error": False, "result": "{}"})
+            return _Proc()
+
+        with mock.patch("subprocess.run", fake_run):
+            _default_runner("claude-sonnet-5", "review this", 60)
+        cmd = captured["cmd"]
+        self.assertIn("--tools", cmd)
+        self.assertEqual(cmd[cmd.index("--tools") + 1], "")
+        self.assertIn("--system-prompt", cmd)
+        self.assertIn("--setting-sources", cmd)
+        self.assertEqual(cmd[cmd.index("--setting-sources") + 1], "")
+        self.assertNotEqual(captured["cwd"], os.getcwd())
+
+    def test_non_anthropic_credentials_are_not_forwarded(self):
+        seen_env = {}
+
+        def capture(cmd, cwd=None, capture_output=None, text=None, timeout=None, env=None):
+            seen_env.update(env or {})
+
+            class _Proc:
+                returncode = 0
+                stdout = json.dumps({"is_error": False,
+                                     "result": json.dumps({"findings": [], "verdict": "approve"})})
+            return _Proc()
+
+        with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "sk-should-not-leak",
+                                           "ANTHROPIC_API_KEY": "should-be-kept"}):
+            with mock.patch("subprocess.run", capture):
+                backend = ClaudeCodeReviewer()
+                backend.review_diff("--- a/f\n+++ b/f\n")
+        self.assertNotIn("OPENAI_API_KEY", seen_env)
+        self.assertEqual(seen_env.get("ANTHROPIC_API_KEY"), "should-be-kept")
 
 
 class FakeBackendTests(unittest.TestCase):

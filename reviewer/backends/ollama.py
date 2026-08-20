@@ -70,7 +70,13 @@ class OllamaReviewer(ReviewerBackend):
     def review_diff(self, diff_text, context=None):
         prompt = build_review_prompt(diff_text, context)
         payload = {"model": self.model, "prompt": prompt,
-                   "stream": False, "format": "json"}
+                   "stream": False, "format": "json",
+                   # Some models route ALL output into a separate
+                   # 'thinking' field and leave 'response' empty unless
+                   # told not to reason at all — harmless no-op for models
+                   # without a thinking mode, so this is safe for any
+                   # Ollama model, not specific to one.
+                   "think": False}
         started = time.monotonic()
         status, body = self._post("/api/generate", payload)
         latency = round(time.monotonic() - started, 3)
@@ -86,6 +92,11 @@ class OllamaReviewer(ReviewerBackend):
         text = body.get("response")
         if not isinstance(text, str):
             raise MalformedResponse("ollama response missing 'response' field")
+        if not text.strip() and body.get("thinking"):
+            raise MalformedResponse(
+                "ollama put the entire answer in 'thinking' and left "
+                "'response' empty despite think=false — this model may not "
+                "support disabling its reasoning mode through this API")
         verdict, findings = validate_review_output(parse_json_output(text))
         total_duration = body.get("total_duration")
         metrics = ReviewMetrics(

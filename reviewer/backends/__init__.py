@@ -29,11 +29,14 @@ class ReviewerBackend:
 def create_backend(config):
     """Instantiate the configured backend. config is the validated dict
     from reviewer.config.load_config()."""
-    from . import codex, fake, ollama
+    from . import claude_code, codex, fake, ollama
 
     backends = {
         "codex": codex.CodexReviewer,
         "ollama": ollama.OllamaReviewer,
+        # Eval-only: benchmarks Claude Code/Sonnet against the other
+        # backends. Not wired into bin/review's interactive path.
+        "claude": claude_code.ClaudeCodeReviewer,
         # Deterministic scripted backend for tests and CI eval runs.
         "fake": fake.FakeReviewer,
     }
