@@ -7,9 +7,19 @@ where that reality is summarized. Superseded reports (`REPORT-PHASE2-*`,
 `OVERNIGHT-REPORT-*`, `DEEP-EVIDENCE-REPORT-*`) stay in the worktree as
 history; this file is what a fresh session reads first.
 
-## Current milestone: M0 / M1
+## Current milestone: M1 resolved → M2 pending
 
-Repository convergence (M0) and the Phase 2 ground-truth gate (M1).
+Repository convergence (M0) and the Phase 2 ground-truth gate (M1) are
+both **complete**. Human ground-truth decisions D1–D5 were answered
+2026-08-21: D1=keep (case 30, version-pinned), **D2=delete** (cases 25
+and 57 — two clean controls that kept drawing legitimate objections even
+after rewriting), **D3=delete** (case 10 — its label depended on
+unstated authorial intent no accepted-category alternative could
+resolve), D4=endorse all 12 accepted-category alternatives, D5=run
+baselines now, **explicitly as v2-pilot evidence, not launch-grade
+leaderboard results**. Corpus is now **54 cases (40 defective / 14
+clean / 6 cross-file)**, fingerprint recomputed post-deletion. Full
+detail: `CONVERGENCE-REPORT-2026-08-21.md` §13.
 
 ## Canonical active branch
 
@@ -55,11 +65,13 @@ them because a stale branch or scheduler run once pointed that way.
 
 ## Next human gate
 
-Three items, batched (detail: `CONVERGENCE-REPORT-2026-08-21.md` §13):
-
-1. **Ground truth D1–D5** — `HUMAN-GROUND-TRUTH-REVIEW.md`
-2. **PR #12 merge authorization** — after (1)
-3. **B0 backup/passphrase work** — ops track, `~/ops/BACKUPS.md`, untouched by this product work
+1. **PR #12 merge authorization** — after the ground-truth changes below
+   are committed, tested, and the PR description reflects the resolved
+   54-case corpus
+2. **B0 backup/passphrase work** — ops track, `~/ops/BACKUPS.md`,
+   untouched by this product work
+3. Real-bug A-tier candidate approval (`REAL-BUG-ADMISSION-PACKET.md`) —
+   optional, not blocking
 
 ## Next autonomous work after M1
 

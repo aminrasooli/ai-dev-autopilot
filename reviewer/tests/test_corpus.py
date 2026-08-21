@@ -233,9 +233,9 @@ class RealCorpusTests(unittest.TestCase):
     def test_shipped_corpus_is_valid(self):
         cases = corpus.load_corpus(corpus.DEFAULT_CASES_DIR)
         summary = corpus.summarize(cases)
-        self.assertEqual(summary["cases"], 57)
-        self.assertEqual(summary["defective"], 41)
-        self.assertEqual(summary["clean"], 16)
+        self.assertEqual(summary["cases"], 54)
+        self.assertEqual(summary["defective"], 40)
+        self.assertEqual(summary["clean"], 14)
         # The methodology's pilot floor: at least five real programming
         # languages, and enough clean controls for precision to mean
         # something.
@@ -295,7 +295,7 @@ class DiagnosticsTests(unittest.TestCase):
     def test_diagnose_over_the_real_corpus_has_no_composite_score(self):
         from reviewer import diagnose, corpus as corpus_mod
         d = diagnose.diagnose(corpus_mod.load_corpus(corpus_mod.DEFAULT_CASES_DIR))
-        self.assertEqual(d["cases"], 57)
+        self.assertEqual(d["cases"], 54)
         blob = json.dumps(d).lower()
         for banned in ("quality_score", "overall_score", "composite"):
             self.assertNotIn(banned, blob)

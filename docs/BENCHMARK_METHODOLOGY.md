@@ -173,7 +173,14 @@ the validator rejects any contradictory defect fields.
 
 v1→v2: the 20 Phase 1 cases were migrated in place (fields added; diffs
 and ground truth unchanged), so v1 results remain comparable at the
-case level, though not at the corpus level.
+case level, though not at the corpus level. One migrated case
+(`10-missing-regression-test`) was later removed by human ground-truth
+review: its label depended on unstated authorial intent (a boundary fix
+either "needs a test" or "is a regression", undecidable from the diff
+alone) and no accepted-category alternative could make that ambiguity
+disappear rather than merely score around it. Historical v1 reports
+that included it remain unmodified, per the versioning policy below —
+they document what was measured against the corpus as it existed then.
 
 ## 5. Taxonomies
 
@@ -210,6 +217,17 @@ informative signal than 14 did, and make v2 category scores
 *not comparable* to v1 scores — the prompt vocabulary changed for every
 backend equally. The whole corpus is version-stamped for exactly this
 reason.
+
+`test-gap` remains in the prompt vocabulary but, since the removal of
+`10-missing-regression-test` (§4), no case's ground truth uses it as a
+primary category. A model reporting `test-gap` can therefore only ever
+score as a false positive (clean case) or an unmatched finding (defective
+case) — never as correct. This is a deliberate consequence of the
+ground-truth decision, not an oversight: real evidence
+(`eval/results/provisional/`) showed reviewers applying `test-gap` to
+clean diffs literally, and removing the one case that rewarded the same
+behaviour as a genuine defect resolves that tension without touching the
+vocabulary a reviewer is prompted with.
 
 ## 6. Scoring
 

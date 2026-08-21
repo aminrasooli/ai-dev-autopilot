@@ -607,7 +607,7 @@ class EvalHarnessTests(unittest.TestCase):
         # the oracle (built straight from ground truth) must score 100% or
         # the harness itself — not any model — has a bug.
         cases = evaluate.load_cases(evaluate.DEFAULT_CASES_DIR)
-        self.assertEqual(len(cases), 57)
+        self.assertEqual(len(cases), 54)
         backend = evaluate.oracle_backend(cases)
         report = evaluate.run_eval(backend, cases)
         summary = report["summary"]

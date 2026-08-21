@@ -1,7 +1,7 @@
 # Leaderboard structure (design — no live leaderboard yet)
 
 There is deliberately **no leaderboard here yet**. Publishing one from a
-~57-case self-authored pilot would manufacture a ranking the data cannot
+~54-case self-authored pilot would manufacture a ranking the data cannot
 support. This file fixes the structure *in advance*, so that when enough
 reproducible submissions exist, the table's shape was decided before
 anyone's score was known — not after.
