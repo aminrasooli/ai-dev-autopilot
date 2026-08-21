@@ -1,0 +1,413 @@
+{
+  "report_format": 2,
+  "backend": "claude",
+  "model": "claude-sonnet-5",
+  "runs_per_case": 3,
+  "corpus": {
+    "case_count": 4,
+    "benchmark_version": 2,
+    "sha256": "4714843252ba80ee127933e1f2abf5e6efa69b7b6e31157568773da9ca071b07"
+  },
+  "cases": [
+    {
+      "case_id": "54-clean-dependency-bump",
+      "title": "Clean: pinned patch-version dependency bump",
+      "defect": false,
+      "language": "config",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 15.19,
+            "calls": 1,
+            "input_tokens": 979,
+            "output_tokens": 1315,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.023846000000000003
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 18.036,
+            "calls": 1,
+            "input_tokens": 979,
+            "output_tokens": 1925,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.032996
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "dependency-risk",
+              "severity": "medium",
+              "file": "requirements.txt",
+              "note": "The new jinja2 3.1.5 hash (\u2026cceff43bb) does not match the known published PyPI sha256 for jinja2-3.1.5.tar.gz (\u2026cceff43b5), so hash-checked installs will fail or use an incorrect hash."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 24.258,
+            "calls": 1,
+            "input_tokens": 6200,
+            "output_tokens": 2392,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.074256
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 1
+      }
+    },
+    {
+      "case_id": "55-clean-dead-code-removed",
+      "title": "Clean: unreachable legacy branch deleted",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.051,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0090618
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.893,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0033276
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.553,
+            "calls": 1,
+            "input_tokens": 1002,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004464
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "56-clean-set-lookup-perf",
+      "title": "Clean: membership test moved to a set",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.594,
+            "calls": 1,
+            "input_tokens": 912,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0030210000000000002
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.129,
+            "calls": 1,
+            "input_tokens": 6133,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008465799999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.247,
+            "calls": 1,
+            "input_tokens": 6133,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0032546
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "57-clean-redundant-guard",
+      "title": "Clean: defensive None-check added before use",
+      "defect": false,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "src/notify/dispatch.ts",
+              "note": "Silently returning when sink is null swallows the event without logging or error, hiding bugs and causing silent notification loss instead of failing loudly as before."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.716,
+            "calls": 1,
+            "input_tokens": 6120,
+            "output_tokens": 325,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.012946800000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "low",
+              "file": "src/notify/dispatch.ts",
+              "note": "Silently dropping the event when sink is null hides the failure instead of logging or signaling an error, which could mask bugs where a sink is missing."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.569,
+            "calls": 1,
+            "input_tokens": 6120,
+            "output_tokens": 103,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0044747
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "low",
+              "file": "src/notify/dispatch.ts",
+              "note": "Silently dropping the event when sink is null/undefined swallows the failure instead of logging or surfacing an error, making delivery loss hard to detect."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.531,
+            "calls": 1,
+            "input_tokens": 6120,
+            "output_tokens": 106,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045147
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 3
+      }
+    }
+  ],
+  "summary": {
+    "cases": 12,
+    "errors": 0,
+    "defect_cases": 0,
+    "clean_cases": 12,
+    "detected": 0,
+    "missed": 0,
+    "false_positives": 4,
+    "category_correct": 0,
+    "severity_correct": 0,
+    "mean_latency_seconds": 7.481,
+    "min_latency_seconds": 2.553,
+    "max_latency_seconds": 24.258,
+    "total_input_tokens": 53144,
+    "total_output_tokens": 6280,
+    "external_cost": [
+      "measured (claude --output-format json)"
+    ],
+    "total_external_cost_usd": 0.184629,
+    "consistency": {
+      "defect_cases_always_detected": 0,
+      "defect_cases_sometimes_detected": 0,
+      "defect_cases_never_detected": 0,
+      "clean_cases_ever_false_positive": 2,
+      "cases_with_errors": 0
+    },
+    "runs_per_case": 3
+  }
+}
