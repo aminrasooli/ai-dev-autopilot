@@ -109,6 +109,27 @@ for a different reason:
    `provenance.reference` recording the source where licensing permits.
    Most realistic; highest contamination risk (the fix is public and
    likely in training data); planned, none in the pilot yet.
+
+   The ingestion pipeline for this class, defined before any mining
+   happens so cases can't be laundered in casually:
+
+   - **Licensing**: only fixes from repositories under licenses
+     permitting redistribution of excerpts (MIT/BSD/Apache-2.0 and
+     similar); `provenance.reference` records the commit URL; the
+     license is checked per source repository, not assumed.
+   - **Leakage prevention**: the case carries the *reversed* diff only —
+     never the fix commit message, PR discussion, CVE text, or issue
+     title, all of which frequently state the answer outright.
+     Identifiers may be renamed when the original names give the defect
+     away (`fix_race_in_flush` tells the reviewer what to find).
+   - **Selection discipline**: no mass scraping. Each mined case is
+     hand-verified to be self-contained at diff scale, and the validator
+     enforces the same schema, secret and privacy rules as authored
+     cases.
+   - **Honest scoring context**: mined cases are the most likely to be
+     memorized (SWE-MERA's core finding), so per-provenance score slices
+     are reported — a model that beats its seeded-synthetic score only
+     on mined cases is exhibiting recall, not review.
 4. **`mutation`** — mechanical transformation of a clean case (operator
    flip, boundary shift). Useful for scale and for probing consistency;
    risk of near-duplicate padding, so the validator flags duplicates and
@@ -229,6 +250,12 @@ and must score 100% — that is CI's proof that the harness itself is sound.
   endpoints at construction and has no fallback path to any remote
   service. The precise privacy claim is "local review stays local" —
   never "the whole workflow is local."
+- **Provider-default sampling.** The harness sets no temperature, top-p,
+  seed or other sampling parameters on any backend — every model runs
+  with its provider's defaults, so there are no hidden per-model knobs to
+  tune a score with. Any submitted result whose runtime deviated from
+  provider defaults must say so in its metadata (see `eval/SUBMIT.md`),
+  and results with undisclosed sampling settings are not comparable.
 
 ## 8. Repeated runs and statistics
 
