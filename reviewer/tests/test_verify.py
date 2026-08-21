@@ -305,3 +305,112 @@ class LeaderboardTests(unittest.TestCase):
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump(report, fh)
             self.assertEqual(leaderboard.main([path]), 2)
+
+
+class FindingLoadAndConfusionTests(unittest.TestCase):
+    def test_unmatched_findings_are_counted_but_not_called_wrong(self):
+        from reviewer import analyze
+        cases = _corpus(make_case("fl-1"))
+        # correct category plus an extra finding outside the accepted set
+        backend = _Scripted([[_finding("logic-error"), _finding("test-gap")]])
+        report = evaluate.run_eval(backend, cases, runs=1)
+        fl = analyze.finding_load(report, cases)
+        self.assertEqual(fl["findings_per_run_mean"], 2.0)
+        self.assertEqual(fl["defect_runs_with_unmatched"], 1)
+        self.assertEqual(fl["defect_unmatched_per_run_mean"], 1.0)
+        # It must still score as detected and category-correct: an extra
+        # finding is volume, not a proven error.
+        self.assertEqual(report["summary"]["detected"], 1)
+        self.assertEqual(report["summary"]["category_correct"], 1)
+
+    def test_accepted_alternative_is_not_counted_as_unmatched(self):
+        from reviewer import analyze
+        case = make_case("fl-2")
+        case["ground_truth"]["accepted_categories"] = ["concurrency"]
+        cases = _corpus(case)
+        report = evaluate.run_eval(_Scripted([[_finding("concurrency")]]), cases, runs=1)
+        fl = analyze.finding_load(report, cases)
+        self.assertEqual(fl["defect_runs_with_unmatched"], 0)
+
+    def test_silent_runs_are_counted(self):
+        from reviewer import analyze
+        cases = _corpus(make_case("fl-3", defect=False))
+        report = evaluate.run_eval(_Scripted([[], []]), cases, runs=2)
+        fl = analyze.finding_load(report, cases)
+        self.assertEqual(fl["runs_with_zero_findings"], 2)
+        self.assertEqual(fl["clean_findings_per_run_mean"], 0.0)
+
+    def test_severity_confusion_distinguishes_above_from_below(self):
+        from reviewer import analyze
+        case = make_case("sc-1")   # ground truth severity medium..high
+        cases = _corpus(case)
+        backend = _Scripted([[_finding("logic-error", "critical")],
+                             [_finding("logic-error", "low")],
+                             [_finding("logic-error", "high")]])
+        report = evaluate.run_eval(backend, cases, runs=3)
+        conf = analyze.confusion(report, cases)
+        self.assertEqual(conf["severity"], {"above": 1, "below": 1, "within": 1})
+
+    def test_category_confusion_labels_no_findings(self):
+        from reviewer import analyze
+        cases = _corpus(make_case("cc-1"))
+        report = evaluate.run_eval(_Scripted([[]]), cases, runs=1)
+        conf = analyze.confusion(report, cases)
+        self.assertEqual(conf["category"]["logic-error"]["(no findings)"], 1)
+
+
+class CompareTests(unittest.TestCase):
+    def _report(self, model="m", runs=2):
+        cases = _corpus(make_case("cmp-a"), make_case("cmp-b", defect=False))
+        n = len(cases) * runs
+        report = evaluate.run_eval(_Scripted([[_finding()]] * n), cases, runs=runs)
+        report["model"] = model
+        return report, cases
+
+    def test_compatible_reports_compare(self):
+        from reviewer import compare
+        r1, cases = self._report("a")
+        r2, _ = self._report("b")
+        errors, _ = compare.compatibility([("a", r1), ("b", r2)])
+        self.assertEqual(errors, [])
+        out = compare.render([("a", r1), ("b", r2)], cases)
+        self.assertIn("defect recall", out)
+        self.assertIn("no composite score", out.lower())
+
+    def test_different_corpora_refused(self):
+        from reviewer import compare
+        r1, _ = self._report("a")
+        r2, _ = self._report("b")
+        r2["corpus"] = dict(r2["corpus"], sha256="e" * 64)
+        errors, _ = compare.compatibility([("a", r1), ("b", r2)])
+        self.assertTrue(any("different corpora" in e for e in errors))
+
+    def test_different_prompt_contract_refused(self):
+        from reviewer import compare
+        r1, _ = self._report("a")
+        r2, _ = self._report("b")
+        r2["prompt_contract"] = {"version": 2, "fingerprint": "deadbeefdeadbeef"}
+        errors, _ = compare.compatibility([("a", r1), ("b", r2)])
+        self.assertTrue(any("prompt contracts" in e for e in errors))
+
+    def test_different_run_counts_warn_but_do_not_block(self):
+        from reviewer import compare
+        r1, _ = self._report("a", runs=2)
+        r2, _ = self._report("b", runs=3)
+        errors, warnings = compare.compatibility([("a", r1), ("b", r2)])
+        self.assertEqual(errors, [])
+        self.assertTrue(any("run counts differ" in w for w in warnings))
+
+    def test_cli_refuses_incompatible_without_force(self):
+        from reviewer import compare
+        r1, _ = self._report("a")
+        r2, _ = self._report("b")
+        r2["corpus"] = dict(r2["corpus"], sha256="c" * 64)
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = []
+            for i, r in enumerate((r1, r2)):
+                p = os.path.join(tmp, f"r{i}.json")
+                with open(p, "w", encoding="utf-8") as fh:
+                    json.dump(r, fh)
+                paths.append(p)
+            self.assertEqual(compare.main(paths), 2)

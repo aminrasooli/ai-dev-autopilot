@@ -26,6 +26,7 @@ import sys
 from collections import defaultdict
 
 from .corpus import DEFAULT_CASES_DIR, load_corpus
+from .result import SEVERITIES
 
 
 def wilson_interval(successes, total, z=1.96):
@@ -39,6 +40,119 @@ def wilson_interval(successes, total, z=1.96):
                             + z * z / (4 * total * total))) / denom
     return (round(max(0.0, centre - margin), 4),
             round(min(1.0, centre + margin), 4))
+
+
+def finding_load(report, cases):
+    """Findings emitted per run, and how many go unmatched.
+
+    Why this exists: detection is `>=1 finding of any category`, so a
+    reviewer that reports something on every diff scores perfect recall
+    by construction. Volume is therefore part of the picture, and clean
+    cases alone do not capture it — a model can also pile extra findings
+    onto defective cases.
+
+    IMPORTANT LIMITATION, stated rather than papered over: an unmatched
+    finding on a defective case is NOT proven to be a hallucination.
+    Some of our diffs genuinely contain a secondary issue beside the
+    seeded one, and deciding otherwise would need semantic judgement we
+    have deliberately refused (no LLM judge). So this reports
+    *unmatched-finding load*, a descriptive volume measure, and never
+    calls it a false positive.
+    """
+    by_id = {c["id"]: c for c in cases}
+    per_case, defect_extra, clean_findings, all_counts = [], [], [], []
+    for record in report["cases"]:
+        case = by_id.get(record["case_id"])
+        if case is None:
+            continue
+        gt = case["ground_truth"]
+        acceptable = ({gt["category"], *gt.get("accepted_categories", [])}
+                      if gt["defect"] else set())
+        counts, unmatched = [], []
+        for run in record["runs"]:
+            if run["status"] != "ok":
+                continue
+            findings = run["findings"]
+            counts.append(len(findings))
+            all_counts.append(len(findings))
+            if gt["defect"]:
+                extra = sum(1 for f in findings if f["category"] not in acceptable)
+                unmatched.append(extra)
+                defect_extra.append(extra)
+            else:
+                clean_findings.append(len(findings))
+        if counts:
+            per_case.append({
+                "case_id": record["case_id"],
+                "defect": record["defect"],
+                "findings_mean": round(sum(counts) / len(counts), 2),
+                "findings_max": max(counts),
+                "unmatched_mean": (round(sum(unmatched) / len(unmatched), 2)
+                                   if unmatched else None),
+            })
+    ok_runs = len(all_counts) or 1
+    return {
+        "findings_per_run_mean": round(sum(all_counts) / ok_runs, 3),
+        "findings_per_run_max": max(all_counts, default=0),
+        "runs_with_zero_findings": sum(1 for c in all_counts if c == 0),
+        "defect_unmatched_per_run_mean": (
+            round(sum(defect_extra) / len(defect_extra), 3) if defect_extra else None),
+        "defect_runs_with_unmatched": sum(1 for x in defect_extra if x > 0),
+        "defect_runs": len(defect_extra),
+        "clean_findings_per_run_mean": (
+            round(sum(clean_findings) / len(clean_findings), 3)
+            if clean_findings else None),
+        "per_case": per_case,
+    }
+
+
+def confusion(report, cases):
+    """Category and severity confusion against ground truth.
+
+    Category: what the model called cases whose true label is X.
+    Severity: below / within / above the accepted range, rather than a
+    bare correct/incorrect — a reviewer that is consistently one step
+    high is a different animal from one that is random.
+    """
+    by_id = {c["id"]: c for c in cases}
+    cat = defaultdict(lambda: defaultdict(int))
+    sev = defaultdict(int)
+    sev_by_truth = defaultdict(lambda: defaultdict(int))
+    order = {s: i for i, s in enumerate(SEVERITIES)}
+    for record in report["cases"]:
+        case = by_id.get(record["case_id"])
+        if case is None or not case["ground_truth"]["defect"]:
+            continue
+        gt = case["ground_truth"]
+        acceptable = {gt["category"], *gt.get("accepted_categories", [])}
+        lo, hi = order[gt["severity"][0]], order[gt["severity"][1]]
+        for run in record["runs"]:
+            if run["status"] != "ok":
+                continue
+            if not run["findings"]:
+                cat[gt["category"]]["(no findings)"] += 1
+                continue
+            # Credit the closest thing to a match, else the first finding —
+            # this mirrors scoring, which asks whether ANY finding matched.
+            match = next((f for f in run["findings"]
+                          if f["category"] in acceptable), None)
+            chosen = match or run["findings"][0]
+            label = chosen["category"]
+            if match and label != gt["category"]:
+                label += " (accepted alt)"
+            cat[gt["category"]][label] += 1
+            if match:
+                pos = order[chosen["severity"]]
+                verdict = ("within" if lo <= pos <= hi
+                           else "below" if pos < lo else "above")
+                sev[verdict] += 1
+                sev_by_truth["-".join(gt["severity"])][verdict] += 1
+    return {
+        "category": {k: dict(sorted(v.items(), key=lambda kv: -kv[1]))
+                     for k, v in sorted(cat.items())},
+        "severity": dict(sev),
+        "severity_by_truth_range": {k: dict(v) for k, v in sorted(sev_by_truth.items())},
+    }
 
 
 def case_stability(report):
@@ -158,6 +272,8 @@ def analyze(report, cases):
         "by_file_span": _slice_rows(
             rows, cases_by_id,
             lambda c: "cross-file" if len(c["affected_files"]) > 1 else "single-file"),
+        "finding_load": finding_load(report, cases),
+        "confusion": confusion(report, cases),
         "unstable_cases": [r for r in rows
                            if r["stability"] in ("sometimes", "occasional-fp")],
         "cases": rows,
@@ -195,6 +311,18 @@ def render(analysis):
                 L.append(f"    {name:<16} FP rate {g['fp_rate']:.2f} "
                          f"(CI {g['fp_rate_ci95'][0]:.2f}–{g['fp_rate_ci95'][1]:.2f}) "
                          f"over {g['clean_runs']} runs")
+    fl = analysis["finding_load"]
+    L += [f"  findings/run       mean {fl['findings_per_run_mean']} "
+          f"(max {fl['findings_per_run_max']}, "
+          f"{fl['runs_with_zero_findings']} runs reported nothing)",
+          f"  unmatched load     {fl['defect_runs_with_unmatched']}/{fl['defect_runs']} "
+          f"defective runs carried a finding outside the accepted categories "
+          f"(mean {fl['defect_unmatched_per_run_mean']}/run) — volume, NOT proven wrong",
+          f"  clean findings/run {fl['clean_findings_per_run_mean']}"]
+    sev = analysis["confusion"]["severity"]
+    if sev:
+        L.append(f"  severity placement below {sev.get('below',0)} / "
+                 f"within {sev.get('within',0)} / above {sev.get('above',0)}")
     if analysis["unstable_cases"]:
         L.append("  unstable cases (the reason repeat runs exist):")
         for r in analysis["unstable_cases"]:
