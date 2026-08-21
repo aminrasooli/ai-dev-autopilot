@@ -258,18 +258,24 @@ if __name__ == "__main__":
 class DiagnosticsTests(unittest.TestCase):
     def test_similarity_flags_near_duplicates_but_not_distinct_cases(self):
         from reviewer import diagnose
-        a = make_case("dup-a"); b = make_case("dup-b")
-        # Same changed content, different ids/filenames.
-        b["diff"] = [l.replace("dup-b", "dup-a") for l in b["diff"]]
-        for c in (a, b):
-            c["diff"] = "\n".join(c["diff"]) + "\n"
+        body = ("-    total = compute_running_total(order.items, tax_rate)\n"
+                "-    return Invoice(order_id=order.id, total=total)\n"
+                "+    total = compute_running_total(order.items)\n"
+                "+    return Invoice(order_id=order.id, total=total)\n")
+        a = make_case("sim-a")
+        a["diff"] = "--- a/src/a.py\n+++ b/src/a.py\n@@ -1,4 +1,4 @@\n" + body
+        b = make_case("sim-b")   # same change, different file
+        b["diff"] = "--- a/src/b.py\n+++ b/src/b.py\n@@ -1,4 +1,4 @@\n" + body
         flags = diagnose.similarity_report([a, b], threshold=0.3)
-        self.assertTrue(flags and flags[0]["jaccard"] > 0.3)
-        c = make_case("distinct")
-        c["diff"] = ("--- a/x.py\n+++ b/x.py\n@@ -1 +1 @@\n"
-                     "-completely different tokens here\n"
-                     "+entirely unrelated replacement content\n")
-        self.assertEqual(diagnose.similarity_report([a, c], threshold=0.3), [])
+        self.assertTrue(flags, "identical changed bodies must be flagged")
+        self.assertGreater(flags[0]["jaccard"], 0.9)
+
+        c = make_case("sim-c")
+        c["diff"] = ("--- a/src/c.py\n+++ b/src/c.py\n@@ -1,3 +1,3 @@\n"
+                     "-    session_token = build_bearer_header(user_secret)\n"
+                     "+    session_token = build_bearer_header(user_secret, ttl)\n")
+        self.assertEqual(diagnose.similarity_report([a, c], threshold=0.3), [],
+                         "unrelated changes must not be flagged")
 
     def test_jaccard_bounds(self):
         from reviewer import diagnose
