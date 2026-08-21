@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "08-unsafe-binding",
   "title": "Debug server bound to all interfaces",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/devserver.py"
+  ],
   "diff": [
     "--- a/src/devserver.py",
     "+++ b/src/devserver.py",

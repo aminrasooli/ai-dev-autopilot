@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "05-command-injection",
   "title": "User input interpolated into a shell command",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/thumbs.py"
+  ],
   "diff": [
     "--- a/src/thumbs.py",
     "+++ b/src/thumbs.py",

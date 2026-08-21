@@ -14,9 +14,12 @@ from .errors import MalformedResponse
 
 SEVERITIES = ("low", "medium", "high", "critical")
 
-# The fixed finding vocabulary. Both backends receive it verbatim in the
+# The fixed finding vocabulary. Every backend receives it verbatim in the
 # prompt, which is what makes category correctness measurable rather than a
-# judgment call about synonyms.
+# judgment call about synonyms. Benchmark v2 extended the v1 set of 14 with
+# nine more (sql-injection onward) — v2 category scores are therefore not
+# comparable to v1 scores, for every backend equally; the corpus is
+# version-stamped for exactly this reason (docs/BENCHMARK_METHODOLOGY.md §5).
 CATEGORIES = (
     "logic-error",
     "missing-validation",
@@ -31,6 +34,15 @@ CATEGORIES = (
     "destructive-operation",
     "permission-widening",
     "secret-exposure",
+    "sql-injection",
+    "auth-bypass",
+    "concurrency",
+    "resource-leak",
+    "api-misuse",
+    "error-handling",
+    "unsafe-default",
+    "data-corruption",
+    "contract-mismatch",
     "other",
 )
 

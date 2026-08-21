@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "16-clean-rename",
   "title": "Clean: variable renamed for clarity",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/invoice.py"
+  ],
   "diff": [
     "--- a/src/invoice.py",
     "+++ b/src/invoice.py",

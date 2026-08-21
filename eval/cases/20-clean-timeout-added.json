@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "20-clean-timeout-added",
   "title": "Clean: HTTP call gains a timeout",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/status.py"
+  ],
   "diff": [
     "--- a/src/status.py",
     "+++ b/src/status.py",

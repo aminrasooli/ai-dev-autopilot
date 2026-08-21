@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "04-shell-quoting",
   "title": "Unquoted variable in cleanup script",
+  "language": "shell",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "scripts/cleanup.sh"
+  ],
   "diff": [
     "--- a/scripts/cleanup.sh",
     "+++ b/scripts/cleanup.sh",

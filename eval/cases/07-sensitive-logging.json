@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "07-sensitive-logging",
   "title": "Authorization header written to the log",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/http_client.py"
+  ],
   "diff": [
     "--- a/src/http_client.py",
     "+++ b/src/http_client.py",

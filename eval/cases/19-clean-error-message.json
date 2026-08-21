@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "19-clean-error-message",
   "title": "Clean: error message made actionable",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/config.py"
+  ],
   "diff": [
     "--- a/src/config.py",
     "+++ b/src/config.py",

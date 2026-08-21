@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "02-subtle-cache-key",
   "title": "Cache key drops the user id",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/profile.py"
+  ],
   "diff": [
     "--- a/src/profile.py",
     "+++ b/src/profile.py",

@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "17-clean-docs",
   "title": "Clean: README wording improved",
+  "language": "docs",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "README.md"
+  ],
   "diff": [
     "--- a/README.md",
     "+++ b/README.md",

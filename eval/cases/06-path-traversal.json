@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "06-path-traversal",
   "title": "Attachment path joined without containment",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/attachments.py"
+  ],
   "diff": [
     "--- a/src/attachments.py",
     "+++ b/src/attachments.py",

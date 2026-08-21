@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "18-clean-test-added",
   "title": "Clean: regression test added for a past bug",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "tests/test_pricing.py"
+  ],
   "diff": [
     "--- a/tests/test_pricing.py",
     "+++ b/tests/test_pricing.py",

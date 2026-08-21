@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "13-permission-widening",
   "title": "Install step makes config world-writable",
+  "language": "shell",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "scripts/install.sh"
+  ],
   "diff": [
     "--- a/scripts/install.sh",
     "+++ b/scripts/install.sh",

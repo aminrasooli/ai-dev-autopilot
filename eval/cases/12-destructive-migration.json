@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "12-destructive-migration",
   "title": "Migration drops a table it renames",
+  "language": "sql",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "migrations/0042_rename_events.sql"
+  ],
   "diff": [
     "--- a/migrations/0042_rename_events.sql",
     "+++ b/migrations/0042_rename_events.sql",
