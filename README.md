@@ -1,10 +1,10 @@
 # AI Dev Autopilot
 
-## Autonomous coding without babysitting your terminal.
+## Autonomous coding without turning yourself into the message bus.
 
-**The missing control plane for Claude Code + Codex.**
+**An open, vendor-neutral path toward autonomous software engineering — the human gives direction, not constant approval.**
 
-> Tested on Ubuntu 24.04 with Claude Code 2.1.x. Codex CLI is an optional independent reviewer.
+> Tested on Ubuntu 24.04 with Claude Code 2.1.x. Codex CLI is an optional independent reviewer; a local open-weight model through Ollama, or Claude Code itself, can serve the same role instead — see [The Local Reviewer Benchmark](#the-local-reviewer-benchmark).
 
 Run coding agents for hours without turning yourself into a human permission button.
 
@@ -16,7 +16,7 @@ No constant **"Allow?" → "Yes" → "Allow?" → "Yes"** loop.
 
 When an agent reaches something consequential, credentials, privilege escalation, destructive operations, arbitrary external egress, deployment, publication, or an unknown command shape, **the autonomy stops and a human takes over.**
 
-> **Rules for certainty. Codex for judgment. Humans for consequences.**
+> **Rules for certainty. An independent reviewer for judgment. Humans for consequences.**
 
 ```text
   ROUTINE WORK                              CONSEQUENCES
@@ -54,6 +54,43 @@ Disable permissions and hope the same agent that edits your tests never reads cr
 It gives agents broad freedom inside the development loop while keeping hard boundaries around consequences.
 
 This is not another coding agent. **It is the control plane that lets coding agents become autonomous.**
+
+### What this is today
+
+A working foundation for autonomous coding, built to reduce how often a
+human has to act as the message bus between coding agents, terminals and
+reviewers:
+
+- **safe autonomous coding boundaries** — the sandbox, guard and broker
+  described below
+- **a pluggable independent reviewer** (`bin/review`) — Codex by
+  default, a local open-weight model through Ollama, or Claude Code,
+  selected by configuration, never hardcoded to one vendor
+- **a reproducible reviewer benchmark** for comparing those backends on
+  identical cases — see [The Local Reviewer Benchmark](#the-local-reviewer-benchmark)
+  and [`docs/BENCHMARK_METHODOLOGY.md`](docs/BENCHMARK_METHODOLOGY.md)
+- **durable agent/session handoff** — work continues across sessions
+  through committed reports and state, not a live chat that has to stay
+  open ([`docs/HANDOFF.md`](docs/HANDOFF.md))
+- **human escalation for consequential operations only** — everything in
+  the [Hard human boundaries](#hard-human-boundaries) table below
+
+### Why it's built this way
+
+The human should give direction and make consequential calls — not
+repeatedly copy messages between agents, approve routine commands,
+restart work after a session or provider limit, or hand-pick which model
+handles every small task. [`docs/NORTH_STAR.md`](docs/NORTH_STAR.md)
+states this as an explicit target: roughly **1–3 meaningful human
+touches per day.**
+
+The longer direction — measuring model competence before routing work to
+models, specialized planner/builder/reviewer roles, continuity across
+providers, an eventual "AI Engineering Manager" — is real, but **none of
+it is built yet.** Routing, multi-agent role specialization, automatic
+provider failover, and any authority/governance engine are North Star,
+not shipped functionality. [`docs/ROADMAP.md`](docs/ROADMAP.md) lays out
+the concrete path there and what's deliberately not built at each stage.
 
 ## What makes it different
 
@@ -441,6 +478,12 @@ pilot corpus is small and self-authored, and results are evidence, not
 rankings — and the contribution/result-submission paths are documented in
 [`docs/BENCHMARK_METHODOLOGY.md`](docs/BENCHMARK_METHODOLOGY.md) and
 [`eval/README.md`](eval/README.md).
+
+Claude Code, Qwen and other local models through Ollama, and
+Codex-compatible backends are participants behind the same interface —
+none is positioned as the permanent or exclusive reviewer. That is the
+point of the benchmark: which one is worth trusting stays an open,
+evidence-based question, not a default nobody re-examines.
 
 ## Tests and verification
 

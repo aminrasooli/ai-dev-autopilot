@@ -65,9 +65,9 @@ them because a stale branch or scheduler run once pointed that way.
 
 ## Next human gate
 
-1. **PR #12 merge authorization** — after the ground-truth changes below
-   are committed, tested, and the PR description reflects the resolved
-   54-case corpus
+1. **PR #12 merge authorization** — ground-truth changes are committed
+   (`034746f`), tested, and the PR description reflects the resolved
+   54-case corpus; ready whenever the human decides to merge
 2. **B0 backup/passphrase work** — ops track, `~/ops/BACKUPS.md`,
    untouched by this product work
 3. Real-bug A-tier candidate approval (`REAL-BUG-ADMISSION-PACKET.md`) —
@@ -92,3 +92,7 @@ proposals via `LOCAL-MODEL-JOBS.md`.
    unless this file has been updated to name a new one.
 6. Do not treat an old scheduler-produced branch as current direction
    merely because it exists — check whether it predates this file.
+7. Before adding any strategy/planning artifact to this repo, classify
+   it PUBLIC / PRIVATE-COMMERCIAL / PRIVATE-SECURITY-OPS per
+   `docs/HANDOFF.md` — the public roadmap is `docs/ROADMAP.md`; nothing
+   about monetization, incorporation, or commercial timing belongs here.

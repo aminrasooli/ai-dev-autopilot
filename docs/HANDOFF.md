@@ -61,6 +61,31 @@ not notifications or agent-to-agent handoffs). A dated one-line-per-day
 tally derived from reports is enough; no tooling is required and no
 historical numbers may be invented retroactively.
 
+## Public/private classification, before anything reaches this repo
+
+Before adding any strategy, planning, or data artifact to this public
+repository, classify it first:
+
+- **PUBLIC** — may enter `ai-dev-autopilot`: product direction,
+  methodology, roadmap, benchmark cases and results, technical
+  documentation, anything a user or contributor needs to inspect or
+  trust.
+- **PRIVATE-COMMERCIAL** — must never enter this repository: monetization
+  triggers, incorporation timing, investor/acquisition posture, pricing,
+  competitive positioning, anything that reads as a business plan rather
+  than an engineering artifact. Lives in the maintainer's private
+  operational repository instead.
+- **PRIVATE-SECURITY/OPS** — must never enter this repository: machine
+  topology, credentials, private infrastructure, backup/restore
+  procedures, anything already governed by the private ops runbook this
+  project's `CLAUDE.md` points at.
+
+An agent must never move a private artifact into this public repository
+because it is convenient, because a report references it, or because a
+future reader "would probably want to see it." When in doubt, the
+artifact stays private and the gap is named in a report rather than
+resolved by publishing something.
+
 ## What this deliberately is not
 
 Not an agent framework, message bus, scheduler, or state machine. If two
