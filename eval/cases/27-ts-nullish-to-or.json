@@ -29,6 +29,9 @@
       "low",
       "medium"
     ],
-    "explanation": "Changing ?? to || makes an explicit retries: 0 fall back to 3, so callers that disabled retries now retry silently."
+    "explanation": "Changing ?? to || makes an explicit retries: 0 fall back to 3, so callers that disabled retries now retry silently.",
+    "accepted_categories": [
+      "logic-error"
+    ]
   }
 }

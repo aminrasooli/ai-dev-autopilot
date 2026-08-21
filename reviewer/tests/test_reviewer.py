@@ -477,6 +477,32 @@ class EvalHarnessTests(unittest.TestCase):
         self.assertTrue(score["category_correct"])
         self.assertTrue(score["severity_correct"])
 
+    def test_declared_alternative_category_scores_as_correct(self):
+        # Alternatives are part of the answer key, fixed before model
+        # comparison; a finding using one is category-correct.
+        case = {"ground_truth": {"defect": True, "category": "api-misuse",
+                                 "accepted_categories": ["concurrency"],
+                                 "severity": ["medium", "high"]}}
+        review = result.ReviewResult(
+            "changes_required",
+            [{"category": "concurrency", "severity": "high", "file": None, "note": "n"}],
+            result.ReviewMetrics(backend="x", model="y", latency_seconds=0))
+        score = evaluate.score_case(case, review)
+        self.assertTrue(score["category_correct"])
+        self.assertTrue(score["severity_correct"])
+
+    def test_undeclared_category_still_scores_wrong(self):
+        case = {"ground_truth": {"defect": True, "category": "api-misuse",
+                                 "accepted_categories": ["concurrency"],
+                                 "severity": ["medium", "high"]}}
+        review = result.ReviewResult(
+            "changes_required",
+            [{"category": "test-gap", "severity": "high", "file": None, "note": "n"}],
+            result.ReviewMetrics(backend="x", model="y", latency_seconds=0))
+        score = evaluate.score_case(case, review)
+        self.assertTrue(score["detected"])
+        self.assertFalse(score["category_correct"])
+
     def test_severity_outside_range_is_not_severity_correct(self):
         case = {"ground_truth": {"defect": True, "category": "logic-error",
                                  "severity": ["medium", "high"]}}

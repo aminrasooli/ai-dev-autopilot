@@ -9,9 +9,16 @@
     "author_family": "claude"
   },
   "affected_files": [
+    "go.mod",
     "internal/mailer/batch.go"
   ],
   "diff": [
+    "--- a/go.mod",
+    "+++ b/go.mod",
+    "@@ -1,3 +1,3 @@",
+    " module example.com/mailer",
+    " ",
+    " go 1.21",
     "--- a/internal/mailer/batch.go",
     "+++ b/internal/mailer/batch.go",
     "@@ -9,11 +9,10 @@ func (m *Mailer) SendBatch(msgs []Message) {",
@@ -34,6 +41,6 @@
       "medium",
       "high"
     ],
-    "explanation": "Every goroutine closes over the same loop variable, so under Go versions before 1.22 most process the final item repeatedly and others are skipped."
+    "explanation": "The module targets go 1.21, where a range variable is shared across iterations: removing the per-iteration copy makes every goroutine read the same msg, so some messages send repeatedly and others never send. (Go 1.22 changed this; the go directive in the diff is what makes the defect determinate.)"
   }
 }

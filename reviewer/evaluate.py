@@ -71,7 +71,12 @@ def score_case(case, result):
             "severity_correct": None,
         }
     detected = len(findings) > 0
-    matching = [f for f in findings if f["category"] == gt["category"]]
+    # Category correctness accepts the primary label or any pre-declared
+    # alternative. Alternatives are part of the answer key, fixed before
+    # any model comparison (docs/BENCHMARK_METHODOLOGY.md §5) — never
+    # added afterwards because a model happened to use another word.
+    acceptable = {gt["category"], *gt.get("accepted_categories", [])}
+    matching = [f for f in findings if f["category"] in acceptable]
     lo, hi = (_SEV_INDEX[gt["severity"][0]], _SEV_INDEX[gt["severity"][1]])
     severity_correct = any(lo <= _SEV_INDEX[f["severity"]] <= hi for f in matching)
     return {

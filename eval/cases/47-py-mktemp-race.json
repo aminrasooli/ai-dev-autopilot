@@ -33,6 +33,9 @@
       "medium",
       "high"
     ],
-    "explanation": "tempfile.mktemp returns a name without creating the file, a TOCTOU window in which another local process can pre-create or symlink the path."
+    "explanation": "tempfile.mktemp returns a name without creating the file, a TOCTOU window in which another local process can pre-create or symlink the path.",
+    "accepted_categories": [
+      "concurrency"
+    ]
   }
 }

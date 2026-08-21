@@ -27,6 +27,9 @@
       "high",
       "critical"
     ],
-    "explanation": "CREATE ... LIKE copies structure, not rows; DROP TABLE events then discards all production data the rename would have kept."
+    "explanation": "CREATE ... LIKE copies structure, not rows; DROP TABLE events then discards all production data the rename would have kept.",
+    "accepted_categories": [
+      "data-corruption"
+    ]
   }
 }

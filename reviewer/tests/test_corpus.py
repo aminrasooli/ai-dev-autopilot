@@ -93,6 +93,30 @@ class ValidateCaseTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertTrue(any("vacuous" in w for w in warnings))
 
+    def test_accepted_categories_accepts_valid_alternative(self):
+        case = make_case()
+        case["ground_truth"]["accepted_categories"] = ["concurrency"]
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_accepted_categories_rejects_off_vocabulary(self):
+        case = make_case()
+        case["ground_truth"]["accepted_categories"] = ["vibes"]
+        self.assert_rejected(case, "accepted_categories entry")
+
+    def test_accepted_categories_rejects_repeating_the_primary(self):
+        case = make_case()
+        case["ground_truth"]["accepted_categories"] = ["logic-error"]
+        self.assert_rejected(case, "repeats the primary")
+
+    def test_accepted_categories_are_capped(self):
+        # Alternatives must stay rare: an unbounded list would make
+        # category correctness meaningless.
+        case = make_case()
+        case["ground_truth"]["accepted_categories"] = [
+            "concurrency", "api-misuse", "resource-leak"]
+        self.assert_rejected(case, "at most 2")
+
     def test_clean_case_with_category_is_contradictory(self):
         case = make_case(defect=False)
         case["ground_truth"]["category"] = "logic-error"

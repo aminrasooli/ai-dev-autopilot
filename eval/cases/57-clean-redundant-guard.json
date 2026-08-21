@@ -1,7 +1,7 @@
 {
   "benchmark_version": 2,
   "id": "57-clean-redundant-guard",
-  "title": "Clean: defensive None-check added before use",
+  "title": "Clean: defensive precondition check added",
   "language": "typescript",
   "status": "pilot",
   "provenance": {
@@ -16,7 +16,7 @@
     "+++ b/src/notify/dispatch.ts",
     "@@ -4,6 +4,9 @@ export function dispatch(event: UserEvent, sink: Sink): void {",
     "+  if (sink == null) {",
-    "+    return;",
+    "+    throw new Error(\"dispatch requires a sink\");",
     "+  }",
     "   const payload = serialize(event);",
     "   sink.deliver(payload);",
@@ -24,6 +24,6 @@
   ],
   "ground_truth": {
     "defect": false,
-    "explanation": "The new early return only adds a defensive guard for a value the type system already narrows; it cannot change behavior for any existing caller and merely hardens against future misuse."
+    "explanation": "A defensive precondition check is added for a value the type system already narrows. Type-checked callers are unaffected, and an untyped caller that previously hit a TypeError on the next line now gets a clearer error at the same point \u2014 the failure stays loud either way."
   }
 }

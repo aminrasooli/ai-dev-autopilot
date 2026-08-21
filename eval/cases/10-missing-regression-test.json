@@ -29,6 +29,9 @@
       "low",
       "medium"
     ],
-    "explanation": "A real boundary fix (100 units now gets the discount) lands with no regression test, so the boundary can silently revert."
+    "explanation": "A real boundary fix (100 units now gets the discount) lands with no regression test, so the boundary can silently revert.",
+    "accepted_categories": [
+      "logic-error"
+    ]
   }
 }

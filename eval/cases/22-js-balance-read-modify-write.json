@@ -38,6 +38,9 @@
       "medium",
       "high"
     ],
-    "explanation": "Replacing the atomic decrement with read-then-write lets two concurrent withdrawals both read the same balance and one update is silently lost."
+    "explanation": "Replacing the atomic decrement with read-then-write lets two concurrent withdrawals both read the same balance and one update is silently lost.",
+    "accepted_categories": [
+      "data-corruption"
+    ]
   }
 }

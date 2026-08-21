@@ -24,8 +24,8 @@
     "+\t\tin   float64",
     "+\t\twant int64",
     "+\t}{",
-    "+\t\t{1.005, 101},",
-    "+\t\t{2.674, 267},",
+    "+\t\t{1.50, 150},",
+    "+\t\t{0.25, 25},",
     "+\t\t{0.0, 0},",
     "+\t}",
     "+\tfor _, c := range cases {",
@@ -37,6 +37,6 @@
   ],
   "ground_truth": {
     "defect": false,
-    "explanation": "A correct table-driven test is added for existing rounding behavior; no production code changes and the assertions match the documented semantics."
+    "explanation": "A correct table-driven test is added for existing rounding behaviour, using values that are exactly representable in binary floating point so the expectations cannot be disputed; no production code changes."
   }
 }

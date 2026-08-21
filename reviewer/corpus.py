@@ -162,7 +162,24 @@ def validate_case(obj, origin="case"):
             elif sev[0] == SEVERITIES[0] and sev[1] == SEVERITIES[-1]:
                 warnings.append(f"{origin}: severity range spans the whole "
                                 "scale — vacuous ground truth")
-            unknown_gt = set(gt) - {"defect", "category", "severity", "explanation"}
+            alts = gt.get("accepted_categories", [])
+            if not isinstance(alts, list):
+                errors.append(f"{origin}: accepted_categories must be a list")
+            else:
+                for alt in alts:
+                    if alt not in CATEGORIES:
+                        errors.append(f"{origin}: accepted_categories entry "
+                                      f"{alt!r} is not in the vocabulary")
+                if gt.get("category") in alts:
+                    errors.append(f"{origin}: accepted_categories repeats the "
+                                  "primary category")
+                if len(set(alts)) != len(alts):
+                    errors.append(f"{origin}: accepted_categories has duplicates")
+                if len(alts) > 2:
+                    errors.append(f"{origin}: at most 2 accepted_categories "
+                                  "(alternatives must stay rare and defensible)")
+            unknown_gt = set(gt) - {"defect", "category", "severity",
+                                    "explanation", "accepted_categories"}
             if unknown_gt:
                 errors.append(f"{origin}: unknown ground_truth fields "
                               f"{sorted(unknown_gt)}")

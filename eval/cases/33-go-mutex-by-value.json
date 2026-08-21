@@ -33,6 +33,9 @@
       "medium",
       "high"
     ],
-    "explanation": "Changing the receiver from pointer to value copies the struct \u2014 and its embedded sync.Mutex \u2014 on every call, so Lock() guards a copy and the counter update races."
+    "explanation": "The value receiver copies the struct \u2014 and its embedded sync.Mutex \u2014 on every call, so Lock() guards a throwaway copy and c.n++ mutates that copy: the counter never increments at all.",
+    "accepted_categories": [
+      "concurrency"
+    ]
   }
 }

@@ -27,6 +27,9 @@
       "medium",
       "high"
     ],
-    "explanation": "The bearer token is written verbatim into application logs, which outlive and outreach the credential."
+    "explanation": "The bearer token is written verbatim into application logs, which outlive and outreach the credential.",
+    "accepted_categories": [
+      "secret-exposure"
+    ]
   }
 }

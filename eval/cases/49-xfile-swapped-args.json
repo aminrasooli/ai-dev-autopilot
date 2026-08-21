@@ -16,10 +16,12 @@
   "diff": [
     "--- a/src/billing/fees.py",
     "+++ b/src/billing/fees.py",
-    "@@ -1,6 +1,6 @@",
+    "@@ -1,8 +1,10 @@",
     "-def calculate_fee(amount, rate):",
     "+def calculate_fee(rate, amount):",
     "     \"\"\"Fee in cents for a given amount at the supplied rate.\"\"\"",
+    "+    if rate > MAX_RATE:",
+    "+        raise ValueError(f\"fee rate {rate} exceeds the cap\")",
     "     return int(amount * rate)",
     "--- a/src/reports/monthly.py",
     "+++ b/src/reports/monthly.py",
@@ -43,7 +45,10 @@
       "medium",
       "high"
     ],
-    "explanation": "calculate_fee's parameters were reordered and the reports caller was updated, but the checkout caller still passes (amount, rate) \u2014 rate and amount are silently swapped there."
+    "explanation": "calculate_fee's parameters were reordered and the reports caller was updated, but the checkout caller still passes (amount, rate): the order total is now bound to rate, so every charge raises ValueError against the rate cap.",
+    "accepted_categories": [
+      "logic-error"
+    ]
   },
   "tags": [
     "cross-file"

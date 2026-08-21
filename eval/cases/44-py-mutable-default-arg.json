@@ -30,6 +30,9 @@
       "medium",
       "high"
     ],
-    "explanation": "The mutable default argument is shared across calls, so line items from one order leak into every later order built without an explicit list."
+    "explanation": "The mutable default argument is shared across calls, so line items from one order leak into every later order built without an explicit list.",
+    "accepted_categories": [
+      "unsafe-default"
+    ]
   }
 }

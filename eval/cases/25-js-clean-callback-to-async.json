@@ -9,7 +9,8 @@
     "author_family": "claude"
   },
   "affected_files": [
-    "src/jobs/export.js"
+    "src/jobs/export.js",
+    "src/jobs/runner.js"
   ],
   "diff": [
     "--- a/src/jobs/export.js",
@@ -27,10 +28,18 @@
     "+  const job = await loadJob(jobId);",
     "+  const file = await render(job);",
     "+  return file;",
+    " }",
+    "--- a/src/jobs/runner.js",
+    "+++ b/src/jobs/runner.js",
+    "@@ -18,7 +18,5 @@ async function handleExportJob(jobId) {",
+    "-  return new Promise((resolve, reject) => {",
+    "-    runExport(jobId, (err, file) => (err ? reject(err) : resolve(file)));",
+    "-  });",
+    "+  return runExport(jobId);",
     " }"
   ],
   "ground_truth": {
     "defect": false,
-    "explanation": "A callback-style function is converted to async/await with identical control flow, error propagation and return value; a sound reviewer reports nothing."
+    "explanation": "A callback-style function is converted to async/await and its only caller is updated in the same change, dropping a now-redundant promise wrapper; control flow, error propagation and return value are identical."
   }
 }

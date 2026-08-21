@@ -31,6 +31,9 @@
       "medium",
       "high"
     ],
-    "explanation": "Replacing the graceful 400 response with .unwrap() lets any non-numeric page parameter panic the handler \u2014 a remote crash trigger."
+    "explanation": "Replacing the graceful 400 response with .unwrap() lets any non-numeric page parameter panic the handler \u2014 a remote crash trigger.",
+    "accepted_categories": [
+      "missing-validation"
+    ]
   }
 }

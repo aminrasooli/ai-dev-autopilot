@@ -33,6 +33,9 @@
       "medium",
       "high"
     ],
-    "explanation": "Replacing Decimal with float introduces binary rounding error into invoice totals; sums drift from the true amounts."
+    "explanation": "Replacing Decimal with float introduces binary rounding error into invoice totals; sums drift from the true amounts.",
+    "accepted_categories": [
+      "logic-error"
+    ]
   }
 }
