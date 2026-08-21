@@ -5,7 +5,12 @@ it instead of re-deciding it: search and evaluate existing open-source
 options before building substantial new infrastructure. Do not rebuild a
 commodity layer merely to own it.
 
-This is the detailed version of the summary in `docs/ROADMAP.md`.
+This is the detailed version of the summary in `docs/ROADMAP.md`. Where
+`docs/ROADMAP.md` §8 names specific candidates to evaluate at a specific
+milestone (LangGraph, LiteLLM, RouteLLM, SWE-bench), those are starting
+points for the template below, not pre-made decisions — the template
+still has to be applied, in writing, when that milestone actually
+arrives.
 
 ## When this applies
 

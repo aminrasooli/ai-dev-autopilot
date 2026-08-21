@@ -1,216 +1,275 @@
-# Roadmap
+# AI Dev Autopilot: THE PLAN
 
-**Public.** This document is the credible, honest path from what exists
-today toward the destination recorded in `docs/NORTH_STAR.md`. It is not
-a schedule and it is not a pitch — dates are never promised, and
-platform work after external traction validates the idea is explicitly
-conditional on that traction actually showing up.
+Version 1.1. Dated 2026-08-21. Owner: JP (aminrasooli).
+Location of record: `docs/ROADMAP.md` on `main` of
+`aminrasooli/ai-dev-autopilot`. The git copy wins over any pasted or
+uploaded copy.
 
-Each milestone states an objective, its current status, what would count
-as done, what is deliberately *not* built at that stage, and how much of
-it is safe to talk about publicly. If a milestone's status says
-"not started," nothing below it should be read as available today.
-
-## M0 — Repository / operational readiness
-
-**Objective:** one coherent history, one active branch, durable handoff
-between sessions and agents.
-**Status:** in progress (`CURRENT-MILESTONE.md` tracks it live).
-**Exit criterion:** no stranded branches, no duplicate work streams, a
-canonical handoff document a fresh session can act on with zero prior
-context.
-**Not built:** any of M1+.
-**Communication:** internal only.
-
-## M1 — Reviewer Benchmark v2
-
-**Objective:** a versioned, schema-validated corpus with human-approved
-ground truth; repeat-run evaluation; report integrity verification.
-**Status:** ground-truth gate resolved 2026-08-21 (54 cases). PR open,
-not yet merged.
-**Exit criterion:** PR merged to `main`.
-**Not built:** any real cross-model comparison beyond single-backend
-pilot evidence; a public leaderboard.
-**Communication:** Stage A (build in public) once merged — see below.
-
-## M2 — Cross-model v2 pilot evidence
-
-**Objective:** the same 54-case corpus run against multiple backends
-(Claude, at least one local model through Ollama) at repeat-run depth,
-with variance and classification analysis.
-**Status:** not started (blocked on a working local-model run; the first
-attempt produced no usable output and needs diagnosis).
-**Exit criterion:** at least two backends with `--runs >= 3` reports,
-compared honestly, saturation/discrimination findings documented.
-**Not built:** any claim that this ranks models in general; a corpus
-that could support such a claim.
-**Communication:** Stage A/B.
-
-## M3 — Harder, realistic Benchmark v3
-
-**Objective:** fix the structural cause of detection saturation found in
-M2 — bigger diffs, more context, cases that require actual reasoning
-rather than four-line changes.
-**Status:** not started. Diagnostic tooling exists (`reviewer/diagnose.py`);
-`HARD-CASE-QUEUE.md` records where the current corpus is thin.
-**Exit criterion:** a corpus where recall is no longer saturated across
-difficulty tiers for a frontier model.
-**Not built:** provenance diversification (M4).
-**Communication:** Stage B.
-
-## M4 — Provenance diversification, real historical bugs, private holdout
-
-**Objective:** reduce self-authorship bias. Mined real bugs (candidates
-researched and queued, `REAL-BUG-ADMISSION-PACKET.md`, none admitted
-yet), non-Claude-authored cases, and a private holdout corpus that never
-enters this repository.
-**Status:** design complete, nothing admitted or created.
-**Exit criterion:** at least one case from each of: mined-real-fix,
-non-Claude authorship, and a private holdout that exists and is
-runnable.
-**Not built:** public disclosure of holdout contents, ever.
-**Communication:** Stage B/C — the holdout's *existence* and
-*methodology* can be discussed; its contents never can.
-
-## M5 — Public benchmark launch
-
-**Objective:** the benchmark stands as a credible, reproducible public
-artifact.
-**Status:** not started. Gated on M3 and M4.
-**Exit criterion:** harder v3 corpus, provenance diversification,
-holdout architecture live, clean contribution path, multi-model evidence
-that isn't single-backend pilot data.
-**Not built:** any commercial product.
-**Communication:** Stage C.
-
-## M6 — External reproduction / traction gate
-
-**Objective:** find out whether anyone besides the maintainer finds this
-useful enough to act on.
-**Status:** not started.
-**Exit criterion (precommitted, `eval/EXPERIMENTS.md` intent):** roughly
-100+ real-account GitHub stars, 2+ substantive outside issues/PRs, and
-— the signal that actually matters — **at least one independent
-reproduction**: someone outside this project runs the harness against a
-model we didn't, and submits a result we can verify.
-**Explicitly:** stars are not the success criterion. A single independent
-reproduction is worth more than all of them combined, because it is the
-only signal that costs an outsider real effort.
-**Not built:** anything past M6 is conditional on this milestone
-actually being met, not on elapsed time or effort invested.
-**Communication:** Stage C, transitioning toward D only with real
-evidence.
-
-## M7 — Evidence-based model selection
-
-**Objective:** use accumulated benchmark evidence to inform which
-reviewer/model to use for a given task — a recommendation a human still
-approves, not an automatic decision.
-**Status:** not started. Explicitly gated on M6.
-**Not built:** automated routing (see M8).
-
-## M8 — Planner / Builder / Reviewer role specialization
-
-**Objective:** distinct roles with distinct authority, each potentially
-backed by a different runtime/model, without collapsing back into one
-generic agent doing everything.
-**Status:** not started. This is the first step that starts to resemble
-the deferred "AI Team Runtime" architecture explicitly ruled out for the
-current phase — it does not become in-scope merely because earlier
-milestones shipped.
-
-## M9 — Continuity, authority, risk
-
-**Objective:** work surviving provider/session limits, and a
-deterministic policy for which actions a role may take without human
-sign-off, replacing today's fixed hard-boundary list.
-**Status:** not started.
-
-## M10 — AI Engineering Manager (North Star)
-
-**Objective:** the full vendor-neutral control plane described in
-`docs/NORTH_STAR.md` — task-aware model/runtime selection, cost/privacy/
-risk-aware routing, quality thresholds, outcome-based competence
-tracking.
-**Status:** not started. This is the destination the whole roadmap
-points at, not a near-term deliverable.
+This is the public governing document: mission, milestones, gates,
+operating model, go-to-market, open-source boundary, and the failure
+modes this project guards against. A private strategy appendix exists
+outside this repository and is referenced here only as "the private
+appendix."
 
 ---
 
-## Communication stages
+## 0. Instructions for any AI reading this document
 
-Which milestones license which kind of public statement — kept separate
-from the milestones themselves because a milestone can complete without
-anyone having decided to talk about it yet.
+When JP uploads or pastes this document, you must:
 
-### Stage A — Build in public (M1–M3)
-
-**Allowed:** technical progress notes, lessons learned, transparent
-pilot findings, methodology discussion.
-**Not allowed:** claiming a best model, a universal ranking, a
-production AI Engineering Manager, or that autonomous engineering is
-"solved."
-
-### Stage B — Technical pilot distribution (M2–M4)
-
-**Allowed:** a technical write-up, an r/LocalLLaMA pilot discussion,
-inviting independent reproduction and benchmark contributions. Every
-result is labeled **pilot evidence**, never a conclusion.
-
-### Stage C — Benchmark launch (M5)
-
-Only after M3 and M4 are actually done: harder corpus, provenance
-diversification, holdout live, clean contribution path, credible
-multi-model evidence. Candidate channels: a write-up, r/LocalLLaMA, other
-relevant developer communities. A Show HN–style launch should only
-happen when the maintainer can be present to answer questions for most
-of that day — this document does not encode *when* that is, only that
-presence is the precondition.
-
-### Stage D — Commercial product story (M6+)
-
-Only after M6's external-usage evidence exists. Nothing about commercial
-strategy belongs in this file or this repository — see the
-public/private boundary section below.
+1. Read section 2 (current status) and advise WITHIN the current
+   milestone only.
+2. If JP, or you, propose work outside the current milestone, name it
+   out loud as scope drift, cite the milestone table, and move the idea
+   to the parking lot (section 10). Do not design it. Do not prompt it.
+3. Never move a gate (section 5) inside a conversation. Gates change
+   only by JP deliberately editing this document via PR, on a different
+   day than the conversation that questioned them.
+4. Actively check the named failure modes (section 9) against whatever
+   is being discussed.
+5. End strategy advice with three lines: current milestone, the single
+   next action, and a drift check (in scope / out of scope).
+6. This document overrides chat memory, prior conversations, and any
+   advisor's earlier recommendations, including its own.
 
 ---
 
-## Open-source-before-build
+## 1. Mission and North Star
 
-Before implementing substantial new infrastructure (coding-agent
-runtime, model/provider gateways, workflow engines, evaluation
-infrastructure, routing, observability, policy engines), search and
-evaluate existing OSS first — do not rebuild a commodity layer merely to
-own it, and do not pre-select a specific project today merely because it
-came up in conversation. Full policy and decision template:
-[`docs/OPEN_SOURCE_POLICY.md`](OPEN_SOURCE_POLICY.md).
+North Star: a vendor-neutral AI Engineering Manager. The human states
+goals and constraints 1-3 times a day; the system plans, chooses
+models by measured competence, cost, availability, privacy and risk,
+builds, reviews, tests, measures outcomes, survives quota and provider
+failures, hands work between agents through durable state, and brings
+only consequential decisions to the human.
+
+Product identity, one line: the human moves UP the hierarchy, not out
+of it.
+
+Near-term product (the wedge that earns the North Star): an open,
+benchmarked, cross-vendor, local-capable INDEPENDENT code reviewer,
+plus the public Local Reviewer Benchmark and leaderboard.
+
+Thesis, one sentence: never let the same vendor grade its own homework.
+
+Second product requirement, equal rank: minimize human operator
+touches. Target 3 or fewer meaningful touches per day, while the human
+gates in section 3 are preserved forever.
 
 ---
 
-## Open-core boundary (default, subject to change)
+## 2. Current status (update this section at every milestone)
 
-A high-level expectation, not a promise about any specific future
-release.
+- Date: 2026-08-21
+- Current milestone: M0 pre-flight (M1 is nearly complete)
+- Done recently: Phase 1 merged to main. Phase 2 pilot on draft PR #12
+  with repeat-run support, full test suite, CI green. Ground-truth
+  review completed by JP with decisions applied (including D2=B and
+  D3=DELETE); corpus stands at 54 cases post-review, splits
+  re-verified by the validator at commit. Key finding so far:
+  detection saturates on small planted diffs, and on hard cases the
+  reviewer keeps recall but loses precision (it sees something is
+  wrong, then mislabels what).
+- Single next action: finish the README/product-direction alignment,
+  add this roadmap to PR #12, verify CI, then JP merges PR #12; B0
+  backup and nightly scheduler re-enable complete M0.
+- Blockers: JP's remaining pre-flight hours. Nothing else.
 
-**Expected to stay open/core:**
-reviewer interfaces and adapters · the benchmark harness · public
-benchmark cases · methodology · the public evaluation/result schema ·
-reproducibility tooling · contribution and result-submission paths · the
-basic handoff protocol · safety contracts a user needs to be able to
-inspect and trust · interoperability surfaces.
+---
 
-**Candidates for private/commercial, if and when a product forms:**
-private holdout contents · customer-specific evaluation sets ·
-production competence history · learned routing policies ·
-organization-specific memory · customer telemetry · proprietary
-evaluation intelligence · hosted fleet/control-plane operations ·
-enterprise administration · SSO/RBAC integration · organization-specific
-governance rules · SLA/support tooling.
+## 3. Operating model (how we work, every day)
 
-This is a default boundary, not a commitment that every item on the
-second list will end up proprietary, and not a claim that anything on
-the first list is somehow at risk. It exists so that implementation
-detail likely to matter for a future differentiated product isn't
-casually given away before there's evidence a product is warranted —
-without withholding anything that would compromise reproducibility,
-safety review, or the whole point of building this in public today.
+- Touch metric: 3 or fewer human operator touches per day.
+- Human gates that NEVER automate: merge to main, secrets and
+  passphrases, sudo and security-sensitive changes, publishing
+  externally, product-direction changes, spend above the authorized
+  threshold. Reduce touch frequency by batching; never delete gates.
+- Session hygiene: every autonomous block ends with a REPORT file
+  written, work committed and pushed, then `/clear`. The next block
+  starts from the report. Never keep one session alive for days;
+  sessions hand off through files, not living memory (docs/HANDOFF.md).
+- Model policy: Sonnet for 80-90 percent of hours (long blocks,
+  implementation, benchmark runs, GitHub work). Fable only for
+  milestone-level decisions, 15-40 minutes, then hand to Sonnet. Opus
+  as escalation for genuinely hard debugging. At roughly 70-80 percent
+  of a session window, stop feeding paid models and let local GPU jobs
+  run until reset.
+- Agents work inside written charters: verify reality first, bounded
+  timeouts, batch human gates and keep working, stop early when done,
+  end with a 90-second-readable report plus exact gate commands.
+
+---
+
+## 4. Milestones
+
+| # | Milestone | Done when |
+|---|-----------|-----------|
+| M0 | Pre-flight (calendar gate: before travel) | Ground truth reviewed by JP's own eyes; PR #12 merged by JP; B0 encrypted backup completed; nightly scheduler re-enabled |
+| M1 | Benchmark v2 frozen | Answer key frozen; repeat runs; reproducible from a fresh clone |
+| M2 | Cross-model pilot | Sonnet vs Qwen vs DeepSeek on frozen corpus, 3 repetitions, honest cost + latency + quality scorecard, clearly labeled a pilot |
+| M3 | Hard benchmark v3 | Large realistic diffs, true cross-file reasoning, state/cache, authorization, concurrency, hard clean controls; detection no longer saturated |
+| M4 | Credibility and provenance | Real historical bugs (license-checked), cases authored by non-Claude models, human-written cases, private holdout live and rotating |
+| M5 | Public launch | Stable corpus, reproducible runs, multi-dimensional scorecard (repeatability, cost, latency, precision, classification, hard tier), SUBMIT.md accepting outside results, leaderboard page |
+| M6 | Traction gate | Numbers in section 5 measured; go/no-go for platform |
+| M7 | Measured model selection | Evidence-based task-to-model routing from benchmark data (the router, earned) |
+| M8 | Agent team execution | Planner / builder / reviewer roles across models, durable handoffs, measured touches |
+| M9 | Continuity and authority | Quota failover, resumable execution, risk tiers, escalation policy |
+| M10 | AI Engineering Manager | North Star realized |
+
+Order is strict. No milestone starts before the previous one's gate.
+
+---
+
+## 5. Gates (pre-committed so they cannot quietly move)
+
+- M0 calendar gate: complete before the flight. Without the nightly
+  scheduler on, the low-touch operating model does not exist.
+- M5 launch gate: a stranger can reproduce the headline result from
+  the README alone, AND the corpus is no longer detection-saturated
+  (M3 done), AND ground truth was human-reviewed.
+- M6 traction gate, measured 3 weeks after M5 launch, priority order:
+  1. At least 1 independent reproduction or result submission from a
+     stranger (worth more than everything else combined).
+  2. At least 2 issues or PRs from people JP has never spoken to.
+  3. Roughly 100+ stars from real accounts.
+  Pass: continue to M7+. Miss: rework positioning ONCE, relaunch.
+  Miss twice: park the platform ambition without shame; the benchmark
+  remains a standalone asset.
+- License gate (unresolved, decide before M5): candidates include
+  AGPL-3.0 and Apache-2.0/MIT. The analysis (adoption versus
+  protection, contributor-agreement implications) has not been done
+  yet and is scheduled before launch. Until decided, this remains an
+  open question, not a default.
+- Additional commercial and ownership gates exist in the private
+  appendix and bind equally.
+
+---
+
+## 6. Go-to-market
+
+### Who we target (in order)
+
+1. Developers running local LLMs: r/LocalLLaMA is the core audience;
+   they want proof local models are good enough. The leaderboard is
+   built for them.
+2. AI engineering leaders and practitioners: LinkedIn.
+3. Builders and early adopters: Hacker News.
+4. Engineering teams with strict privacy or on-prem requirements.
+5. Persian-language tech audience.
+
+### Message rules
+
+- Advertise the RESULT, not the repo. Numbers travel, links do not.
+- The thesis line in every major post: never let the same vendor grade
+  its own homework.
+- Honest framing always: pilot results are labeled pilot; variance is
+  reported; only corrected, repeat-run figures are citable.
+- Voice: first person, plain language, no em dashes, no AI-sounding
+  vocabulary, claims grounded in verifiable experience.
+
+### Channel playbook by stage
+
+- Now through M2 (build in public): LinkedIn progress posts, findings,
+  screenshots. Small. No leaderboard hype. r/LocalLLaMA gets the M2
+  pilot scorecard, clearly labeled a pilot.
+- M4/M5 (the launch): LinkedIn long-form + technical blog +
+  r/LocalLLaMA results post. Show HN exactly once, on a weekday
+  morning US time, title is the claim not the tool name, and ONLY on a
+  day JP can personally answer comments all day. Never from an
+  airport.
+- M6 onward: promote genuine outside results only.
+
+### The content engine (repeatable, mostly automated)
+
+- Every new open-weight model release: run it through the harness
+  within 48 hours, publish the updated table.
+- SUBMIT.md invites anyone to run their own model and submit results
+  by PR; independent submissions are also the strongest traction
+  evidence there is.
+- Compounding small stuff: awesome-list submissions, README with the
+  table and a 60-second GIF at the top, one-command install.
+- Persian-language versions of major posts.
+- Agents draft posts in the nightly pipeline; JP approves each one
+  before anything is published. One touch per post.
+
+---
+
+## 7. Open-source boundary
+
+The rule: open the machinery people need to trust, adopt, extend, and
+reproduce. Keep the commercial operation layer private.
+
+Public (open source): reviewer adapters (Claude, Qwen/Ollama,
+DeepSeek, Codex, future models), benchmark harness and evaluator,
+repeat-run and checkpoint tooling, public corpus and validator,
+methodology docs, result schema, public leaderboard data, submission
+workflow, handoff protocol, safety contracts, CLI.
+
+Private (commercial layer): private holdout corpus and its rotation
+strategy, unpublished adversarial cases, learned routing policies and
+competence history (M7+), customer data, hosted control plane,
+enterprise governance features, private evaluation packs.
+
+Commitment: no hostile lock-in tricks and no crippled open source. The
+open benchmark core is and remains free. Any commercial services are
+built around it (hosted, certified, or private evaluations), never by
+paywalling the public benchmark.
+
+---
+
+## 8. Build versus reuse rule
+
+Before building any substantial infrastructure, inspect mature open
+source. Build only when our differentiated requirement is not served.
+
+- Coding agent: never build (Claude Code, OpenHands, Aider exist).
+- Stateful agent graph: evaluate LangGraph before building.
+- Provider gateway: evaluate LiteLLM before writing many adapters.
+- Routing algorithms: study RouteLLM at M7 before inventing theory.
+- Benchmark methodology: borrow from SWE-bench and related work.
+
+Our differentiation, the only things worth building: measured
+engineering competence, safe autonomy, human-touch reduction,
+evidence-based delegation, durable handoff, and the manager layer.
+
+---
+
+## 9. Failure modes we guard against (named, real, documented)
+
+1. Infrastructure before demand. The documented pattern: the platform
+   vision regrew three separate times before the wedge shipped once.
+   Rule: current milestone only; everything else goes to the parking
+   lot. Advisors must name drift out loud (section 0).
+2. Moving gates mid-conversation. Gates change only by deliberate PR
+   edit to this file on a different day.
+3. Vendor self-grading. Claude may not approve ground truth Claude
+   wrote; human eyes on the answer key; the holdout stays private;
+   writer, reviewer, and merger are never the same party.
+4. Number inflation. Publish only corrected, repeat-run figures with
+   variance. Single-run numbers are never citable.
+5. Context bloat. Days-old sessions burn quota and degrade quality.
+   REPORT, commit, `/clear`, every block.
+6. Advisor-loop amplification. When advisors converge, polling stops
+   and execution starts.
+7. Anxiety metrics. Competitor watch weekly, not daily. Day-to-day
+   stars and view counts are noise; the M6 gate is the only audience
+   number that matters, measured once, at its scheduled time.
+8. Autonomy without gates. The touch target is met by batching, never
+   by deleting human gates. Unattended merge rights on a repo that
+   auto-executes nightly is a supply-chain hole, not a convenience.
+
+---
+
+## 10. Parking lot
+
+New scope lands here via PR with a one-line rationale, and waits for
+its milestone. Multi-seat team details live in docs/NORTH_STAR.md
+deferred vision. Current parked items: safety/hardening product spin
+(one-pager only), merge-automation beyond GitHub-native auto-merge
+(read-only digest at most), mass case generation beyond the current
+milestone's target.
+
+---
+
+End of THE PLAN. If a conversation contradicts this document, the
+conversation is wrong until this document is deliberately changed.

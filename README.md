@@ -464,11 +464,12 @@ unavailable, timeout, empty, off-rubric — resolves to escalate.
 
 ## The Local Reviewer Benchmark
 
-The independent reviewer is pluggable (`bin/review`): Codex remains the
-default, and a local open-weight model through Ollama — loopback-only,
-with no fallback to any remote service — can take its place by
-configuration. Which reviewer is actually worth trusting is an empirical
-question, so the repository carries a reproducible benchmark for it:
+**Never let the same vendor grade its own homework.** The independent
+reviewer is pluggable (`bin/review`): Codex remains the default, and a
+local open-weight model through Ollama — loopback-only, with no
+fallback to any remote service — can take its place by configuration.
+Which reviewer is actually worth trusting is an empirical question, so
+the repository carries a reproducible benchmark for it:
 versioned cases with machine-checked ground truth in
 [`eval/cases/`](eval/cases), a deterministic scoring harness with
 repeat-run support (`bin/review-eval --runs 3`), an offline corpus
