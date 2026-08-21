@@ -255,3 +255,53 @@ class ExternalCorpusTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LeaderboardTests(unittest.TestCase):
+    def _report(self, model="m1"):
+        cases = _corpus(make_case("lb-a"), make_case("lb-b", defect=False))
+        backend = _Scripted([[_finding()], [_finding()], [], []])
+        report = evaluate.run_eval(backend, cases, runs=2)
+        report["model"] = model
+        return report, cases
+
+    def test_scorecard_has_no_composite_and_no_score_ordering(self):
+        from reviewer import leaderboard
+        r1, cases = self._report("zeta")
+        r2, _ = self._report("alpha")
+        rows = leaderboard.build_rows([("a.json", r1), ("b.json", r2)], cases)
+        # Ordered by model identifier, not by any performance number.
+        self.assertEqual([r["model"] for r in rows], ["alpha", "zeta"])
+        md = leaderboard.render_markdown(rows)
+        self.assertNotIn("composite", md.lower().split("no composite")[0])
+        self.assertIn("no composite", md.lower())
+
+    def test_local_cost_is_never_called_free(self):
+        from reviewer import leaderboard
+        report, cases = self._report()
+        report["summary"]["total_external_cost_usd"] = None
+        report["summary"]["external_cost"] = [
+            "no external model API charge (local compute time is not free)"]
+        rows = leaderboard.build_rows([("a.json", report)], cases)
+        md = leaderboard.render_markdown(rows)
+        self.assertIn("no external API charge", rows[0]["cost"])
+        self.assertNotIn("free ", md.lower().replace("not free", ""))
+
+    def test_mixed_corpora_are_flagged_as_incomparable(self):
+        from reviewer import leaderboard
+        r1, cases = self._report("a")
+        r2, _ = self._report("b")
+        r2["corpus"] = dict(r2["corpus"], sha256="f" * 64)
+        md = leaderboard.render_markdown(
+            leaderboard.build_rows([("a.json", r1), ("b.json", r2)], cases))
+        self.assertIn("NOT directly comparable", md)
+
+    def test_inconsistent_report_is_refused(self):
+        from reviewer import leaderboard
+        report, _ = self._report()
+        report["summary"]["detected"] += 5
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "bad.json")
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(report, fh)
+            self.assertEqual(leaderboard.main([path]), 2)
