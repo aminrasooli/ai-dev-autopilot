@@ -144,7 +144,51 @@ def _case_consistency(case, runs):
     return out
 
 
-def run_eval(backend, cases, runs=1, progress=None):
+def _checkpoint_identity(backend, cases, runs):
+    """What a checkpoint must match before it may be resumed.
+
+    Resuming into a different experiment would silently fabricate a
+    result from two incompatible halves, so every field that changes the
+    question is included.
+    """
+    return {
+        "backend": backend.name,
+        "model": backend.model,
+        "runs_per_case": runs,
+        "corpus_sha256": corpus_fingerprint(cases),
+        "benchmark_version": cases[0].get("benchmark_version") if cases else None,
+        "prompt_contract": prompt_contract_fingerprint(),
+    }
+
+
+def _write_atomic(path, payload):
+    """Write via a temp file and rename, so a crash mid-write cannot
+    leave a truncated checkpoint that then fails to load."""
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh)
+    os.replace(tmp, path)
+
+
+def load_checkpoint(path, identity):
+    """Return completed {(case_id, run): record} for a compatible
+    checkpoint, or {} if absent/incompatible. Never raises."""
+    if not path or not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return {}
+    if data.get("identity") != identity:
+        return {}
+    done = {}
+    for item in data.get("observations", []):
+        done[(item["case_id"], item["record"]["run"])] = item["record"]
+    return done
+
+
+def run_eval(backend, cases, runs=1, progress=None, checkpoint=None):
     """Run every case `runs` independent times; return the full report.
 
     `progress` is an optional callable taking one line of text; the CLI
@@ -154,6 +198,15 @@ def run_eval(backend, cases, runs=1, progress=None):
     as model quality or allowed to abort the benchmark.
     """
     started = time.monotonic()
+    identity = _checkpoint_identity(backend, cases, runs)
+    done = load_checkpoint(checkpoint, identity)
+    observations = [{"case_id": cid, "record": rec}
+                    for (cid, _), rec in sorted(done.items())]
+    if done and progress:
+        progress(f"resuming: {len(done)} completed observation(s) reused "
+                 f"from {checkpoint}")
+    total_calls = len(cases) * runs
+    completed = len(done)
     case_records = []
     flat_runs = []
     for ci, case in enumerate(cases, 1):
@@ -162,8 +215,18 @@ def run_eval(backend, cases, runs=1, progress=None):
                   "language": case.get("language"),
                   "runs": []}
         for ri in range(1, runs + 1):
+            cached = done.get((case["id"], ri))
+            if cached is not None:
+                record["runs"].append(cached)
+                flat_runs.append({"defect": record["defect"], **cached})
+                continue
             run_record = _one_run(backend, case, ri)
             record["runs"].append(run_record)
+            if checkpoint:
+                observations.append({"case_id": case["id"], "record": run_record})
+                _write_atomic(checkpoint,
+                              {"identity": identity, "observations": observations})
+            completed += 1
             flat_runs.append({"defect": record["defect"], **run_record})
             if progress:
                 elapsed = time.monotonic() - started
@@ -172,8 +235,18 @@ def run_eval(backend, cases, runs=1, progress=None):
                                f"· {run_record['metrics']['latency_seconds']}s")
                 else:
                     outcome = run_record["error"].split(":")[0]
-                progress(f"[{elapsed:8.1f}s] case {ci}/{len(cases)} "
-                         f"run {ri}/{runs} {case['id']}: {outcome}")
+                # Rate is measured over calls actually made this process,
+                # so a resumed run does not inherit a stale estimate. No
+                # promise of accuracy: it is an order-of-magnitude hint.
+                fresh = completed - len(done)
+                remaining = total_calls - completed
+                eta = ""
+                if fresh >= 3 and remaining:
+                    per = elapsed / fresh
+                    eta = f" · ~{per * remaining / 60:.0f}m left"
+                pct = 100.0 * completed / total_calls
+                progress(f"[{elapsed:8.1f}s {pct:5.1f}%] case {ci}/{len(cases)} "
+                         f"run {ri}/{runs} {case['id']}: {outcome}{eta}")
         record["consistency"] = _case_consistency(case, record["runs"])
         case_records.append(record)
     return {
@@ -346,6 +419,10 @@ def main(argv=None):
     parser.add_argument("--out", help="write the machine-readable report here")
     parser.add_argument("--overwrite", action="store_true",
                         help="allow --out to replace an existing report")
+    parser.add_argument("--checkpoint", metavar="FILE",
+                        help="persist each observation here and resume from it; "
+                             "a checkpoint from a different corpus, model or "
+                             "prompt contract is ignored, never merged")
     parser.add_argument("--compare", nargs=2, metavar="REPORT.json",
                         help="render a comparison of two saved reports and exit")
     args = parser.parse_args(argv)
@@ -398,7 +475,8 @@ def main(argv=None):
           f"{len(cases)} cases × {args.runs} run(s) = {total_calls} calls",
           file=sys.stderr)
     report = run_eval(backend, cases, runs=args.runs,
-                      progress=lambda line: print(line, file=sys.stderr))
+                      progress=lambda line: print(line, file=sys.stderr),
+                      checkpoint=args.checkpoint)
     if args.out:
         with open(args.out, "w", encoding="utf-8") as fh:
             json.dump(report, fh, indent=2)

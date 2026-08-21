@@ -414,3 +414,86 @@ class CompareTests(unittest.TestCase):
                     json.dump(r, fh)
                 paths.append(p)
             self.assertEqual(compare.main(paths), 2)
+
+
+class CheckpointResumeTests(unittest.TestCase):
+    """A long paid run must survive interruption without losing progress,
+    and must never resume into a different experiment."""
+
+    def _cases(self):
+        return _corpus(make_case("cp-a"), make_case("cp-b", defect=False),
+                       make_case("cp-c"))
+
+    def test_resumed_result_equals_uninterrupted_result(self):
+        cases = self._cases()
+        n = len(cases) * 2
+        full = evaluate.run_eval(
+            evaluate.oracle_backend(cases), cases, runs=2)
+        with tempfile.TemporaryDirectory() as tmp:
+            cp = os.path.join(tmp, "ck.json")
+
+            class _DiesAfter(evaluate.FakeReviewer):
+                calls = 0
+                def review_diff(self, diff_text, context=None):
+                    _DiesAfter.calls += 1
+                    if _DiesAfter.calls > 3:      # crash mid-way
+                        raise KeyboardInterrupt("simulated crash")
+                    return super().review_diff(diff_text, context)
+
+            oracle = evaluate.oracle_backend(cases)
+            dying = _DiesAfter(script=oracle.script, model="oracle")
+            with self.assertRaises(KeyboardInterrupt):
+                evaluate.run_eval(dying, cases, runs=2, checkpoint=cp)
+            # Progress survived the crash.
+            identity = evaluate._checkpoint_identity(
+                evaluate.oracle_backend(cases), cases, 2)
+            self.assertEqual(len(evaluate.load_checkpoint(cp, identity)), 3)
+            resumed = evaluate.run_eval(
+                evaluate.oracle_backend(cases), cases, runs=2, checkpoint=cp)
+        self.assertEqual(resumed["summary"], full["summary"])
+        self.assertEqual([c["consistency"] for c in resumed["cases"]],
+                         [c["consistency"] for c in full["cases"]])
+
+    def test_checkpoint_from_a_different_corpus_is_ignored(self):
+        cases = self._cases()
+        with tempfile.TemporaryDirectory() as tmp:
+            cp = os.path.join(tmp, "ck.json")
+            evaluate.run_eval(evaluate.oracle_backend(cases), cases,
+                              runs=1, checkpoint=cp)
+            other = _corpus(make_case("different-entirely"))
+            identity = evaluate._checkpoint_identity(
+                evaluate.oracle_backend(other), other, 1)
+            self.assertEqual(evaluate.load_checkpoint(cp, identity), {})
+
+    def test_checkpoint_from_a_different_run_count_is_ignored(self):
+        cases = self._cases()
+        with tempfile.TemporaryDirectory() as tmp:
+            cp = os.path.join(tmp, "ck.json")
+            evaluate.run_eval(evaluate.oracle_backend(cases), cases,
+                              runs=2, checkpoint=cp)
+            identity = evaluate._checkpoint_identity(
+                evaluate.oracle_backend(cases), cases, 5)
+            self.assertEqual(evaluate.load_checkpoint(cp, identity), {})
+
+    def test_corrupt_checkpoint_is_ignored_not_fatal(self):
+        cases = self._cases()
+        with tempfile.TemporaryDirectory() as tmp:
+            cp = os.path.join(tmp, "ck.json")
+            with open(cp, "w", encoding="utf-8") as fh:
+                fh.write("{truncated")
+            identity = evaluate._checkpoint_identity(
+                evaluate.oracle_backend(cases), cases, 1)
+            self.assertEqual(evaluate.load_checkpoint(cp, identity), {})
+            report = evaluate.run_eval(evaluate.oracle_backend(cases), cases,
+                                       runs=1, checkpoint=cp)
+            self.assertEqual(report["summary"]["errors"], 0)
+
+    def test_checkpoint_writes_are_atomic(self):
+        # No .tmp file may survive a completed write.
+        cases = self._cases()
+        with tempfile.TemporaryDirectory() as tmp:
+            cp = os.path.join(tmp, "ck.json")
+            evaluate.run_eval(evaluate.oracle_backend(cases), cases,
+                              runs=1, checkpoint=cp)
+            self.assertTrue(os.path.exists(cp))
+            self.assertFalse(os.path.exists(cp + ".tmp"))
