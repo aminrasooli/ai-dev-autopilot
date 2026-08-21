@@ -253,3 +253,43 @@ class RealCorpusTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DiagnosticsTests(unittest.TestCase):
+    def test_similarity_flags_near_duplicates_but_not_distinct_cases(self):
+        from reviewer import diagnose
+        a = make_case("dup-a"); b = make_case("dup-b")
+        # Same changed content, different ids/filenames.
+        b["diff"] = [l.replace("dup-b", "dup-a") for l in b["diff"]]
+        for c in (a, b):
+            c["diff"] = "\n".join(c["diff"]) + "\n"
+        flags = diagnose.similarity_report([a, b], threshold=0.3)
+        self.assertTrue(flags and flags[0]["jaccard"] > 0.3)
+        c = make_case("distinct")
+        c["diff"] = ("--- a/x.py\n+++ b/x.py\n@@ -1 +1 @@\n"
+                     "-completely different tokens here\n"
+                     "+entirely unrelated replacement content\n")
+        self.assertEqual(diagnose.similarity_report([a, c], threshold=0.3), [])
+
+    def test_jaccard_bounds(self):
+        from reviewer import diagnose
+        s = diagnose.shingles("alpha beta gamma delta epsilon zeta")
+        self.assertEqual(diagnose.jaccard(s, s), 1.0)
+        self.assertEqual(diagnose.jaccard(s, set()), 0.0)
+
+    def test_context_budget_reports_real_prompt_size(self):
+        from reviewer import diagnose
+        case = make_case("ctx")
+        case["diff"] = "\n".join(case["diff"]) + "\n"
+        cb = diagnose.context_budget([case])
+        # The measured size must be the full prompt, not just the diff.
+        self.assertGreater(cb["prompt_chars"]["min"], len(case["diff"]))
+        self.assertEqual(cb["diff_lines"]["min"], len(case["diff"].splitlines()))
+
+    def test_diagnose_over_the_real_corpus_has_no_composite_score(self):
+        from reviewer import diagnose, corpus as corpus_mod
+        d = diagnose.diagnose(corpus_mod.load_corpus(corpus_mod.DEFAULT_CASES_DIR))
+        self.assertEqual(d["cases"], 57)
+        blob = json.dumps(d).lower()
+        for banned in ("quality_score", "overall_score", "composite"):
+            self.assertNotIn(banned, blob)
