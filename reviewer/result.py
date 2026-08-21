@@ -109,7 +109,8 @@ class ReviewMetrics:
     def __init__(self, backend, model, latency_seconds, calls=1,
                  input_tokens=None, output_tokens=None,
                  local_execution_seconds=None,
-                 external_service_required=False, external_cost=None):
+                 external_service_required=False, external_cost=None,
+                 external_cost_usd=None):
         self.backend = backend
         self.model = model
         self.latency_seconds = latency_seconds
@@ -121,9 +122,15 @@ class ReviewMetrics:
         # A human-readable statement of the money question, e.g.
         # "not directly metered (subscription authentication)" for Codex or
         # "no external model API charge (local compute time is not free)"
-        # for a local model. A dollar figure appears only when reliable
-        # pricing and usage both exist — which today is never.
+        # for a local model — deliberately NOT a per-call dollar figure, so
+        # this stays one stable string per backend and aggregate() can
+        # dedupe it meaningfully across many calls.
         self.external_cost = external_cost or "unknown"
+        # The actual per-call dollar figure, kept separate from the label
+        # above precisely so it is NEVER embedded in a string that
+        # aggregate() might try to dedupe — None means not measurable in
+        # dollars, never 0.
+        self.external_cost_usd = external_cost_usd
 
     def to_dict(self):
         return {
@@ -136,6 +143,7 @@ class ReviewMetrics:
             "local_execution_seconds": self.local_execution_seconds,
             "external_service_required": self.external_service_required,
             "external_cost": self.external_cost,
+            "external_cost_usd": self.external_cost_usd,
         }
 
 

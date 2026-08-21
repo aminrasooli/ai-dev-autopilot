@@ -169,6 +169,7 @@ def aggregate(records):
     tokens_in = [r["metrics"]["input_tokens"] for r in ok]
     tokens_out = [r["metrics"]["output_tokens"] for r in ok]
     costs = {r["metrics"]["external_cost"] for r in ok}
+    costs_usd = [r["metrics"].get("external_cost_usd") for r in ok]
     return {
         "cases": len(records),
         "errors": len(records) - len(ok),
@@ -186,6 +187,12 @@ def aggregate(records):
         "total_output_tokens": sum(t for t in tokens_out if t is not None)
         if any(t is not None for t in tokens_out) else None,
         "external_cost": sorted(costs),
+        # Distinct from 'external_cost': that field holds a stable
+        # per-backend label (deduped across calls), this is the honest sum
+        # of whatever real dollar figures were reported — None if no call
+        # reported one, never 0.
+        "total_external_cost_usd": round(sum(c for c in costs_usd if c is not None), 6)
+        if any(c is not None for c in costs_usd) else None,
     }
 
 
@@ -203,7 +210,9 @@ def render_summary(report):
         f"  severity correct:  {s['severity_correct']}/{s['defect_cases']}",
         f"  mean latency:      {s['mean_latency_seconds']}s",
         f"  tokens in/out:     {s['total_input_tokens']}/{s['total_output_tokens']}",
-        f"  external cost:     {'; '.join(s['external_cost']) or 'unknown'}",
+        f"  external cost:     {'; '.join(s['external_cost']) or 'unknown'}"
+        + (f" — total ${s['total_external_cost_usd']:.6f}"
+           if s["total_external_cost_usd"] is not None else ""),
     ]
     return "\n".join(lines)
 
@@ -222,8 +231,14 @@ def render_comparison(report_a, report_b):
         ("errors", a["errors"], b["errors"]),
         ("mean latency (s)", a["mean_latency_seconds"], b["mean_latency_seconds"]),
         ("external cost", "; ".join(a["external_cost"]), "; ".join(b["external_cost"])),
+        ("total cost (USD)",
+         f"${a['total_external_cost_usd']:.6f}" if a["total_external_cost_usd"] is not None else "n/a",
+         f"${b['total_external_cost_usd']:.6f}" if b["total_external_cost_usd"] is not None else "n/a"),
     ]
-    width = max(len(name_a), 24)
+    # Sized from the actual cell contents, not just the header — a column
+    # narrower than its longest value runs straight into the next column
+    # with no separating space.
+    width = max(len(name_a), *(len(str(va)) for _, va, _ in rows), 24)
     lines = [f"{'metric':<20} {name_a:<{width}} {name_b}"]
     for label, va, vb in rows:
         lines.append(f"{label:<20} {str(va):<{width}} {vb}")

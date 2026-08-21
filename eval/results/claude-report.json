@@ -1,0 +1,674 @@
+{
+  "backend": "claude",
+  "model": "claude-sonnet-5",
+  "cases": [
+    {
+      "case_id": "01-obvious-off-by-one",
+      "title": "Loop bound overruns the list",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "logic-error",
+          "severity": "high",
+          "file": "src/report.py",
+          "note": "Adding +1 to the loop bound causes an IndexError (or off-by-one over-read) when count >= len(entries), since i can reach len(entries)."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.89,
+        "calls": 1,
+        "input_tokens": 6046,
+        "output_tokens": 103,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0044205
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "02-subtle-cache-key",
+      "title": "Cache key drops the user id",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "logic-error",
+          "severity": "high",
+          "file": "src/profile.py",
+          "note": "Removing user_id from the cache key causes all users sharing a locale to collide on the same cache entry, so one user's profile data can be served to another user."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 5.519,
+        "calls": 1,
+        "input_tokens": 6101,
+        "output_tokens": 284,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.007183
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "03-missing-validation",
+      "title": "Quantity accepted without bounds check",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "missing-validation",
+          "severity": "high",
+          "file": "src/checkout.py",
+          "note": "Removes the quantity range check, allowing invalid or excessive quantities (e.g., negative, zero, or beyond MAX_PER_ORDER) to be added to the cart, which can cause negative totals or business-logic abuse."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.427,
+        "calls": 1,
+        "input_tokens": 889,
+        "output_tokens": 131,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0057150000000000005
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "04-shell-quoting",
+      "title": "Unquoted variable in cleanup script",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "shell-quoting",
+          "severity": "high",
+          "file": "scripts/cleanup.sh",
+          "note": "Removing quotes and the ${workdir:?} guard reintroduces word-splitting/globbing risk and allows rm -rf /build if workdir is empty or unset."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 4.044,
+        "calls": 1,
+        "input_tokens": 6048,
+        "output_tokens": 116,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0045911
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "05-command-injection",
+      "title": "User input interpolated into a shell command",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "command-injection",
+          "severity": "critical",
+          "file": "src/thumbs.py",
+          "note": "Switching from subprocess.run with an argument list to os.system with an f-string interpolates upload_name unsanitized into a shell command, enabling shell injection via crafted filenames."
+        },
+        {
+          "category": "logic-error",
+          "severity": "medium",
+          "file": "src/thumbs.py",
+          "note": "os.system's return value is not checked (unlike the previous check=True), so failures in the convert command will be silently ignored."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 4.312,
+        "calls": 1,
+        "input_tokens": 6093,
+        "output_tokens": 189,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0057416
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "06-path-traversal",
+      "title": "Attachment path joined without containment",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "path-traversal",
+          "severity": "high",
+          "file": "src/attachments.py",
+          "note": "Removes the realpath containment check, allowing name values like '../../etc/passwd' to escape ATTACHMENT_DIR."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.653,
+        "calls": 1,
+        "input_tokens": 6128,
+        "output_tokens": 99,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.004437099999999999
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "07-sensitive-logging",
+      "title": "Authorization header written to the log",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "sensitive-logging",
+          "severity": "high",
+          "file": "src/http_client.py",
+          "note": "Logging the headers dict exposes the bearer token in plaintext logs, a credential leak."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.41,
+        "calls": 1,
+        "input_tokens": 6068,
+        "output_tokens": 88,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0042081
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "08-unsafe-binding",
+      "title": "Debug server bound to all interfaces",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "permission-widening",
+          "severity": "high",
+          "file": "src/devserver.py",
+          "note": "Binding to 0.0.0.0 exposes the debug server (with app.debug = True, enabling the Werkzeug debugger/RCE) to all network interfaces instead of localhost only."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.152,
+        "calls": 1,
+        "input_tokens": 817,
+        "output_tokens": 118,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.005271
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": false,
+        "severity_correct": false
+      }
+    },
+    {
+      "case_id": "09-dependency-risk",
+      "title": "Pinned dependency replaced by a git URL",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "dependency-risk",
+          "severity": "high",
+          "file": "requirements.txt",
+          "note": "Replaces the pinned, published 'requests' package with an unpinned git fork (@main) from an unverified third-party account, which is a supply-chain risk and non-reproducible build since main can change at any time."
+        },
+        {
+          "category": "secret-exposure",
+          "severity": "low",
+          "file": "requirements.txt",
+          "note": "No secret exposure detected, but note: using an external git dependency also removes PyPI's integrity/signature checks present for the original requests package."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 4.863,
+        "calls": 1,
+        "input_tokens": 6049,
+        "output_tokens": 200,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0058764
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "10-missing-regression-test",
+      "title": "Boundary bug fixed with no test",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "test-gap",
+          "severity": "low",
+          "file": "src/pricing.py",
+          "note": "Boundary condition changed from >100 to >=100 for units=100 without any accompanying test verifying the new boundary behavior."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 6.502,
+        "calls": 1,
+        "input_tokens": 6041,
+        "output_tokens": 325,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.007738
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "11-misleading-test",
+      "title": "Test mocks the function under test",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "misleading-test",
+          "severity": "high",
+          "file": "tests/test_totals.py",
+          "note": "The test now mocks totals.order_total to always return 108.25, so it no longer exercises the real implementation and will pass even if the tax calculation logic is broken."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.238,
+        "calls": 1,
+        "input_tokens": 894,
+        "output_tokens": 109,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.005438
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "12-destructive-migration",
+      "title": "Migration drops a table it renames",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "destructive-operation",
+          "severity": "critical",
+          "file": "migrations/0042_rename_events.sql",
+          "note": "Replacing an atomic RENAME with CREATE TABLE LIKE + DROP TABLE loses all data in events since LIKE INCLUDING ALL copies structure/indexes but not rows, and no data migration (INSERT INTO ... SELECT) is performed before dropping the original table."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 4.24,
+        "calls": 1,
+        "input_tokens": 6091,
+        "output_tokens": 162,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.00532
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "13-permission-widening",
+      "title": "Install step makes config world-writable",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "permission-widening",
+          "severity": "high",
+          "file": "scripts/install.sh",
+          "note": "Changing app.conf permissions from 640 to 777 makes the config file world-writable and world-readable, a significant permission widening that likely exposes sensitive config data and allows any local user to tamper with it."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.911,
+        "calls": 1,
+        "input_tokens": 6052,
+        "output_tokens": 122,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0046963000000000005
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "14-secret-committed",
+      "title": "API key hardcoded as a fallback",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "secret-exposure",
+          "severity": "critical",
+          "file": "src/settings.py",
+          "note": "A live-looking payment API key is hardcoded as a fallback default and committed to source control, leaking a secret and silently using it if the env var is unset."
+        },
+        {
+          "category": "logic-error",
+          "severity": "high",
+          "file": "src/settings.py",
+          "note": "Falling back to a hardcoded default instead of raising when PAYMENT_API_KEY is missing masks misconfiguration and risks using the wrong/leaked key in production."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 4.496,
+        "calls": 1,
+        "input_tokens": 6077,
+        "output_tokens": 195,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0058238
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "15-subtle-timezone",
+      "title": "Expiry compared against naive local time",
+      "defect": true,
+      "status": "ok",
+      "verdict": "changes_required",
+      "findings": [
+        {
+          "category": "logic-error",
+          "severity": "high",
+          "file": "src/tokens.py",
+          "note": "Removing timezone.utc from datetime.now() makes 'now' naive, which will either raise a TypeError when compared to a timezone-aware expires_at or silently miscompute expiration due to local-vs-UTC offset, potentially causing expired tokens to be treated as valid."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 6.247,
+        "calls": 1,
+        "input_tokens": 6032,
+        "output_tokens": 381,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.008561299999999999
+      },
+      "score": {
+        "detected": true,
+        "false_positive": false,
+        "category_correct": true,
+        "severity_correct": true
+      }
+    },
+    {
+      "case_id": "16-clean-rename",
+      "title": "Clean: variable renamed for clarity",
+      "defect": false,
+      "status": "ok",
+      "verdict": "approve",
+      "findings": [],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.147,
+        "calls": 1,
+        "input_tokens": 6083,
+        "output_tokens": 19,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0031985999999999994
+      },
+      "score": {
+        "detected": null,
+        "false_positive": false,
+        "category_correct": null,
+        "severity_correct": null
+      }
+    },
+    {
+      "case_id": "17-clean-docs",
+      "title": "Clean: README wording improved",
+      "defect": false,
+      "status": "ok",
+      "verdict": "approve",
+      "findings": [],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.19,
+        "calls": 1,
+        "input_tokens": 6057,
+        "output_tokens": 19,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0031568
+      },
+      "score": {
+        "detected": null,
+        "false_positive": false,
+        "category_correct": null,
+        "severity_correct": null
+      }
+    },
+    {
+      "case_id": "18-clean-test-added",
+      "title": "Clean: regression test added for a past bug",
+      "defect": false,
+      "status": "ok",
+      "verdict": "approve",
+      "findings": [
+        {
+          "category": "test-gap",
+          "severity": "low",
+          "file": "tests/test_pricing.py",
+          "note": "Only the diff for the test file is shown; no change to the pricing implementation is included, so it's unverifiable whether volume_discount actually returns 0.15 at 100 and 0.05 at 99, or whether this test currently passes."
+        }
+      ],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 4.454,
+        "calls": 1,
+        "input_tokens": 6099,
+        "output_tokens": 130,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0048644
+      },
+      "score": {
+        "detected": null,
+        "false_positive": true,
+        "category_correct": null,
+        "severity_correct": null
+      }
+    },
+    {
+      "case_id": "19-clean-error-message",
+      "title": "Clean: error message made actionable",
+      "defect": false,
+      "status": "ok",
+      "verdict": "approve",
+      "findings": [],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.264,
+        "calls": 1,
+        "input_tokens": 6050,
+        "output_tokens": 19,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0031517
+      },
+      "score": {
+        "detected": null,
+        "false_positive": false,
+        "category_correct": null,
+        "severity_correct": null
+      }
+    },
+    {
+      "case_id": "20-clean-timeout-added",
+      "title": "Clean: HTTP call gains a timeout",
+      "defect": false,
+      "status": "ok",
+      "verdict": "approve",
+      "findings": [],
+      "metrics": {
+        "backend": "claude",
+        "model": "claude-sonnet-5",
+        "latency_seconds": 3.206,
+        "calls": 1,
+        "input_tokens": 6041,
+        "output_tokens": 19,
+        "local_execution_seconds": null,
+        "external_service_required": true,
+        "external_cost": "measured (claude --output-format json)",
+        "external_cost_usd": 0.0078368
+      },
+      "score": {
+        "detected": null,
+        "false_positive": false,
+        "category_correct": null,
+        "severity_correct": null
+      }
+    }
+  ],
+  "summary": {
+    "cases": 20,
+    "errors": 0,
+    "defect_cases": 15,
+    "clean_cases": 5,
+    "detected": 15,
+    "missed": 0,
+    "false_positives": 1,
+    "category_correct": 14,
+    "severity_correct": 14,
+    "mean_latency_seconds": 4.108,
+    "total_input_tokens": 105756,
+    "total_output_tokens": 2828,
+    "external_cost": [
+      "measured (claude --output-format json)"
+    ],
+    "total_external_cost_usd": 0.10723
+  }
+}
