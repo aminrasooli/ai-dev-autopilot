@@ -191,6 +191,15 @@ def validate_case(obj, origin="case"):
     return errors, warnings
 
 
+def corpus_fingerprint(cases):
+    """Deterministic sha256 over the full validated corpus content, keyed
+    by case id order — identical corpora hash identically wherever they
+    live on disk."""
+    canon = json.dumps(sorted(cases, key=lambda c: c["id"]),
+                       sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
 def _normalized_diff_key(diff_text):
     canon = re.sub(r"\s+", "", diff_text).lower()
     return hashlib.sha256(canon.encode("utf-8")).hexdigest()
@@ -264,10 +273,17 @@ def summarize(cases):
         "languages": count_by(lambda c: c["language"]),
         "categories": count_by(
             lambda c: c["ground_truth"].get("category", "(clean)")),
+        "severities": count_by(
+            lambda c: "-".join(c["ground_truth"]["severity"])
+            if c["ground_truth"]["defect"] else "(clean)"),
         "provenance_types": count_by(lambda c: c["provenance"]["type"]),
         "author_families": count_by(lambda c: c["provenance"]["author_family"]),
         "statuses": count_by(lambda c: c["status"]),
         "cross_file_cases": sum(1 for c in cases if len(c["affected_files"]) > 1),
+        # A stable fingerprint of the exact corpus content, so a result
+        # report can name precisely what it ran against without carrying
+        # any filesystem path.
+        "sha256": corpus_fingerprint(cases),
     }
 
 
@@ -277,6 +293,7 @@ def render_summary(summary):
              f"{summary['cross_file_cases']} cross-file) — "
              f"benchmark v{summary['benchmark_version']}"]
     for label, key in (("languages", "languages"), ("categories", "categories"),
+                       ("severities", "severities"),
                        ("provenance", "provenance_types"),
                        ("authored by", "author_families")):
         dist = ", ".join(f"{k}={v}" for k, v in summary[key].items())

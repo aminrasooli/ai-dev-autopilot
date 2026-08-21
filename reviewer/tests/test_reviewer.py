@@ -707,9 +707,12 @@ class RepeatRunTests(unittest.TestCase):
         self.assertEqual(report["summary"]["cases"], 1)
         self.assertEqual(report["summary"]["detected"], 1)
         self.assertEqual(len(report["cases"][0]["runs"]), 1)
-        # A report must identify its corpus by counts, never by local path.
-        self.assertEqual(report["corpus"],
-                         {"case_count": 1, "benchmark_version": 2})
+        # A report must identify its corpus by counts and content
+        # fingerprint, never by local path.
+        self.assertEqual(report["corpus"]["case_count"], 1)
+        self.assertEqual(report["corpus"]["benchmark_version"], 2)
+        self.assertEqual(len(report["corpus"]["sha256"]), 64)
+        self.assertNotIn("/", json.dumps(report["corpus"]))
 
 
 if __name__ == "__main__":

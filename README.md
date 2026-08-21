@@ -425,6 +425,23 @@ advisory only: it is consulted for gray cases that already cleared the critical
 screens, its answer is constrained to two tokens, and every failure mode —
 unavailable, timeout, empty, off-rubric — resolves to escalate.
 
+## The Local Reviewer Benchmark
+
+The independent reviewer is pluggable (`bin/review`): Codex remains the
+default, and a local open-weight model through Ollama — loopback-only,
+with no fallback to any remote service — can take its place by
+configuration. Which reviewer is actually worth trusting is an empirical
+question, so the repository carries a reproducible benchmark for it:
+versioned cases with machine-checked ground truth in
+[`eval/cases/`](eval/cases), a deterministic scoring harness with
+repeat-run support (`bin/review-eval --runs 3`), an offline corpus
+validator (`bin/review-corpus`), and raw machine-readable results in
+[`eval/results/`](eval/results). Methodology, honest limitations — the
+pilot corpus is small and self-authored, and results are evidence, not
+rankings — and the contribution/result-submission paths are documented in
+[`docs/BENCHMARK_METHODOLOGY.md`](docs/BENCHMARK_METHODOLOGY.md) and
+[`eval/README.md`](eval/README.md).
+
 ## Tests and verification
 
 ```bash

@@ -109,7 +109,11 @@ class ValidateCaseTests(unittest.TestCase):
 
     def test_secret_shaped_string_rejected(self):
         case = make_case()
-        case["diff"].append("+key = \"AKIAABCDEFGHIJKLMNOP\"")
+        # Assembled at runtime so the fake key never exists contiguously
+        # in this file — forge-side secret scanners (rightly) can't tell a
+        # test fixture from a leak.
+        fake_key = "AKIA" + "ABCDEFGHIJKLMNOP"
+        case["diff"].append(f"+key = \"{fake_key}\"")
         self.assert_rejected(case, "secret pattern")
 
     def test_private_path_rejected(self):
@@ -171,6 +175,17 @@ class LoadCorpusTests(unittest.TestCase):
         self.assertEqual(summary["clean"], 1)
         self.assertEqual(summary["languages"], {"go": 1, "python": 2})
         self.assertEqual(summary["author_families"], {"claude": 3})
+        self.assertEqual(summary["severities"],
+                         {"(clean)": 1, "medium-high": 2})
+
+    def test_fingerprint_is_content_addressed_and_order_independent(self):
+        a, b = make_case("fp-a"), make_case("fp-b")
+        self.assertEqual(corpus.corpus_fingerprint([a, b]),
+                         corpus.corpus_fingerprint([b, a]))
+        changed = copy.deepcopy(a)
+        changed["title"] = "different title"
+        self.assertNotEqual(corpus.corpus_fingerprint([a, b]),
+                            corpus.corpus_fingerprint([changed, b]))
 
 
 class RealCorpusTests(unittest.TestCase):

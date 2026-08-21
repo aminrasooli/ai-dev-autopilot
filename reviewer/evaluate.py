@@ -43,7 +43,7 @@ import time
 from .backends import create_backend
 from .backends.fake import FakeReviewer
 from .config import load_config
-from .corpus import DEFAULT_CASES_DIR, load_corpus
+from .corpus import DEFAULT_CASES_DIR, corpus_fingerprint, load_corpus
 from .errors import ConfigError, ReviewerError
 from .result import SEVERITIES
 
@@ -174,13 +174,15 @@ def run_eval(backend, cases, runs=1, progress=None):
         "backend": backend.name,
         "model": backend.model,
         "runs_per_case": runs,
-        # What this report actually ran against — counts only, never a
-        # filesystem path (a submitted report must not leak local paths,
-        # and a private holdout's contents stay private).
+        # What this report actually ran against — counts and a content
+        # fingerprint, never a filesystem path (a submitted report must
+        # not leak local paths, and a private holdout's contents stay
+        # private while still being precisely identifiable).
         "corpus": {
             "case_count": len(cases),
             "benchmark_version": cases[0].get("benchmark_version")
             if cases else None,
+            "sha256": corpus_fingerprint(cases),
         },
         "cases": case_records,
         "summary": {**aggregate(flat_runs),
