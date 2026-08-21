@@ -22,9 +22,10 @@ Status vocabulary:
 | X3 | 2026-08-20 | disposable | claude-sonnet-5 | claude | v2 subset | 3 | 5 | validate repeat-run mechanics | $0.208785 | `archive-v1/claude-sonnet-5-pilot-subset-3runs-2026-08-20.json` |
 | X4 | 2026-08-20 | disposable | claude-sonnet-5 | claude | v2 subset | 3 | 4 | quality-gate the new clean controls | $0.184629 | `archive-v1/claude-sonnet-5-clean-controls-3runs-2026-08-20.json` |
 | X5 | 2026-08-20 | disposable | claude-sonnet-5 | claude | v2 subset (post-audit) | 3 | 8 | validate audit fixes + alternatives mechanism | $0.291306 | scratch (not committed) |
-| X6 | 2026-08-20 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` | 3 | 57 | full-corpus variance evidence ahead of ground-truth approval | see report | `claude-sonnet-5-v2pilot-3runs-provisional.json` |
-| X7 | 2026-08-20 | provisional | qwen3.6:27b | ollama | v2 pilot | 3 | 57 | local baseline, host night job | no external model API charge | pending |
-| X8 | 2026-08-20 | provisional | deepseek-r1:14b | ollama | v2 pilot | 3 | 57 | second local model for context | no external model API charge | pending |
+| X6 | 2026-08-20 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` | 3 | 57 | full-corpus variance evidence ahead of ground-truth approval | $1.453112 | `provisional/claude-sonnet-5-v2pilot-3runs-provisional.json` |
+| X7 | 2026-08-20 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` (5 clean cases) | 7 | 5 | separate persistent false positives from sampling noise | $0.257192 | `provisional/claude-sonnet-5-cleanFP-stress-7runs-provisional.json` |
+| X8 | 2026-08-20 | provisional | qwen3.6:27b | ollama | v2 pilot | 3 | 57 | local baseline, host night job | no external model API charge | pending |
+| X9 | 2026-08-20 | provisional | deepseek-r1:14b | ollama | v2 pilot | 3 | 57 | second local model for context | no external model API charge | pending |
 
 ## Registering a run
 

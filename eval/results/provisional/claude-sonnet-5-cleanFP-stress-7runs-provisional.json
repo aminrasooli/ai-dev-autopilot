@@ -1,0 +1,1139 @@
+{
+  "report_format": 2,
+  "backend": "claude",
+  "model": "claude-sonnet-5",
+  "runs_per_case": 7,
+  "corpus": {
+    "case_count": 5,
+    "benchmark_version": 2,
+    "sha256": "cd4b45d1a2a17feea1c63a993d674e07fcf4ebb8a4604c2bf61412a8f09e646a"
+  },
+  "prompt_contract": {
+    "version": 1,
+    "fingerprint": "6a4e51f7014991b2"
+  },
+  "cases": [
+    {
+      "case_id": "18-clean-test-added",
+      "title": "Clean: regression test added for a past bug",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "The diff only adds tests without including the corresponding change to volume_discount, so it's impossible to verify the boundary logic (0.15 at 100, 0.05 at 99) is actually correct or that this isn't a pre-existing bug being newly exposed."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.107,
+            "calls": 1,
+            "input_tokens": 934,
+            "output_tokens": 138,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005991999999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "No source diff for volume_discount is included, so it's impossible to verify these new expected values (0.15 at 100, 0.05 at 99) actually match intended pricing logic rather than just codifying current behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.35,
+            "calls": 1,
+            "input_tokens": 934,
+            "output_tokens": 123,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005772
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.99,
+            "calls": 1,
+            "input_tokens": 6155,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0032492
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "Test asserts new boundary behavior (volume_discount(100) == 0.15) without any corresponding source change in the diff, so it's unclear whether the implementation actually supports this or the test was just added speculatively/incorrectly."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.905,
+            "calls": 1,
+            "input_tokens": 6155,
+            "output_tokens": 132,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004949199999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "Test asserts volume_discount(100)==0.15 and (99)==0.05 without corresponding source diff, so correctness of the pricing function's boundary behavior cannot be verified from this change alone."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.013,
+            "calls": 1,
+            "input_tokens": 934,
+            "output_tokens": 121,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005737000000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "The diff only adds tests without any accompanying change to volume_discount implementation, so it's impossible to verify the asserted thresholds (0.05 at 99, 0.15 at 100) are actually correct against the source."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.692,
+            "calls": 1,
+            "input_tokens": 6155,
+            "output_tokens": 125,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0048442
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "The diff only adds a test but includes no change to the pricing implementation, so it's unverifiable whether volume_discount currently satisfies these boundary assertions."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.118,
+            "calls": 1,
+            "input_tokens": 934,
+            "output_tokens": 107,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005527000000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 7,
+        "ok_runs": 7,
+        "error_runs": 0,
+        "false_positive_runs": 6
+      }
+    },
+    {
+      "case_id": "25-js-clean-callback-to-async",
+      "title": "Clean: callback converted to async/await",
+      "defect": false,
+      "language": "javascript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "medium",
+              "file": "src/jobs/export.js",
+              "note": "runExport's signature changed from callback-style (jobId, done) to async/promise-returning; any other caller still passing a callback would have it silently ignored instead of erroring, since only runner.js is shown updated."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 12.11,
+            "calls": 1,
+            "input_tokens": 6312,
+            "output_tokens": 818,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.015459300000000002
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/jobs/export.js",
+              "note": "runExport was converted from a callback-style function to an async function, but callers other than runner.js (not shown in diff) may still invoke it with a done callback, causing silent breakage since the callback would never be called."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No test changes are included to verify the new async behavior or catch any remaining callback-style call sites of runExport."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.639,
+            "calls": 1,
+            "input_tokens": 1091,
+            "output_tokens": 186,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0044080000000000005
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/jobs/export.js",
+              "note": "runExport now uses await on loadJob/render assuming they return Promises, but the diff shows no update to those functions' signatures, risking silent breakage if they are still callback-based."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No test changes accompany the conversion from callback-based to async/await job execution, despite the behavioral/interface change."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 10.961,
+            "calls": 1,
+            "input_tokens": 6312,
+            "output_tokens": 591,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.012039300000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/jobs/export.js",
+              "note": "runExport now does `await loadJob(jobId)` and `await render(job)`, but the diff shows no changes converting loadJob/render from their prior callback-based signatures (loadJob(jobId, cb), render(job, cb)) to return Promises, so awaiting their undefined return values would break the export flow."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": null,
+              "note": "No test updates accompany the callback-to-async conversion to verify the new Promise-based behavior of runExport/handleExportJob."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 18.874,
+            "calls": 1,
+            "input_tokens": 6312,
+            "output_tokens": 1598,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.027144300000000003
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/jobs/export.js",
+              "note": "runExport's signature changed from callback-style (jobId, done) to async/Promise-based, but this diff doesn't show all call sites being updated; any remaining caller passing a done callback will silently break since the callback argument is now ignored."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests are included or updated to cover the conversion from callback to async/await style, despite loadJob and render's async compatibility being assumed but not verified."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.616,
+            "calls": 1,
+            "input_tokens": 1091,
+            "output_tokens": 210,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004753
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/jobs/export.js",
+              "note": "runExport now awaits loadJob and render as if they return promises, but their definitions (shown previously using callback-style signatures) are not updated in this diff, likely causing runtime failures."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests were added or updated to verify the callback-to-async/await conversion behaves correctly, including error propagation."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.444,
+            "calls": 1,
+            "input_tokens": 6312,
+            "output_tokens": 726,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0140643
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/jobs/export.js",
+              "note": "runExport was converted from a callback-based function to an async/Promise-based function, but callers other than handleExportJob (not shown in diff) may still invoke it with a done callback, breaking them."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.962,
+            "calls": 1,
+            "input_tokens": 1091,
+            "output_tokens": 120,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0034029999999999998
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 7,
+        "ok_runs": 7,
+        "error_runs": 0,
+        "false_positive_runs": 7
+      }
+    },
+    {
+      "case_id": "32-go-clean-table-test",
+      "title": "Clean: table-driven test added for rounding",
+      "defect": false,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/price/round_test.go",
+              "note": "New test only covers exact values with no rounding ambiguity (e.g. 1.505, negative values, or values ending in .5 cents), so it doesn't actually verify the rounding behavior of RoundCents."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.56,
+            "calls": 1,
+            "input_tokens": 6225,
+            "output_tokens": 123,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010668799999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/price/round_test.go",
+              "note": "All test cases are already exact cent values (1.50, 0.25, 0.0), so the test never exercises actual rounding behavior (e.g. half-cent values or float-precision edge cases like 1.005) that a RoundCents function would need to handle correctly."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 8.145,
+            "calls": 1,
+            "input_tokens": 1004,
+            "output_tokens": 446,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.01091
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/price/round_test.go",
+              "note": "Test only covers exact values with no fractional rounding ambiguity (e.g. 0.005, 1.005) or negative amounts, missing the float-to-cents edge cases most likely to reveal rounding bugs."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.91,
+            "calls": 1,
+            "input_tokens": 1004,
+            "output_tokens": 365,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009694999999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/price/round_test.go",
+              "note": "New test cases only cover values that are already exact multiples of cents, so it doesn't verify actual rounding behavior (e.g. 1.005, 1.004, negative values) which is the risky part of a RoundCents function."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.697,
+            "calls": 1,
+            "input_tokens": 6225,
+            "output_tokens": 126,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0049682
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/price/round_test.go",
+              "note": "All test cases are exact values (1.50, 0.25, 0.0) that require no actual rounding, so the test doesn't verify rounding behavior (e.g. midpoint or floating-point precision cases like 1.005 or negative values)."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.698,
+            "calls": 1,
+            "input_tokens": 1004,
+            "output_tokens": 396,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010159999999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/price/round_test.go",
+              "note": "Test only covers exactly-representable float values (1.50, 0.25, 0.0) and never exercises rounding-boundary cases (e.g. x.xx5 or floating-point-imprecise inputs like 1.005), so it wouldn't catch incorrect rounding logic in RoundCents."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.173,
+            "calls": 1,
+            "input_tokens": 6225,
+            "output_tokens": 447,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009783199999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/price/round_test.go",
+              "note": "Test cases only cover trivial exact values (1.50, 0.25, 0.0) and omit negative amounts, half-cent rounding boundaries (e.g. 0.005, 0.115), and float64 precision edge cases that are the primary risk when rounding money values."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.607,
+            "calls": 1,
+            "input_tokens": 6225,
+            "output_tokens": 508,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010698200000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 7,
+        "ok_runs": 7,
+        "error_runs": 0,
+        "false_positive_runs": 7
+      }
+    },
+    {
+      "case_id": "53-xfile-clean-helper-move",
+      "title": "Clean: helper moved to validators, callers updated",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.347,
+            "calls": 1,
+            "input_tokens": 1195,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0020232
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.247,
+            "calls": 1,
+            "input_tokens": 1195,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0020032
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.302,
+            "calls": 1,
+            "input_tokens": 6416,
+            "output_tokens": 194,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0061944999999999995
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.758,
+            "calls": 1,
+            "input_tokens": 6416,
+            "output_tokens": 440,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0099045
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.498,
+            "calls": 1,
+            "input_tokens": 6416,
+            "output_tokens": 317,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0080595
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.382,
+            "calls": 1,
+            "input_tokens": 6416,
+            "output_tokens": 319,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008089500000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "medium",
+              "file": null,
+              "note": "normalize_email was moved from common.utils to common.validators but the diff only updates two known call sites; any other importer of common.utils.normalize_email not shown here will break with an ImportError."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.618,
+            "calls": 1,
+            "input_tokens": 6416,
+            "output_tokens": 325,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008174500000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 7,
+        "ok_runs": 7,
+        "error_runs": 0,
+        "false_positive_runs": 1
+      }
+    },
+    {
+      "case_id": "55-clean-dead-code-removed",
+      "title": "Clean: unreachable legacy branch deleted",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.883,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0033276
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.279,
+            "calls": 1,
+            "input_tokens": 1002,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004469
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.179,
+            "calls": 1,
+            "input_tokens": 1002,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004464
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.815,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0033326
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/render/receipt.py",
+              "note": "render_receipt no longer passes a currency or discount context to TEMPLATE_V2.render if such fields existed before; without seeing TEMPLATE_V2 definition this cannot be fully verified, but the removal of dead legacy branch itself appears safe."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.739,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 139,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0051275999999999995
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.452,
+            "calls": 1,
+            "input_tokens": 1002,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004469
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.074,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0033276
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 7,
+        "ok_runs": 7,
+        "error_runs": 0,
+        "false_positive_runs": 1
+      }
+    }
+  ],
+  "summary": {
+    "cases": 35,
+    "errors": 0,
+    "defect_cases": 0,
+    "clean_cases": 35,
+    "detected": 0,
+    "missed": 0,
+    "false_positives": 22,
+    "category_correct": 0,
+    "severity_correct": 0,
+    "mean_latency_seconds": 5.347,
+    "min_latency_seconds": 2.179,
+    "max_latency_seconds": 18.874,
+    "total_input_tokens": 141002,
+    "total_output_tokens": 9311,
+    "external_cost": [
+      "measured (claude --output-format json)"
+    ],
+    "total_external_cost_usd": 0.257192,
+    "consistency": {
+      "defect_cases_always_detected": 0,
+      "defect_cases_sometimes_detected": 0,
+      "defect_cases_never_detected": 0,
+      "clean_cases_ever_false_positive": 5,
+      "cases_with_errors": 0
+    },
+    "runs_per_case": 7
+  }
+}
