@@ -174,6 +174,14 @@ def run_eval(backend, cases, runs=1, progress=None):
         "backend": backend.name,
         "model": backend.model,
         "runs_per_case": runs,
+        # What this report actually ran against — counts only, never a
+        # filesystem path (a submitted report must not leak local paths,
+        # and a private holdout's contents stay private).
+        "corpus": {
+            "case_count": len(cases),
+            "benchmark_version": cases[0].get("benchmark_version")
+            if cases else None,
+        },
         "cases": case_records,
         "summary": {**aggregate(flat_runs),
                     **_corpus_consistency(case_records),

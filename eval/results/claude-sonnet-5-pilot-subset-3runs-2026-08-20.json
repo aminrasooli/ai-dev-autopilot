@@ -1,0 +1,561 @@
+{
+  "report_format": 2,
+  "backend": "claude",
+  "model": "claude-sonnet-5",
+  "runs_per_case": 3,
+  "cases": [
+    {
+      "case_id": "16-clean-rename",
+      "title": "Clean: variable renamed for clarity",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.592,
+            "calls": 1,
+            "input_tokens": 918,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004163
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.633,
+            "calls": 1,
+            "input_tokens": 6139,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.038239999999999996
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.207,
+            "calls": 1,
+            "input_tokens": 918,
+            "output_tokens": 19,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004163
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "18-clean-test-added",
+      "title": "Clean: regression test added for a past bug",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "The diff only adds tests without any corresponding change to the volume_discount implementation, so it's unverifiable whether these asserted values (0.15 at 100, 0.05 at 99) are correct against actual behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.636,
+            "calls": 1,
+            "input_tokens": 6155,
+            "output_tokens": 125,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0101908
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.339,
+            "calls": 1,
+            "input_tokens": 6155,
+            "output_tokens": 314,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.007679200000000001
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "The diff only adds a test but includes no change to the implementation of volume_discount, so it's unclear whether the underlying boundary bug it claims to guard against was actually fixed."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.062,
+            "calls": 1,
+            "input_tokens": 934,
+            "output_tokens": 112,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005601999999999999
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 2
+      }
+    },
+    {
+      "case_id": "27-ts-nullish-to-or",
+      "title": "Falsy-zero retries silently become three",
+      "defect": true,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using || instead of ?? causes opts.retries = 0 to be replaced with 3, breaking the valid use case of disabling retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.436,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 101,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0097758
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Using `||` instead of `??` causes an explicit `retries: 0` to be overridden to 3, breaking the ability to disable retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.218,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 175,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0055905
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using || instead of ?? causes opts.retries = 0 to be incorrectly replaced with 3, breaking the ability to disable retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.607,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 103,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045005
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "30-go-loop-var-goroutine",
+      "title": "Goroutines capture the loop variable",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing the `msg := msg` loop-variable copy reintroduces the classic Go closure bug (on Go <1.22) where all goroutines capture the same shared `msg`, causing wrong or duplicate messages to be sent."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 8.707,
+            "calls": 1,
+            "input_tokens": 6168,
+            "output_tokens": 622,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.017755800000000002
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing 'msg := msg' reintroduces the classic loop-variable capture bug for goroutines unless the module is guaranteed to run on Go 1.22+ (per-iteration loop vars), otherwise all goroutines may send the same (last) message."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.653,
+            "calls": 1,
+            "input_tokens": 6168,
+            "output_tokens": 711,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.013665100000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing 'msg := msg' reintroduces the classic loop-variable-capture bug in Go versions before 1.22, causing all goroutines to send the same (final) message instead of each individual one unless the module is confirmed to target Go 1.22+."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 11.139,
+            "calls": 1,
+            "input_tokens": 6168,
+            "output_tokens": 814,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.015205100000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 2,
+        "severity_correct_runs": 2
+      }
+    },
+    {
+      "case_id": "49-xfile-swapped-args",
+      "title": "Reordered parameters, one caller not updated",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee's parameter order was flipped to (rate, amount) but the call in charge() still passes (order.total, rate), silently swapping rate and amount and producing wrong charge amounts."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests were added or updated to catch the parameter-order swap across call sites, despite this being an easy-to-miss breaking change."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.283,
+            "calls": 1,
+            "input_tokens": 6379,
+            "output_tokens": 721,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.020650799999999997
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee's parameter order was swapped to (rate, amount), and monthly.py was updated accordingly, but charge.py still calls calculate_fee(order.total, rate) \u2014 passing amount as rate and rate as amount \u2014 silently producing wrong fees/charges; only a TODO comment was added instead of fixing the call."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.868,
+            "calls": 1,
+            "input_tokens": 1158,
+            "output_tokens": 465,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.015206000000000003
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "medium",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee is called with the old argument order (order.total, rate) after the signature was changed to (rate, amount); it happens to produce the same numeric result only because multiplication is commutative, so this is a latent bug waiting to surface if the function logic ever changes."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": null,
+              "note": "No tests were added or updated to verify that all three call sites correctly match the new calculate_fee(rate, amount) signature."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 25.116,
+            "calls": 1,
+            "input_tokens": 6379,
+            "output_tokens": 2213,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.03639740000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 1,
+        "severity_correct_runs": 1
+      }
+    }
+  ],
+  "summary": {
+    "cases": 15,
+    "errors": 0,
+    "defect_cases": 9,
+    "clean_cases": 6,
+    "detected": 9,
+    "missed": 0,
+    "false_positives": 2,
+    "category_correct": 3,
+    "severity_correct": 3,
+    "mean_latency_seconds": 6.966,
+    "min_latency_seconds": 2.207,
+    "max_latency_seconds": 25.116,
+    "total_input_tokens": 72077,
+    "total_output_tokens": 6533,
+    "external_cost": [
+      "measured (claude --output-format json)"
+    ],
+    "total_external_cost_usd": 0.208785,
+    "consistency": {
+      "defect_cases_always_detected": 3,
+      "defect_cases_sometimes_detected": 0,
+      "defect_cases_never_detected": 0,
+      "clean_cases_ever_false_positive": 1,
+      "cases_with_errors": 0
+    },
+    "runs_per_case": 3
+  }
+}
