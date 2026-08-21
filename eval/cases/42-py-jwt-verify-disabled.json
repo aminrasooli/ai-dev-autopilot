@@ -30,5 +30,6 @@
       "critical"
     ],
     "explanation": "Decoding with verify_signature disabled accepts any forged token, so authentication is effectively bypassed."
-  }
+  },
+  "difficulty": "obvious-local"
 }

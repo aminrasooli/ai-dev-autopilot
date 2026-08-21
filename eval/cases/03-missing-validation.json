@@ -30,5 +30,6 @@
       "high"
     ],
     "explanation": "Removing the range check lets a negative quantity produce a negative line total, i.e. a credit, and lets absurd quantities through."
-  }
+  },
+  "difficulty": "obvious-local"
 }

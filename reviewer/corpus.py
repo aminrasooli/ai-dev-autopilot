@@ -41,13 +41,18 @@ AUTHOR_FAMILIES = ("claude", "qwen", "human", "mixed", "other")
 
 STATUSES = ("pilot", "stable")
 
+# How much work the defect asks of a reviewer. Recorded so that a high
+# detection rate can be read honestly: 41/41 on a corpus that is mostly
+# obvious-local says less than the same number on a subtle one.
+DIFFICULTIES = ("obvious-local", "moderate", "contextual", "subtle", "cross-file")
+
 _SEV_INDEX = {s: i for i, s in enumerate(SEVERITIES)}
 
 _REQUIRED_FIELDS = (
     "benchmark_version", "id", "title", "language", "status",
     "diff", "affected_files", "provenance", "ground_truth",
 )
-_KNOWN_FIELDS = set(_REQUIRED_FIELDS) | {"tags"}
+_KNOWN_FIELDS = set(_REQUIRED_FIELDS) | {"tags", "difficulty"}
 
 # Shapes that must never appear in a public case file. Deliberately
 # vendor-shaped prefixes, not generic entropy heuristics: a case ABOUT a
@@ -197,6 +202,14 @@ def validate_case(obj, origin="case"):
     if not isinstance(tags, list) or not all(isinstance(t, str) for t in tags):
         errors.append(f"{origin}: tags must be a list of strings")
 
+    difficulty = obj.get("difficulty")
+    if difficulty is not None and difficulty not in DIFFICULTIES:
+        errors.append(f"{origin}: difficulty {difficulty!r} not in {DIFFICULTIES}")
+    if isinstance(gt, dict) and gt.get("defect") and difficulty is None:
+        errors.append(f"{origin}: defective cases must declare a difficulty")
+    if isinstance(gt, dict) and gt.get("defect") is False and difficulty is not None:
+        errors.append(f"{origin}: clean cases must not declare a difficulty")
+
     raw = json.dumps(obj)
     for pattern in _SECRET_PATTERNS:
         if pattern.search(raw):
@@ -293,6 +306,7 @@ def summarize(cases):
         "severities": count_by(
             lambda c: "-".join(c["ground_truth"]["severity"])
             if c["ground_truth"]["defect"] else "(clean)"),
+        "difficulties": count_by(lambda c: c.get("difficulty") or "(clean)"),
         "provenance_types": count_by(lambda c: c["provenance"]["type"]),
         "author_families": count_by(lambda c: c["provenance"]["author_family"]),
         "statuses": count_by(lambda c: c["status"]),
@@ -311,6 +325,7 @@ def render_summary(summary):
              f"benchmark v{summary['benchmark_version']}"]
     for label, key in (("languages", "languages"), ("categories", "categories"),
                        ("severities", "severities"),
+                       ("difficulty", "difficulties"),
                        ("provenance", "provenance_types"),
                        ("authored by", "author_families")):
         dist = ", ".join(f"{k}={v}" for k, v in summary[key].items())

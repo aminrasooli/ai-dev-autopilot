@@ -28,5 +28,6 @@
       "high"
     ],
     "explanation": "Unquoted $workdir word-splits and globs; a path with spaces deletes the wrong targets, and an empty value makes the target /build."
-  }
+  },
+  "difficulty": "obvious-local"
 }

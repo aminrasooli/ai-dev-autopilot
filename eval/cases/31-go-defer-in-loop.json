@@ -43,5 +43,6 @@
       "high"
     ],
     "explanation": "defer inside the loop postpones every Close to function return, so processing a large directory holds every file open at once and can exhaust descriptors."
-  }
+  },
+  "difficulty": "moderate"
 }

@@ -29,6 +29,8 @@ def make_case(case_id="widget-check", defect=True, **overrides):
              "severity": ["medium", "high"], "explanation": "why"}
             if defect else {"defect": False, "explanation": "clean"}),
     }
+    if defect:
+        obj["difficulty"] = "moderate"
     obj.update(overrides)
     return obj
 
@@ -92,6 +94,19 @@ class ValidateCaseTests(unittest.TestCase):
         errors, warnings = corpus.validate_case(case)
         self.assertEqual(errors, [])
         self.assertTrue(any("vacuous" in w for w in warnings))
+
+    def test_defective_case_must_declare_difficulty(self):
+        case = make_case()
+        del case["difficulty"]
+        self.assert_rejected(case, "must declare a difficulty")
+
+    def test_clean_case_must_not_declare_difficulty(self):
+        case = make_case(defect=False)
+        case["difficulty"] = "subtle"
+        self.assert_rejected(case, "must not declare a difficulty")
+
+    def test_unknown_difficulty_rejected(self):
+        self.assert_rejected(make_case(difficulty="trivial"), "difficulty")
 
     def test_accepted_categories_accepts_valid_alternative(self):
         case = make_case()

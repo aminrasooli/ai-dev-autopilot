@@ -28,5 +28,6 @@
       "critical"
     ],
     "explanation": "World-writable configuration lets any local user rewrite settings the service trusts, a straightforward privilege escalation path."
-  }
+  },
+  "difficulty": "obvious-local"
 }

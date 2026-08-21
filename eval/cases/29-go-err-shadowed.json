@@ -37,5 +37,6 @@
       "high"
     ],
     "explanation": "The := inside the if-block shadows the outer err, so the validation error is checked locally but the function returns the outer nil err, letting invalid payloads through."
-  }
+  },
+  "difficulty": "subtle"
 }

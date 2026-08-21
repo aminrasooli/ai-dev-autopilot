@@ -28,5 +28,6 @@
       "critical"
     ],
     "explanation": "A filename like 'x; rm -rf ~' is executed by the shell; the argv-list form never went through a shell."
-  }
+  },
+  "difficulty": "obvious-local"
 }

@@ -38,5 +38,6 @@
       "critical"
     ],
     "explanation": "The parameterized query is replaced by string concatenation of a caller-supplied value, allowing SQL injection through the customer name."
-  }
+  },
+  "difficulty": "obvious-local"
 }

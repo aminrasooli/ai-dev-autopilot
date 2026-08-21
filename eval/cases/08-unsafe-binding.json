@@ -27,5 +27,6 @@
       "critical"
     ],
     "explanation": "A debug-mode server \u2014 with the interactive debugger, which executes code \u2014 is now reachable from every network interface instead of loopback only."
-  }
+  },
+  "difficulty": "obvious-local"
 }

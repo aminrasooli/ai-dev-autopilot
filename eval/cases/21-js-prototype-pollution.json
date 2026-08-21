@@ -36,5 +36,6 @@
       "critical"
     ],
     "explanation": "The recursive merge no longer skips __proto__/constructor keys, so a crafted JSON body can pollute Object.prototype for the whole process."
-  }
+  },
+  "difficulty": "moderate"
 }

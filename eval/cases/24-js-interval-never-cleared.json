@@ -32,5 +32,6 @@
       "medium"
     ],
     "explanation": "The polling setInterval is started on every mount but the cleanup that cleared it was removed, so intervals accumulate and keep firing after unmount."
-  }
+  },
+  "difficulty": "moderate"
 }

@@ -32,5 +32,6 @@
       "critical"
     ],
     "explanation": "The cache key no longer includes user_id, so one user's cached profile is served to every other user with the same locale."
-  }
+  },
+  "difficulty": "moderate"
 }

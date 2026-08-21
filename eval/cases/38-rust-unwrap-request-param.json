@@ -35,5 +35,6 @@
     "accepted_categories": [
       "missing-validation"
     ]
-  }
+  },
+  "difficulty": "obvious-local"
 }

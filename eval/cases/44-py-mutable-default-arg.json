@@ -34,5 +34,6 @@
     "accepted_categories": [
       "unsafe-default"
     ]
-  }
+  },
+  "difficulty": "moderate"
 }

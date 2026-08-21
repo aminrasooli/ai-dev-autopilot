@@ -33,5 +33,6 @@
       "high"
     ],
     "explanation": "The broad except-pass hides confirmation failures entirely: the order proceeds as paid even when the gateway call failed."
-  }
+  },
+  "difficulty": "obvious-local"
 }

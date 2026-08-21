@@ -32,5 +32,6 @@
       "high"
     ],
     "explanation": "Casting the chunk length with `as u16` silently truncates values above 65535, corrupting the length header for large chunks."
-  }
+  },
+  "difficulty": "subtle"
 }

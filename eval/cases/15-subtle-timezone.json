@@ -27,5 +27,6 @@
       "high"
     ],
     "explanation": "expires_at is timezone-aware UTC; comparing it with a naive local now either raises or shifts expiry by the host's UTC offset."
-  }
+  },
+  "difficulty": "moderate"
 }

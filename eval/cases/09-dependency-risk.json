@@ -28,5 +28,6 @@
       "high"
     ],
     "explanation": "A pinned release from PyPI becomes an unpinned branch of a personal fork: unreviewed code, mutable history, no integrity guarantee."
-  }
+  },
+  "difficulty": "obvious-local"
 }

@@ -37,5 +37,6 @@
     "accepted_categories": [
       "concurrency"
     ]
-  }
+  },
+  "difficulty": "subtle"
 }

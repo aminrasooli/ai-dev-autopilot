@@ -31,5 +31,6 @@
     "accepted_categories": [
       "secret-exposure"
     ]
-  }
+  },
+  "difficulty": "obvious-local"
 }

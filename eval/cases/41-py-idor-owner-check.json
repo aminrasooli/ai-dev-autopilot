@@ -31,5 +31,6 @@
       "critical"
     ],
     "explanation": "Dropping the owner filter turns the endpoint into an IDOR: any authenticated user can fetch any invoice by id."
-  }
+  },
+  "difficulty": "moderate"
 }

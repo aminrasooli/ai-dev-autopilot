@@ -40,5 +40,6 @@
       "high"
     ],
     "explanation": "The lazily initialized singleton uses double-checked locking on a non-volatile field, so another thread can observe a partially constructed instance."
-  }
+  },
+  "difficulty": "subtle"
 }

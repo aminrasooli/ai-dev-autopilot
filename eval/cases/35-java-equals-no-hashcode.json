@@ -35,5 +35,6 @@
       "high"
     ],
     "explanation": "Overriding equals() without hashCode() breaks the Object contract: equal SkuKey instances land in different HashMap buckets, so lookups and dedup silently fail."
-  }
+  },
+  "difficulty": "moderate"
 }

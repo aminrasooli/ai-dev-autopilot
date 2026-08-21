@@ -37,5 +37,6 @@
     "accepted_categories": [
       "logic-error"
     ]
-  }
+  },
+  "difficulty": "moderate"
 }

@@ -33,5 +33,6 @@
       "high"
     ],
     "explanation": "Removing the res.ok check means 4xx/5xx responses are parsed as JSON and returned as if the request succeeded, hiding upstream failures."
-  }
+  },
+  "difficulty": "obvious-local"
 }

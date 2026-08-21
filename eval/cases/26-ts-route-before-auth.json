@@ -33,5 +33,6 @@
       "critical"
     ],
     "explanation": "The admin router is mounted before app.use(requireAuth), so every admin endpoint is reachable without authentication."
-  }
+  },
+  "difficulty": "moderate"
 }

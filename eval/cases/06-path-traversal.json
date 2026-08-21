@@ -31,5 +31,6 @@
       "critical"
     ],
     "explanation": "A name like ../../etc/passwd now resolves outside the attachment store; the removed realpath check was the containment."
-  }
+  },
+  "difficulty": "obvious-local"
 }

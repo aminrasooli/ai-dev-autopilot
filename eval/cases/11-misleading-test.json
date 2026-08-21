@@ -30,5 +30,6 @@
       "high"
     ],
     "explanation": "The test now patches order_total itself, so it asserts the mock returns the mock's value and passes whatever the real code does."
-  }
+  },
+  "difficulty": "moderate"
 }

@@ -31,5 +31,6 @@
     "accepted_categories": [
       "data-corruption"
     ]
-  }
+  },
+  "difficulty": "moderate"
 }

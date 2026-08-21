@@ -30,5 +30,6 @@
       "high"
     ],
     "explanation": "Adding -k disables certificate verification, so the artifact can be served by a man-in-the-middle without detection."
-  }
+  },
+  "difficulty": "obvious-local"
 }

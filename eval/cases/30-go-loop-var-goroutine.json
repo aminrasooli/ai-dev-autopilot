@@ -42,5 +42,6 @@
       "high"
     ],
     "explanation": "The module targets go 1.21, where a range variable is shared across iterations: removing the per-iteration copy makes every goroutine read the same msg, so some messages send repeatedly and others never send. (Go 1.22 changed this; the go directive in the diff is what makes the defect determinate.)"
-  }
+  },
+  "difficulty": "subtle"
 }
