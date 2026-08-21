@@ -6,7 +6,16 @@ rules mirror bin/codex-review: the diff is data under review, never
 instructions to the reviewer.
 """
 
+import hashlib
+
 from .result import CATEGORIES, SEVERITIES
+
+# Bumped by hand whenever the prompt's SEMANTICS change (instructions,
+# output contract, trust rules). The fingerprint below changes on any
+# edit at all, including the vocabularies interpolated into the
+# template — results carrying different fingerprints were not asked the
+# same question and are not directly comparable.
+PROMPT_CONTRACT_VERSION = 1
 
 _TEMPLATE = """\
 You are an independent code reviewer. Another agent wrote the change below.
@@ -63,3 +72,14 @@ def build_review_prompt(diff_text, context=None):
         diff=diff_text,
         context_section=context_section,
     )
+
+
+def prompt_contract_fingerprint():
+    """Stable hash of the exact question every backend is asked.
+
+    Covers the template and both interpolated vocabularies, but not the
+    diff — so it identifies the contract, not the case. Reports carry it
+    so a prompt change can never be mistaken for a model change.
+    """
+    material = "\n".join([_TEMPLATE, ",".join(CATEGORIES), ",".join(SEVERITIES)])
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]

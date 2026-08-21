@@ -45,6 +45,7 @@ from .backends.fake import FakeReviewer
 from .config import load_config
 from .corpus import DEFAULT_CASES_DIR, corpus_fingerprint, load_corpus
 from .errors import ConfigError, ReviewerError
+from .prompt import PROMPT_CONTRACT_VERSION, prompt_contract_fingerprint
 from .result import SEVERITIES
 
 _SEV_INDEX = {s: i for i, s in enumerate(SEVERITIES)}
@@ -188,6 +189,12 @@ def run_eval(backend, cases, runs=1, progress=None):
             "benchmark_version": cases[0].get("benchmark_version")
             if cases else None,
             "sha256": corpus_fingerprint(cases),
+        },
+        # The exact question asked. A prompt change must never be
+        # mistakable for a model change.
+        "prompt_contract": {
+            "version": PROMPT_CONTRACT_VERSION,
+            "fingerprint": prompt_contract_fingerprint(),
         },
         "cases": case_records,
         "summary": {**aggregate(flat_runs),
