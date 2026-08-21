@@ -47,7 +47,7 @@
     "explanation": "A new require_login decorator checks only authentication, and the user-deletion route is switched to it from require_admin \u2014 any logged-in user can now delete accounts."
   },
   "tags": [
-    "cross-file"
+    "true-cross-file"
   ],
   "difficulty": "cross-file"
 }

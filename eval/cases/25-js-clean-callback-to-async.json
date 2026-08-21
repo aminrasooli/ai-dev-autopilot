@@ -41,5 +41,8 @@
   "ground_truth": {
     "defect": false,
     "explanation": "A callback-style function is converted to async/await and its only caller is updated in the same change, dropping a now-redundant promise wrapper; control flow, error propagation and return value are identical."
-  }
+  },
+  "tags": [
+    "true-cross-file"
+  ]
 }

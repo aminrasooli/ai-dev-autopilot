@@ -38,7 +38,7 @@
     "explanation": "The migration adds a NOT NULL contact_email column with no default while the model's insert still omits it, so every new supplier row fails at runtime."
   },
   "tags": [
-    "cross-file"
+    "true-cross-file"
   ],
   "difficulty": "cross-file"
 }

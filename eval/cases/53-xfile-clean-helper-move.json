@@ -56,6 +56,6 @@
     "explanation": "normalize_email moves from utils to validators unchanged, and both call sites update their imports consistently; behavior is identical."
   },
   "tags": [
-    "cross-file"
+    "true-cross-file"
   ]
 }
