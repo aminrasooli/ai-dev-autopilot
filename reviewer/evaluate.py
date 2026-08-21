@@ -37,6 +37,7 @@ maintainer's local execution mode.
 
 import argparse
 import json
+import os
 import sys
 import time
 
@@ -343,6 +344,8 @@ def main(argv=None):
     parser.add_argument("--runs", type=int, default=1, metavar="N",
                         help="independent runs per case (default 1)")
     parser.add_argument("--out", help="write the machine-readable report here")
+    parser.add_argument("--overwrite", action="store_true",
+                        help="allow --out to replace an existing report")
     parser.add_argument("--compare", nargs=2, metavar="REPORT.json",
                         help="render a comparison of two saved reports and exit")
     args = parser.parse_args(argv)
@@ -357,6 +360,15 @@ def main(argv=None):
 
     if args.runs < 1:
         print("review-eval: --runs must be >= 1", file=sys.stderr)
+        return 2
+
+    # Refuse to silently destroy evidence: a completed report is the only
+    # record that a paid run ever happened, and repeating a command by
+    # habit must not erase it.
+    if args.out and os.path.exists(args.out) and not args.overwrite:
+        print(f"review-eval: {args.out} already exists — refusing to "
+              "overwrite an existing result. Choose a new filename, or pass "
+              "--overwrite if you really mean to discard it.", file=sys.stderr)
         return 2
 
     try:
