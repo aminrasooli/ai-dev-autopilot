@@ -1,0 +1,31 @@
+{
+  "benchmark_version": 2,
+  "id": "56-clean-set-lookup-perf",
+  "title": "Clean: membership test moved to a set",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/sync/filter.py"
+  ],
+  "diff": [
+    "--- a/src/sync/filter.py",
+    "+++ b/src/sync/filter.py",
+    "@@ -1,9 +1,9 @@",
+    " def active_records(records, active_ids):",
+    "-    matched = []",
+    "-    for record in records:",
+    "-        if record.id in active_ids:",
+    "-            matched.append(record)",
+    "-    return matched",
+    "+    wanted = set(active_ids)",
+    "+    return [record for record in records if record.id in wanted]"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "Building a set once and testing membership against it is a pure performance change: the same ids are matched, ordering of results is untouched, and duplicate handling is identical because the list was only ever used for membership tests."
+  }
+}

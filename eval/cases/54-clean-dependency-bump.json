@@ -1,0 +1,28 @@
+{
+  "benchmark_version": 2,
+  "id": "54-clean-dependency-bump",
+  "title": "Clean: pinned patch-version dependency bump",
+  "language": "config",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "requirements.txt"
+  ],
+  "diff": [
+    "--- a/requirements.txt",
+    "+++ b/requirements.txt",
+    "@@ -1,4 +1,4 @@",
+    " flask==3.0.3",
+    "-jinja2==3.1.4 --hash=sha256:4a3aee7acbbe7303aede8e9648d13b8bf88a429282aa6122a993f0ac800cb369",
+    "+jinja2==3.1.5 --hash=sha256:8fefff8dc3034e27bb80d67c671eb8a9bc424c0ef4c0826edbff304cceff43bb",
+    " markupsafe==2.1.5",
+    " gunicorn==22.0.0"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "A pinned dependency moves one patch version with the checksum updated in lockstep; reviewers often overflag any dependency change as risky, but a pinned patch bump with an updated hash is routine maintenance."
+  }
+}

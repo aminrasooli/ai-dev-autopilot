@@ -1,0 +1,29 @@
+{
+  "benchmark_version": 2,
+  "id": "57-clean-redundant-guard",
+  "title": "Clean: defensive None-check added before use",
+  "language": "typescript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/notify/dispatch.ts"
+  ],
+  "diff": [
+    "--- a/src/notify/dispatch.ts",
+    "+++ b/src/notify/dispatch.ts",
+    "@@ -4,6 +4,9 @@ export function dispatch(event: UserEvent, sink: Sink): void {",
+    "+  if (sink == null) {",
+    "+    return;",
+    "+  }",
+    "   const payload = serialize(event);",
+    "   sink.deliver(payload);",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "The new early return only adds a defensive guard for a value the type system already narrows; it cannot change behavior for any existing caller and merely hardens against future misuse."
+  }
+}

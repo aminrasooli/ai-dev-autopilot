@@ -194,9 +194,9 @@ class RealCorpusTests(unittest.TestCase):
     def test_shipped_corpus_is_valid(self):
         cases = corpus.load_corpus(corpus.DEFAULT_CASES_DIR)
         summary = corpus.summarize(cases)
-        self.assertEqual(summary["cases"], 53)
+        self.assertEqual(summary["cases"], 57)
         self.assertEqual(summary["defective"], 41)
-        self.assertEqual(summary["clean"], 12)
+        self.assertEqual(summary["clean"], 16)
         # The methodology's pilot floor: at least five real programming
         # languages, and enough clean controls for precision to mean
         # something.
