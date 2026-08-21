@@ -427,54 +427,22 @@ class ResultSchemaTests(unittest.TestCase):
 
 
 class EvalHarnessTests(unittest.TestCase):
-    def _write_case(self, tmp, case):
-        path = os.path.join(tmp, case["id"] + ".json")
-        with open(path, "w", encoding="utf-8") as fh:
-            json.dump(case, fh)
-        return path
-
-    def test_ground_truth_parses_valid_case(self):
+    def test_load_cases_delegates_to_the_corpus_validator(self):
+        # Schema enforcement itself is tested in test_corpus.py; here we
+        # prove the eval loads through that same door.
+        from .test_corpus import make_case, write_corpus
         with tempfile.TemporaryDirectory() as tmp:
-            self._write_case(tmp, {
-                "id": "x", "title": "t", "diff": ["a", "b"],
-                "ground_truth": {"defect": True, "category": "logic-error",
-                                "severity": ["medium", "high"],
-                                "explanation": "why"}})
+            write_corpus(tmp, make_case("via-eval"))
             cases = evaluate.load_cases(tmp)
         self.assertEqual(len(cases), 1)
-        self.assertEqual(cases[0]["diff"], "a\nb\n")
+        self.assertIsInstance(cases[0]["diff"], str)
 
-    def test_unknown_category_is_rejected(self):
+    def test_load_cases_rejects_an_invalid_corpus(self):
+        from .test_corpus import make_case, write_corpus
         with tempfile.TemporaryDirectory() as tmp:
-            self._write_case(tmp, {
-                "id": "x", "title": "t", "diff": "d",
-                "ground_truth": {"defect": True, "category": "vibes",
-                                "severity": ["low", "low"], "explanation": "why"}})
-            with self.assertRaises(ConfigError):
-                evaluate.load_cases(tmp)
-
-    def test_inverted_severity_range_is_rejected(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            self._write_case(tmp, {
-                "id": "x", "title": "t", "diff": "d",
-                "ground_truth": {"defect": True, "category": "logic-error",
-                                "severity": ["high", "low"], "explanation": "why"}})
-            with self.assertRaises(ConfigError):
-                evaluate.load_cases(tmp)
-
-    def test_duplicate_ids_are_rejected(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            case = {"id": "dup", "title": "t", "diff": "d",
-                   "ground_truth": {"defect": False, "explanation": "why"}}
-            with open(os.path.join(tmp, "a.json"), "w", encoding="utf-8") as fh:
-                json.dump(case, fh)
-            with open(os.path.join(tmp, "b.json"), "w", encoding="utf-8") as fh:
-                json.dump(case, fh)
-            with self.assertRaises(ConfigError):
-                evaluate.load_cases(tmp)
-
-    def test_empty_cases_directory_is_rejected(self):
-        with tempfile.TemporaryDirectory() as tmp:
+            bad = make_case("bad-sev")
+            bad["ground_truth"]["severity"] = ["high", "low"]
+            write_corpus(tmp, bad)
             with self.assertRaises(ConfigError):
                 evaluate.load_cases(tmp)
 
@@ -613,7 +581,7 @@ class EvalHarnessTests(unittest.TestCase):
         # the oracle (built straight from ground truth) must score 100% or
         # the harness itself — not any model — has a bug.
         cases = evaluate.load_cases(evaluate.DEFAULT_CASES_DIR)
-        self.assertEqual(len(cases), 20)
+        self.assertEqual(len(cases), 53)
         backend = evaluate.oracle_backend(cases)
         report = evaluate.run_eval(backend, cases)
         summary = report["summary"]
@@ -623,6 +591,122 @@ class EvalHarnessTests(unittest.TestCase):
         self.assertEqual(summary["false_positives"], 0)
         self.assertEqual(summary["category_correct"], summary["defect_cases"])
         self.assertEqual(summary["severity_correct"], summary["defect_cases"])
+
+
+class _ScriptedRunsBackend:
+    """Duck-typed backend whose answer differs per call: exactly the shape
+    of nondeterminism --runs exists to expose. Each entry is either a
+    findings list or an exception to raise."""
+
+    name = "stub"
+    model = "scripted"
+    external_service_required = False
+
+    def __init__(self, replies):
+        self.replies = list(replies)
+
+    def preflight(self):
+        return {"ok": True, "detail": "stub"}
+
+    def review_diff(self, diff_text, context=None):
+        reply = self.replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        verdict = "changes_required" if reply else "approve"
+        metrics = result.ReviewMetrics(backend=self.name, model=self.model,
+                                       latency_seconds=0.1)
+        return result.ReviewResult(verdict, reply, metrics)
+
+
+def _finding(category="logic-error", severity="medium"):
+    return {"category": category, "severity": severity,
+            "file": None, "note": "n"}
+
+
+class RepeatRunTests(unittest.TestCase):
+    def _clean_case(self):
+        from .test_corpus import make_case
+        case = make_case("clean-under-repeat", defect=False)
+        case["diff"] = case["diff"][:-1] + ["+new_clean_under_repeat"]
+        return case
+
+    def test_each_case_runs_n_times_and_raw_runs_are_preserved(self):
+        from .test_corpus import make_case
+        cases = [make_case("rep-a"), make_case("rep-b", defect=False)]
+        for case in cases:
+            case["diff"] = "\n".join(case["diff"]) + "\n"
+        backend = evaluate.oracle_backend(cases)
+        report = evaluate.run_eval(backend, cases, runs=3)
+        self.assertEqual(report["runs_per_case"], 3)
+        for record in report["cases"]:
+            self.assertEqual(len(record["runs"]), 3)
+            self.assertEqual({r["run"] for r in record["runs"]}, {1, 2, 3})
+        self.assertEqual(report["summary"]["cases"], 6)  # run-level count
+        c = report["summary"]["consistency"]
+        self.assertEqual(c["defect_cases_always_detected"], 1)
+        self.assertEqual(c["clean_cases_ever_false_positive"], 0)
+
+    def test_flaky_clean_case_reports_partial_false_positives(self):
+        case = self._clean_case()
+        case["diff"] = "\n".join(case["diff"]) + "\n"
+        backend = _ScriptedRunsBackend([[_finding()], [], []])
+        report = evaluate.run_eval(backend, [case], runs=3)
+        record = report["cases"][0]
+        self.assertEqual(record["consistency"]["false_positive_runs"], 1)
+        self.assertEqual(record["consistency"]["ok_runs"], 3)
+        # Run-level and case-level views must both say "1 of 3", never a
+        # flattened binary.
+        self.assertEqual(report["summary"]["false_positives"], 1)
+        self.assertEqual(
+            report["summary"]["consistency"]["clean_cases_ever_false_positive"], 1)
+
+    def test_errored_run_is_recorded_and_the_eval_continues(self):
+        from .test_corpus import make_case
+        case = make_case("err-mid-run")
+        case["diff"] = "\n".join(case["diff"]) + "\n"
+        backend = _ScriptedRunsBackend(
+            [[_finding()], ReviewerUnavailable("daemon down"), [_finding()]])
+        report = evaluate.run_eval(backend, [case], runs=3)
+        record = report["cases"][0]
+        self.assertEqual(record["consistency"]["error_runs"], 1)
+        self.assertEqual(record["consistency"]["detected_runs"], 2)
+        self.assertEqual(report["summary"]["errors"], 1)
+        self.assertEqual(
+            report["summary"]["consistency"]["cases_with_errors"], 1)
+
+    def test_sometimes_detected_case_is_neither_always_nor_never(self):
+        from .test_corpus import make_case
+        case = make_case("flaky-detect")
+        case["diff"] = "\n".join(case["diff"]) + "\n"
+        backend = _ScriptedRunsBackend([[_finding()], [], []])
+        report = evaluate.run_eval(backend, [case], runs=3)
+        c = report["summary"]["consistency"]
+        self.assertEqual(c["defect_cases_sometimes_detected"], 1)
+        self.assertEqual(c["defect_cases_always_detected"], 0)
+        self.assertEqual(c["defect_cases_never_detected"], 0)
+
+    def test_progress_callback_fires_once_per_run(self):
+        from .test_corpus import make_case
+        cases = [make_case("prog-a"), make_case("prog-b")]
+        for case in cases:
+            case["diff"] = "\n".join(case["diff"]) + "\n"
+        lines = []
+        backend = evaluate.oracle_backend(cases)
+        evaluate.run_eval(backend, cases, runs=2, progress=lines.append)
+        self.assertEqual(len(lines), 4)
+        self.assertIn("case 1/2", lines[0])
+        self.assertIn("run 2/2", lines[3])
+
+    def test_default_single_run_keeps_v1_summary_semantics(self):
+        from .test_corpus import make_case
+        case = make_case("single-run")
+        case["diff"] = "\n".join(case["diff"]) + "\n"
+        backend = evaluate.oracle_backend([case])
+        report = evaluate.run_eval(backend, [case])
+        self.assertEqual(report["runs_per_case"], 1)
+        self.assertEqual(report["summary"]["cases"], 1)
+        self.assertEqual(report["summary"]["detected"], 1)
+        self.assertEqual(len(report["cases"][0]["runs"]), 1)
 
 
 if __name__ == "__main__":
