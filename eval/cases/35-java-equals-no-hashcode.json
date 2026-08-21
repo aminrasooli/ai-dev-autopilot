@@ -1,0 +1,39 @@
+{
+  "benchmark_version": 2,
+  "id": "35-java-equals-no-hashcode",
+  "title": "equals() added without hashCode()",
+  "language": "java",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/main/java/app/SkuKey.java"
+  ],
+  "diff": [
+    "--- a/src/main/java/app/SkuKey.java",
+    "+++ b/src/main/java/app/SkuKey.java",
+    "@@ -10,4 +10,13 @@ public final class SkuKey {",
+    "         this.warehouse = warehouse;",
+    "     }",
+    "+",
+    "+    @Override",
+    "+    public boolean equals(Object o) {",
+    "+        if (this == o) return true;",
+    "+        if (!(o instanceof SkuKey)) return false;",
+    "+        SkuKey k = (SkuKey) o;",
+    "+        return sku.equals(k.sku) && warehouse.equals(k.warehouse);",
+    "+    }",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "api-misuse",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Overriding equals() without hashCode() breaks the Object contract: equal SkuKey instances land in different HashMap buckets, so lookups and dedup silently fail."
+  }
+}

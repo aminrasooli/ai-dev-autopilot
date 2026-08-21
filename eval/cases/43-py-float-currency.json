@@ -1,0 +1,38 @@
+{
+  "benchmark_version": 2,
+  "id": "43-py-float-currency",
+  "title": "Money arithmetic switched to float",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/billing/total.py"
+  ],
+  "diff": [
+    "--- a/src/billing/total.py",
+    "+++ b/src/billing/total.py",
+    "@@ -1,12 +1,10 @@",
+    "-from decimal import Decimal",
+    "-",
+    " def invoice_total(lines):",
+    "-    total = Decimal(\"0.00\")",
+    "+    total = 0.0",
+    "     for line in lines:",
+    "-        total += Decimal(str(line.unit_price)) * line.quantity",
+    "+        total += line.unit_price * line.quantity",
+    "-    return total.quantize(Decimal(\"0.01\"))",
+    "+    return round(total, 2)"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "data-corruption",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Replacing Decimal with float introduces binary rounding error into invoice totals; sums drift from the true amounts."
+  }
+}

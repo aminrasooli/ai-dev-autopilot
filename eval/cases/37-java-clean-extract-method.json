@@ -1,0 +1,43 @@
+{
+  "benchmark_version": 2,
+  "id": "37-java-clean-extract-method",
+  "title": "Clean: validation extracted to a method",
+  "language": "java",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/main/java/app/TransferService.java"
+  ],
+  "diff": [
+    "--- a/src/main/java/app/TransferService.java",
+    "+++ b/src/main/java/app/TransferService.java",
+    "@@ -12,14 +12,18 @@ public class TransferService {",
+    "     public void transfer(Account from, Account to, long cents) {",
+    "-        if (cents <= 0) {",
+    "-            throw new IllegalArgumentException(\"amount must be positive\");",
+    "-        }",
+    "-        if (from.balance() < cents) {",
+    "-            throw new IllegalStateException(\"insufficient funds\");",
+    "-        }",
+    "+        validate(from, cents);",
+    "         ledger.move(from, to, cents);",
+    "     }",
+    "+",
+    "+    private static void validate(Account from, long cents) {",
+    "+        if (cents <= 0) {",
+    "+            throw new IllegalArgumentException(\"amount must be positive\");",
+    "+        }",
+    "+        if (from.balance() < cents) {",
+    "+            throw new IllegalStateException(\"insufficient funds\");",
+    "+        }",
+    "+    }",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "Inline validation is extracted into a private method with identical checks and exception behavior; nothing to report."
+  }
+}

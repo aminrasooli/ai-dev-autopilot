@@ -1,0 +1,43 @@
+{
+  "benchmark_version": 2,
+  "id": "50-xfile-config-key-rename",
+  "title": "Config key renamed, code reads the old one",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "config/defaults.yaml",
+    "src/sync/client.py"
+  ],
+  "diff": [
+    "--- a/config/defaults.yaml",
+    "+++ b/config/defaults.yaml",
+    "@@ -2,6 +2,6 @@ service:",
+    "   name: sync-worker",
+    "-  request_timeout_s: 15",
+    "+  request_timeout_seconds: 15",
+    "   max_retries: 2",
+    "--- a/src/sync/client.py",
+    "+++ b/src/sync/client.py",
+    "@@ -8,7 +8,7 @@ class SyncClient:",
+    "     def __init__(self, config):",
+    "-        self.timeout = config[\"service\"][\"request_timeout_s\"]",
+    "+        self.timeout = config[\"service\"].get(\"request_timeout_s\", 0)",
+    "         self.retries = config[\"service\"][\"max_retries\"]"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "contract-mismatch",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The config renames request_timeout_s to request_timeout_seconds but the client still reads the old key with a 0 fallback \u2014 a zero timeout that disables the protection entirely."
+  },
+  "tags": [
+    "cross-file"
+  ]
+}

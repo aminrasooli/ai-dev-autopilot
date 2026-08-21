@@ -1,0 +1,37 @@
+{
+  "benchmark_version": 2,
+  "id": "23-js-fetch-ok-not-checked",
+  "title": "HTTP error responses parsed as success",
+  "language": "javascript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/api/client.js"
+  ],
+  "diff": [
+    "--- a/src/api/client.js",
+    "+++ b/src/api/client.js",
+    "@@ -5,11 +5,7 @@ async function fetchOrders(customerId) {",
+    "   const res = await fetch(`${BASE}/customers/${customerId}/orders`, {",
+    "     headers: authHeaders(),",
+    "   });",
+    "-  if (!res.ok) {",
+    "-    throw new ApiError(`orders fetch failed: ${res.status}`, res.status);",
+    "-  }",
+    "   const body = await res.json();",
+    "   return body.orders;",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "error-handling",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Removing the res.ok check means 4xx/5xx responses are parsed as JSON and returned as if the request succeeded, hiding upstream failures."
+  }
+}

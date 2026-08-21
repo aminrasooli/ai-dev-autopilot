@@ -1,0 +1,36 @@
+{
+  "benchmark_version": 2,
+  "id": "25-js-clean-callback-to-async",
+  "title": "Clean: callback converted to async/await",
+  "language": "javascript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/jobs/export.js"
+  ],
+  "diff": [
+    "--- a/src/jobs/export.js",
+    "+++ b/src/jobs/export.js",
+    "@@ -4,15 +4,11 @@",
+    "-function runExport(jobId, done) {",
+    "-  loadJob(jobId, (err, job) => {",
+    "-    if (err) return done(err);",
+    "-    render(job, (err, file) => {",
+    "-      if (err) return done(err);",
+    "-      done(null, file);",
+    "-    });",
+    "-  });",
+    "+async function runExport(jobId) {",
+    "+  const job = await loadJob(jobId);",
+    "+  const file = await render(job);",
+    "+  return file;",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "A callback-style function is converted to async/await with identical control flow, error propagation and return value; a sound reviewer reports nothing."
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "benchmark_version": 2,
+  "id": "52-xfile-weaker-decorator",
+  "title": "Admin route switched to login-only decorator",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/admin/routes.py",
+    "src/auth/decorators.py"
+  ],
+  "diff": [
+    "--- a/src/auth/decorators.py",
+    "+++ b/src/auth/decorators.py",
+    "@@ -12,6 +12,14 @@ def require_admin(fn):",
+    "         return fn(request, *args, **kwargs)",
+    "     return wrapped",
+    "",
+    "+def require_login(fn):",
+    "+    @functools.wraps(fn)",
+    "+    def wrapped(request, *args, **kwargs):",
+    "+        if request.user is None:",
+    "+            abort(401)",
+    "+        return fn(request, *args, **kwargs)",
+    "+    return wrapped",
+    "+",
+    "--- a/src/admin/routes.py",
+    "+++ b/src/admin/routes.py",
+    "@@ -18,7 +18,7 @@ def list_users(request):",
+    "",
+    "-@require_admin",
+    "+@require_login",
+    " def delete_user(request, user_id):",
+    "     store.delete_user(user_id)",
+    "     return redirect(\"/admin/users\")"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "auth-bypass",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "A new require_login decorator checks only authentication, and the user-deletion route is switched to it from require_admin \u2014 any logged-in user can now delete accounts."
+  },
+  "tags": [
+    "cross-file"
+  ]
+}

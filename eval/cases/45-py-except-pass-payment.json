@@ -1,0 +1,37 @@
+{
+  "benchmark_version": 2,
+  "id": "45-py-except-pass-payment",
+  "title": "Payment confirmation failures swallowed",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/payments/confirm.py"
+  ],
+  "diff": [
+    "--- a/src/payments/confirm.py",
+    "+++ b/src/payments/confirm.py",
+    "@@ -5,10 +5,10 @@ def confirm_payment(order):",
+    "-    result = gateway.confirm(order.payment_id)",
+    "-    if not result.ok:",
+    "-        raise PaymentError(result.reason)",
+    "+    try:",
+    "+        gateway.confirm(order.payment_id)",
+    "+    except Exception:",
+    "+        pass",
+    "     order.mark_paid()",
+    "     ship(order)"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "error-handling",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The broad except-pass hides confirmation failures entirely: the order proceeds as paid even when the gateway call failed."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "benchmark_version": 2,
+  "id": "31-go-defer-in-loop",
+  "title": "File handles accumulate across the whole loop",
+  "language": "go",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "internal/archive/scan.go"
+  ],
+  "diff": [
+    "--- a/internal/archive/scan.go",
+    "+++ b/internal/archive/scan.go",
+    "@@ -10,17 +10,14 @@ func ChecksumAll(paths []string) (map[string]string, error) {",
+    " \tout := make(map[string]string, len(paths))",
+    " \tfor _, p := range paths {",
+    " \t\tf, err := os.Open(p)",
+    " \t\tif err != nil {",
+    " \t\t\treturn nil, err",
+    " \t\t}",
+    "+\t\tdefer f.Close()",
+    " \t\tsum, err := checksum(f)",
+    "-\t\tcloseErr := f.Close()",
+    " \t\tif err != nil {",
+    " \t\t\treturn nil, err",
+    " \t\t}",
+    "-\t\tif closeErr != nil {",
+    "-\t\t\treturn nil, closeErr",
+    "-\t\t}",
+    " \t\tout[p] = sum",
+    " \t}",
+    " \treturn out, nil",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "resource-leak",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "defer inside the loop postpones every Close to function return, so processing a large directory holds every file open at once and can exhaust descriptors."
+  }
+}

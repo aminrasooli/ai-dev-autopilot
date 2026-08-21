@@ -1,0 +1,39 @@
+{
+  "benchmark_version": 2,
+  "id": "30-go-loop-var-goroutine",
+  "title": "Goroutines capture the loop variable",
+  "language": "go",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "internal/mailer/batch.go"
+  ],
+  "diff": [
+    "--- a/internal/mailer/batch.go",
+    "+++ b/internal/mailer/batch.go",
+    "@@ -9,11 +9,10 @@ func (m *Mailer) SendBatch(msgs []Message) {",
+    " \tvar wg sync.WaitGroup",
+    " \tfor _, msg := range msgs {",
+    " \t\twg.Add(1)",
+    "-\t\tmsg := msg",
+    " \t\tgo func() {",
+    " \t\t\tdefer wg.Done()",
+    " \t\t\tm.send(msg)",
+    " \t\t}()",
+    " \t}",
+    " \twg.Wait()",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "concurrency",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Every goroutine closes over the same loop variable, so under Go versions before 1.22 most process the final item repeatedly and others are skipped."
+  }
+}

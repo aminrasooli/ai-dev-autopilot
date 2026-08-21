@@ -1,0 +1,34 @@
+{
+  "benchmark_version": 2,
+  "id": "27-ts-nullish-to-or",
+  "title": "Falsy-zero retries silently become three",
+  "language": "typescript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/http/retry.ts"
+  ],
+  "diff": [
+    "--- a/src/http/retry.ts",
+    "+++ b/src/http/retry.ts",
+    "@@ -6,7 +6,7 @@ export interface RetryOpts {",
+    " export function withRetries(opts: RetryOpts) {",
+    "-  const retries = opts.retries ?? 3;",
+    "+  const retries = opts.retries || 3;",
+    "   const backoffMs = opts.backoffMs ?? 200;",
+    "   return { retries, backoffMs };",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "unsafe-default",
+    "severity": [
+      "low",
+      "medium"
+    ],
+    "explanation": "Changing ?? to || makes an explicit retries: 0 fall back to 3, so callers that disabled retries now retry silently."
+  }
+}

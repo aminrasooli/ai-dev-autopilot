@@ -1,0 +1,42 @@
+{
+  "benchmark_version": 2,
+  "id": "32-go-clean-table-test",
+  "title": "Clean: table-driven test added for rounding",
+  "language": "go",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "internal/price/round_test.go"
+  ],
+  "diff": [
+    "--- a/internal/price/round_test.go",
+    "+++ b/internal/price/round_test.go",
+    "@@ -0,0 +1,20 @@",
+    "+package price",
+    "+",
+    "+import \"testing\"",
+    "+",
+    "+func TestRoundCents(t *testing.T) {",
+    "+\tcases := []struct {",
+    "+\t\tin   float64",
+    "+\t\twant int64",
+    "+\t}{",
+    "+\t\t{1.005, 101},",
+    "+\t\t{2.674, 267},",
+    "+\t\t{0.0, 0},",
+    "+\t}",
+    "+\tfor _, c := range cases {",
+    "+\t\tif got := RoundCents(c.in); got != c.want {",
+    "+\t\t\tt.Errorf(\"RoundCents(%v) = %d, want %d\", c.in, got, c.want)",
+    "+\t\t}",
+    "+\t}",
+    "+}"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "A correct table-driven test is added for existing rounding behavior; no production code changes and the assertions match the documented semantics."
+  }
+}
