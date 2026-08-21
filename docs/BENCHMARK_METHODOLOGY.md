@@ -348,6 +348,84 @@ against cases it has never published:
 - Rotation: once a holdout case is ever published (e.g. promoted into the
   public corpus), it is holdout no longer and is marked as such.
 
+### Holdout operating spec
+
+- **Storage class**: a private repository or a private project directory
+  outside the public tree — never a subdirectory of this repo, and never
+  referenced by an absolute path in public documentation. Public docs use
+  `--cases <path-to-private-corpus>` and nothing more.
+- **Layout**: identical to `eval/cases/` — one schema-v2 JSON per case,
+  validated by the same `bin/review-corpus`. No holdout-only fields; a
+  holdout case must be promotable into the public corpus unchanged.
+- **Versioning**: the holdout carries its own `benchmark_version` and is
+  identified in results solely by `corpus.sha256` plus a human-readable
+  name (e.g. "holdout-a"). Two holdout runs are comparable only if the
+  fingerprints match.
+- **Authorship**: holdout cases should skew *away* from the public
+  corpus's authorship — human-written and other-model-written cases
+  first, since the holdout's purpose is to detect exactly the
+  memorization and self-authorship effects the public corpus cannot.
+- **Backups**: the holdout is the one corpus that cannot be regenerated
+  from git history; it needs its own backup, and that backup must not be
+  a public remote.
+- **Rotation triggers**: publish nothing case-specific, but rotate (add
+  fresh cases and retire old ones) if aggregate holdout scores start
+  tracking public-corpus scores too closely, if any case is quoted
+  publicly, or on a fixed cadence once the benchmark has outside users.
+- **Publishing holdout results**: aggregate numbers only — counts,
+  rates, per-difficulty and per-category splits, corpus fingerprint and
+  case count. Never a case id, diff, title or ground-truth explanation.
+- **Residual leakage**: a determined reader can still infer corpus
+  *shape* from aggregate category/difficulty distributions, and any
+  model provider that receives holdout diffs at inference time has seen
+  them. The holdout reduces contamination; it does not eliminate it, and
+  a provider-side retention policy is outside our control.
+
+## 11a. Benchmark versioning
+
+Results are only comparable within a version. Every report already
+records `corpus.benchmark_version` and `corpus.sha256`; the version
+tells you *whether* two runs are comparable, the fingerprint tells you
+whether they ran on the identical bytes.
+
+| change | version effect |
+|---|---|
+| case added or removed | fingerprint changes; version unchanged if scoring semantics are untouched — but cross-run comparisons must say the corpus differed |
+| clean/defective label flipped | **major**: previously-correct results become wrong |
+| primary category changed | **major** |
+| accepted alternative added or removed | **major** — it redefines category correctness |
+| severity range changed | **major** |
+| scoring algorithm changed | **major** |
+| review prompt contract changed | **major** — every backend's input changed |
+| schema field added, no scoring effect | fingerprint only |
+| difficulty or provenance metadata corrected | fingerprint only |
+
+A major change increments `benchmark_version` and invalidates
+cross-version leaderboard rows; historical reports are never rewritten
+to match a new version — they keep the version and fingerprint they
+actually ran against, and stale rows are labelled, not deleted.
+
+## 11b. Result trust levels
+
+Submissions are not all equally verifiable, and pretending otherwise
+would be the easiest way to make the leaderboard worthless:
+
+- **L0 — self-reported**: a valid report with complete metadata. Taken
+  at face value; labelled as such.
+- **L1 — reproducible**: L0 plus a corpus fingerprint matching a
+  published corpus, a harness commit, and a reproduction command that a
+  reader could run.
+- **L2 — reproduced**: someone other than the submitter re-ran L1 and
+  got materially consistent results — "consistent" meaning inside the
+  submission's own run-to-run spread, since exact equality from
+  nondeterministic models is not a sane bar.
+- **L3 — holdout-confirmed**: additionally run against a private holdout,
+  aggregate scores only.
+
+No cryptographic attestation. A determined faker can produce a
+plausible L0/L1 report; L2 is the first level that costs an independent
+party real work, which is why it is the level that matters.
+
 ## 12. Validation
 
 `python3 -m reviewer.corpus [--cases DIR] [--summary]` validates the
