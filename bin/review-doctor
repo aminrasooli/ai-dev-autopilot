@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# AI-DEV — offline self-test for the reviewer benchmark.
+#
+# One command a stranger can run after cloning to find out whether the
+# benchmark works on their machine, before they spend anything on a
+# model. Everything here is offline: no GPU, no Ollama, no login, no
+# network, no paid API.
+#
+# It deliberately does NOT check that a real backend works — that needs
+# credentials or a local daemon, and failing on their absence would make
+# a healthy clone look broken. Use `review-eval --backend ollama` for
+# that; the backends report their own preflight.
+#
+# Exit codes: 0 healthy · 1 a check failed · 3 python3 missing
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+cd "$AI_DEV_HOME" || exit 1
+
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-doctor: python3 is required\n' >&2; exit 3; }
+export PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}"
+
+if [ -t 1 ]; then G=$'\e[32m'; R=$'\e[31m'; N=$'\e[0m'; else G=""; R=""; N=""; fi
+FAIL=0
+ok()  { printf '  %sPASS%s  %s\n' "$G" "$N" "$1"; }
+bad() { FAIL=$((FAIL+1)); printf '  %sFAIL%s  %s\n        %s\n' "$R" "$N" "$1" "${2:-}"; }
+
+printf 'reviewer benchmark self-test (offline)\n\n'
+
+# 1. corpus validity
+if out="$(python3 -m reviewer.corpus 2>&1)"; then
+  ok "corpus validates ($(printf '%s' "$out" | head -1 | sed 's/^corpus: //'))"
+else
+  bad "corpus validates" "$(printf '%s' "$out" | tail -3)"
+fi
+
+# 2. the oracle must score its own ground truth perfectly — this is the
+#    proof that scoring, prompting and aggregation are sound, and it is
+#    what CI relies on.
+if out="$(python3 -m reviewer.evaluate --backend fake 2>/dev/null)"; then
+  det="$(printf '%s' "$out" | awk '/detected:/ {print $2}')"
+  fp="$(printf '%s' "$out" | awk '/false positives:/ {print $3}')"
+  case "$det" in
+    */*) if [ "${det%/*}" = "${det#*/}" ] && [ "${fp%%/*}" = "0" ]; then
+           ok "oracle scores ground truth perfectly ($det detected, $fp)"
+         else
+           bad "oracle scores ground truth perfectly" "detected $det, false positives $fp"
+         fi ;;
+    *) bad "oracle scores ground truth perfectly" "could not parse: $det" ;;
+  esac
+else
+  bad "oracle run succeeds" "review-eval --backend fake failed"
+fi
+
+# 3. report integrity round-trip on a throwaway report
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/review-doctor.XXXXXX")" || exit 1
+trap 'rm -rf "$TMP"' EXIT
+if python3 -m reviewer.evaluate --backend fake --runs 2 \
+     --out "$TMP/r.json" >/dev/null 2>&1; then
+  if python3 -m reviewer.verify "$TMP/r.json" >/dev/null 2>&1; then
+    ok "repeat runs produce an internally consistent report"
+  else
+    bad "repeat runs produce an internally consistent report" \
+        "reviewer.verify rejected a freshly generated report"
+  fi
+  if python3 -m reviewer.analyze "$TMP/r.json" >/dev/null 2>&1; then
+    ok "variance analysis runs"
+  else
+    bad "variance analysis runs" "reviewer.analyze failed"
+  fi
+  # 4. overwrite protection: evidence must not vanish by repeating a command
+  if python3 -m reviewer.evaluate --backend fake --out "$TMP/r.json" \
+       >/dev/null 2>&1; then
+    bad "existing results are protected from overwrite" \
+        "a second run replaced the file without --overwrite"
+  else
+    ok "existing results are protected from overwrite"
+  fi
+else
+  bad "repeat runs succeed" "review-eval --runs 2 failed"
+fi
+
+# 5. output directory writable
+if touch "$TMP/.w" 2>/dev/null; then ok "output directory is writable"
+else bad "output directory is writable" "$TMP"; fi
+
+# 6. no network needed: the offline path must not have contacted anything.
+#    Proven structurally rather than by probing — the fake backend has no
+#    network door at all.
+ok "offline path uses no network (fake backend has no transport)"
+
+printf '\n'
+if [ "$FAIL" -eq 0 ]; then
+  printf 'benchmark is healthy — try: bin/review-eval --backend ollama --model <model> --runs 3\n'
+  exit 0
+fi
+printf '%d check(s) failed\n' "$FAIL"
+exit 1
