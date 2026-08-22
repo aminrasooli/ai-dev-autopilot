@@ -32,6 +32,10 @@ Status vocabulary:
 | X12 | 2026-08-21 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` (12 hard-tier cases) | 10 | 12 | pre-registered by METADATA (all subtle+contextual+cross-file), not by prior outcome | **$1.009714** (120 calls, 0 errors) | `provisional/claude-sonnet-5-hardtier-10runs-provisional.json` |
 | X13 | 2026-08-22 | provisional | claude-sonnet-5 | claude | v2 frozen `f31d4631…` (post-ground-truth, 54 cases) | 3 | 54 | M1 fresh-clone reproducibility evidence: run from a genuinely fresh `git clone` of `origin/main` at commit `485912b5`, not a working copy — against the frozen answer key, not the superseded 57-case pilot fingerprint X6/X7/X10 ran against. Row added after the run completed, so provisional per rule 1 even though ground truth is approved. | $2.213189 (162 calls, 0 errors) | `provisional/claude-sonnet-5-m1-frozen54-3runs-freshclone.json` |
 
+| X14 | 2026-08-22 | authoritative | claude-sonnet-5 | claude | v2 frozen `f31d4631…` (54 cases) | 3 | 54 | M2 cross-model pilot (ROADMAP §4): Sonnet leg — Sonnet vs Qwen vs DeepSeek on the frozen corpus, 3 repetitions, clearly labeled a pilot. Pre-registered before execution per rule 1. | pending | pending |
+| X15 | 2026-08-22 | authoritative | qwen3.6:27b | ollama | v2 frozen `f31d4631…` (54 cases) | 3 | 54 | M2 cross-model pilot (ROADMAP §4): Qwen leg, local via Ollama on the host GPU. Pre-registered before execution per rule 1. | pending — once measured, records "no external model API charge" (never "free") per rule 4 | pending |
+| X16 | 2026-08-22 | authoritative | deepseek-r1:14b | ollama | v2 frozen `f31d4631…` (54 cases) | 3 | 54 | M2 cross-model pilot (ROADMAP §4): DeepSeek leg, local via Ollama on the host GPU. Pre-registered before execution per rule 1. | pending — once measured, records "no external model API charge" (never "free") per rule 4 | pending |
+
 ## Registering a run
 
 Before executing an authoritative run, add a row with status
