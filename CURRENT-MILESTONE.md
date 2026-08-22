@@ -7,16 +7,21 @@ where that reality is summarized. Superseded reports (`REPORT-PHASE2-*`,
 `OVERNIGHT-REPORT-*`, `DEEP-EVIDENCE-REPORT-*`) stay in the worktree as
 history; this file is what a fresh session reads first.
 
-## Current milestone: M0 pre-flight (per `docs/ROADMAP.md` §2 and §4)
+## Current milestone: M1 Benchmark v2 frozen (per `docs/ROADMAP.md` §2 and §4)
 
 `docs/ROADMAP.md` is the canonical public governing strategy and owns
 milestone numbering; this section summarizes status against it and must
 not invent a competing numbering scheme.
 
-M0's exit criteria (ROADMAP §4): ground truth reviewed by JP, PR #12
-merged by JP, B0 encrypted backup completed, nightly scheduler
-re-enabled. Status: **ground-truth review is done**, the other three are
-not — M0 is not complete.
+### M0 — COMPLETE
+
+All four exit criteria (ROADMAP §4) are met:
+
+- Ground truth reviewed by JP's own eyes (D1–D5, detailed below).
+- PR #12 merged by JP: `98791f105d88cd92d0ac05f0162bc769f370e8c9`.
+- B0 encrypted backup completed (encrypted, off-machine, restore-tested
+  Restic backup; independently restore-verified from a second machine).
+- Nightly scheduler re-enabled and active.
 
 Human ground-truth decisions D1–D5 were answered 2026-08-21: D1=keep
 (case 30, version-pinned), **D2=delete** (cases 25 and 57 — two clean
@@ -24,26 +29,52 @@ controls that kept drawing legitimate objections even after rewriting),
 **D3=delete** (case 10 — its label depended on unstated authorial intent
 no accepted-category alternative could resolve), D4=endorse all 12
 accepted-category alternatives, D5=run baselines now, **explicitly as
-v2-pilot evidence, not launch-grade leaderboard results**. Corpus is now
-**54 cases (40 defective / 14 clean / 6 cross-file)**, fingerprint
-recomputed post-deletion. Full detail: `CONVERGENCE-REPORT-2026-08-21.md`
-§13.
+v2-pilot evidence, not launch-grade leaderboard results**. Full detail:
+`CONVERGENCE-REPORT-2026-08-21.md` §13 (worktree-local; not part of this
+repository).
 
-M1 (benchmark v2 frozen — answer key frozen, repeat runs, reproducible
-from a fresh clone) is, per ROADMAP §2, nearly complete in parallel with
-M0; it is not the same thing as the ground-truth gate above.
+### M1 — IN PROGRESS: answer key frozen; repeat runs and reproducibility outstanding
 
-## Canonical active branch
+**Frozen answer key (durable declaration):** as of this file, the
+approved corpus is frozen at **54 cases** (40 defective / 14 clean / 6
+cross-file), corpus fingerprint:
 
-**`feature/reviewer-benchmark-v1`**, until PR #12 lands. Any future
-session or scheduler must start here, not on any other branch — see
-"forbidden" list below for why old branches are not candidates.
+```
+f31d46310988f61c4534344ad05a52a4385fd15159126a0be85aad532f045690
+```
+
+This fingerprint is computed by `bin/review-corpus --json` from
+`eval/cases/` exactly as merged in PR #12; it has not changed since.
+`eval/cases/` itself is not touched by this update.
+
+M1 remaining gates (not yet satisfied by committed evidence):
+
+- **Repeat runs against this fingerprint.** The existing committed
+  reports in `eval/results/provisional/` (3-run, 5-run, 7-run, 10-run)
+  all predate the ground-truth gate and carry a different fingerprint
+  (57-case corpus, or smaller subsets) — they do **not** satisfy this
+  gate.
+- **Fresh-clone reproducibility evidence.** No committed artifact yet
+  demonstrates a repeat run from a genuinely fresh clone against the
+  frozen fingerprint above.
+
+Single next M1 action for the autonomous worker: from a genuinely fresh
+clone of `origin/main`, run the smallest roadmap-compliant repeat
+evaluation (`bin/review-eval --runs 3` or `5`) against the frozen
+54-case corpus above, and commit the resulting report under
+`eval/results/` — this closes both remaining gates at once.
+
+## Canonical branch
+
+**`main`**. PR #12 merged; there is no separate feature branch to work
+from. Any future session or scheduler starts from a fresh clone or
+worktree of `origin/main`.
 
 ## Stable base
 
-**`origin/main`** @ `f4ead71`. Confirmed to be the exact merge-base of
-`feature/reviewer-benchmark-v1` and `origin/main` — the feature branch is
-current with main; main has not advanced independently.
+**`origin/main`** @ `98791f105d88cd92d0ac05f0162bc769f370e8c9` (PR #12
+merge commit). Verify with `git fetch origin main` before trusting this
+line — reality wins if it has moved.
 
 ## What Phase 1 is
 
@@ -75,26 +106,22 @@ Human Operator Touches operating model (`docs/NORTH_STAR.md`).
 These remain North Star destinations, not current backlog. Do not build
 them because a stale branch or scheduler run once pointed that way.
 
-## Next human gate (completes M0, per ROADMAP §4)
+## Next human gate (M0 is complete; nothing above is blocking)
 
-1. **PR #12 merge authorization** — ground-truth changes are committed
-   (`034746f`), tested, and the PR description reflects the resolved
-   54-case corpus; ready whenever the human decides to merge
-2. **B0 backup/passphrase work** — ops track, `~/ops/BACKUPS.md`,
-   untouched by this product work
-3. **Nightly scheduler re-enable** — required for the low-touch
-   operating model (ROADMAP §5 M0 calendar gate); blocked on 1 and 2
-4. Real-bug A-tier candidate approval (`REAL-BUG-ADMISSION-PACKET.md`) —
-   optional, not blocking M0
+1. Real-bug A-tier candidate approval (`REAL-BUG-ADMISSION-PACKET.md`) —
+   optional, not blocking M1
+2. Review/merge of the M1 repeat-run + fresh-clone-reproducibility
+   result, once the autonomous worker (or a future session) produces it
 
-## Next autonomous work after M0/M1
+## Next autonomous work after M1
 
 M2 (ROADMAP §4): cross-model pilot — Sonnet vs Qwen vs DeepSeek on the
 frozen corpus, 3 repetitions, honest cost/latency/quality scorecard,
 clearly labeled a pilot — once the local GPU job is diagnosed and
-produces output. Also: real-bug case admission (10 A-tier candidates
-ready, `REAL-BUG-ADMISSION-PACKET.md`); non-Claude case proposals via
-`LOCAL-MODEL-JOBS.md`.
+produces output, and only after M1's repeat-run and reproducibility
+gates above are actually closed. Also: real-bug case admission (10
+A-tier candidates ready, `REAL-BUG-ADMISSION-PACKET.md`); non-Claude
+case proposals via `LOCAL-MODEL-JOBS.md`.
 
 ## Instructions for a future session with zero chat history
 
@@ -105,7 +132,8 @@ ready, `REAL-BUG-ADMISSION-PACKET.md`); non-Claude case proposals via
 3. `git fetch origin`; verify this file's claims about branch/PR state
    are still true — if not, trust git/GitHub over this file and update
    it.
-4. Check `gh pr view 12` for current status.
+4. Check for open PRs relevant to the current milestone
+   (`gh pr list --repo aminrasooli/ai-dev-autopilot --state open`).
 5. Do not start work on any branch other than the canonical one above
    unless this file has been updated to name a new one.
 6. Do not treat an old scheduler-produced branch as current direction
