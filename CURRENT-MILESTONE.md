@@ -7,7 +7,7 @@ where that reality is summarized. Superseded reports (`REPORT-PHASE2-*`,
 `OVERNIGHT-REPORT-*`, `DEEP-EVIDENCE-REPORT-*`) stay in the worktree as
 history; this file is what a fresh session reads first.
 
-## Current milestone: M1 Benchmark v2 frozen (per `docs/ROADMAP.md` §2 and §4)
+## Current milestone: M2 Cross-model pilot (per `docs/ROADMAP.md` §2 and §4)
 
 `docs/ROADMAP.md` is the canonical public governing strategy and owns
 milestone numbering; this section summarizes status against it and must
@@ -33,48 +33,64 @@ v2-pilot evidence, not launch-grade leaderboard results**. Full detail:
 `CONVERGENCE-REPORT-2026-08-21.md` §13 (worktree-local; not part of this
 repository).
 
-### M1 — IN PROGRESS: answer key frozen; repeat runs and reproducibility outstanding
+### M1 — COMPLETE
 
-**Frozen answer key (durable declaration):** as of this file, the
-approved corpus is frozen at **54 cases** (40 defective / 14 clean / 6
-cross-file), corpus fingerprint:
+All three exit criteria (ROADMAP §4: answer key frozen; repeat runs;
+reproducible from a fresh clone) are met.
+
+**Frozen answer key (durable declaration):** the approved corpus is
+frozen at **54 cases** (40 defective / 14 clean / 6 cross-file), corpus
+fingerprint:
 
 ```
 f31d46310988f61c4534344ad05a52a4385fd15159126a0be85aad532f045690
 ```
 
 This fingerprint is computed by `bin/review-corpus --json` from
-`eval/cases/` exactly as merged in PR #12; it has not changed since.
-`eval/cases/` itself is not touched by this update.
+`eval/cases/` exactly as merged in PR #12; it has not changed since,
+including through PR #14 below — `eval/cases/` itself was not touched.
 
-M1 remaining gates (not yet satisfied by committed evidence):
+**Repeat runs against this fingerprint, and fresh-clone reproducibility:**
+both closed together by PR #14, "Add M1 fresh-clone repeat-run evidence
+against the frozen 54-case corpus" (`evidence/m1-fresh-clone-repeat-run`
+→ `main`), merged 2026-08-22, merge commit
+`f0a824abe1fe245ce1c91ba6fdec1eddc3d48795`. Evidence: a genuinely fresh
+`git clone` of `origin/main` at `485912b5`, 3 runs across all 54 cases,
+corpus fingerprint in the report verified matching the frozen fingerprint
+above, committed at
+`eval/results/provisional/claude-sonnet-5-m1-frozen54-3runs-freshclone.json`
+and registered as experiment X13 in `eval/EXPERIMENTS.md` ($2.213189,
+162 calls, 0 errors). Still labeled `provisional` per `EXPERIMENTS.md`'s
+own rule 1 (the row was added after the run completed), which is a
+recordkeeping label, not a gap in the M1 evidence itself.
 
-- **Repeat runs against this fingerprint.** The existing committed
-  reports in `eval/results/provisional/` (3-run, 5-run, 7-run, 10-run)
-  all predate the ground-truth gate and carry a different fingerprint
-  (57-case corpus, or smaller subsets) — they do **not** satisfy this
-  gate.
-- **Fresh-clone reproducibility evidence.** No committed artifact yet
-  demonstrates a repeat run from a genuinely fresh clone against the
-  frozen fingerprint above.
+### M2 — IN PROGRESS: cross-model pilot
 
-Single next M1 action for the autonomous worker: from a genuinely fresh
-clone of `origin/main`, run the smallest roadmap-compliant repeat
-evaluation (`bin/review-eval --runs 3` or `5`) against the frozen
-54-case corpus above, and commit the resulting report under
-`eval/results/` — this closes both remaining gates at once.
+Scope, exactly as `docs/ROADMAP.md` §4 defines it: Sonnet vs Qwen vs
+DeepSeek on the frozen 54-case corpus above, 3 repetitions, an honest
+cost + latency + quality scorecard, clearly labeled a pilot — nothing
+more (no leaderboard framing, no launch-grade claims; see ROADMAP §5
+M5 launch gate and §6 message rules for why the pilot label matters).
+
+Status: not started. No M2 benchmark runs have been executed against
+this milestone yet. Prerequisite named in ROADMAP §2 and this file's
+prior revisions: the local GPU job needs to be diagnosed and producing
+output before the Qwen/DeepSeek legs can run (`LOCAL-MODEL-JOBS.md`
+tracks this). The Sonnet leg reuses the same harness already proven by
+X13 above.
 
 ## Canonical branch
 
-**`main`**. PR #12 merged; there is no separate feature branch to work
-from. Any future session or scheduler starts from a fresh clone or
-worktree of `origin/main`.
+**`main`**. PR #12 and PR #14 merged; there is no separate feature
+branch to work from. Any future session or scheduler starts from a
+fresh clone or worktree of `origin/main`.
 
 ## Stable base
 
-**`origin/main`** @ `98791f105d88cd92d0ac05f0162bc769f370e8c9` (PR #12
-merge commit). Verify with `git fetch origin main` before trusting this
-line — reality wins if it has moved.
+**`origin/main`** @ `f0a824abe1fe245ce1c91ba6fdec1eddc3d48795` (PR #14
+merge commit, the current tip of `origin/main` as of this file). Verify
+with `git fetch origin main` before trusting this line — reality wins
+if it has moved.
 
 ## What Phase 1 is
 
@@ -106,22 +122,20 @@ Human Operator Touches operating model (`docs/NORTH_STAR.md`).
 These remain North Star destinations, not current backlog. Do not build
 them because a stale branch or scheduler run once pointed that way.
 
-## Next human gate (M0 is complete; nothing above is blocking)
+## Next human gate (M0 and M1 are complete; nothing above is blocking)
 
 1. Real-bug A-tier candidate approval (`REAL-BUG-ADMISSION-PACKET.md`) —
-   optional, not blocking M1
-2. Review/merge of the M1 repeat-run + fresh-clone-reproducibility
-   result, once the autonomous worker (or a future session) produces it
+   optional, not blocking M2
+2. Authorization to begin M2 pilot runs (spend above the authorized
+   threshold and any local-GPU diagnosis work are gated per ROADMAP §3)
 
-## Next autonomous work after M1
+## Next autonomous work
 
-M2 (ROADMAP §4): cross-model pilot — Sonnet vs Qwen vs DeepSeek on the
-frozen corpus, 3 repetitions, honest cost/latency/quality scorecard,
-clearly labeled a pilot — once the local GPU job is diagnosed and
-produces output, and only after M1's repeat-run and reproducibility
-gates above are actually closed. Also: real-bug case admission (10
-A-tier candidates ready, `REAL-BUG-ADMISSION-PACKET.md`); non-Claude
-case proposals via `LOCAL-MODEL-JOBS.md`.
+Diagnose the local GPU job so it produces output (`LOCAL-MODEL-JOBS.md`)
+— this unblocks the Qwen/DeepSeek legs of the M2 pilot described above.
+Also available, not blocking M2: real-bug case admission (10 A-tier
+candidates ready, `REAL-BUG-ADMISSION-PACKET.md`); non-Claude case
+proposals via `LOCAL-MODEL-JOBS.md`.
 
 ## Instructions for a future session with zero chat history
 
