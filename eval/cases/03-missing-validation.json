@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "03-missing-validation",
   "title": "Quantity accepted without bounds check",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/checkout.py"
+  ],
   "diff": [
     "--- a/src/checkout.py",
     "+++ b/src/checkout.py",
@@ -20,5 +30,6 @@
       "high"
     ],
     "explanation": "Removing the range check lets a negative quantity produce a negative line total, i.e. a credit, and lets absurd quantities through."
-  }
+  },
+  "difficulty": "obvious-local"
 }

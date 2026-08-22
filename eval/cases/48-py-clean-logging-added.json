@@ -1,0 +1,38 @@
+{
+  "benchmark_version": 2,
+  "id": "48-py-clean-logging-added",
+  "title": "Clean: request logging added without payloads",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/api/middleware.py"
+  ],
+  "diff": [
+    "--- a/src/api/middleware.py",
+    "+++ b/src/api/middleware.py",
+    "@@ -1,9 +1,14 @@",
+    "+import logging",
+    " import time",
+    "",
+    "+log = logging.getLogger(\"api.requests\")",
+    "+",
+    " def timing_middleware(handler):",
+    "     def wrapped(request):",
+    "         started = time.monotonic()",
+    "-        return handler(request)",
+    "+        response = handler(request)",
+    "+        elapsed_ms = int((time.monotonic() - started) * 1000)",
+    "+        log.info(\"request_id=%s status=%s elapsed_ms=%d\",",
+    "+                 request.id, response.status, elapsed_ms)",
+    "+        return response",
+    "     return wrapped"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "Adds request-id and duration logging with no sensitive fields and no behavior change; nothing to report."
+  }
+}

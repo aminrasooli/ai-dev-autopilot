@@ -1,0 +1,36 @@
+{
+  "benchmark_version": 2,
+  "id": "41-py-idor-owner-check",
+  "title": "Invoice fetch stops checking ownership",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/api/invoices.py"
+  ],
+  "diff": [
+    "--- a/src/api/invoices.py",
+    "+++ b/src/api/invoices.py",
+    "@@ -8,10 +8,9 @@ def get_invoice(invoice_id):",
+    "     user = current_user()",
+    "-    invoice = Invoice.query.filter_by(",
+    "-        id=invoice_id, owner_id=user.id).first()",
+    "+    invoice = Invoice.query.filter_by(id=invoice_id).first()",
+    "     if invoice is None:",
+    "         abort(404)",
+    "     return jsonify(invoice.to_dict())"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "auth-bypass",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "Dropping the owner filter turns the endpoint into an IDOR: any authenticated user can fetch any invoice by id."
+  },
+  "difficulty": "moderate"
+}

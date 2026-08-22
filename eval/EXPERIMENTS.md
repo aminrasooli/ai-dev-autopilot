@@ -1,0 +1,50 @@
+# Experiment registry
+
+Every real-model invocation against this benchmark, registered. The
+point is anti-cherry-picking: a run that happened appears here whether
+or not its numbers were flattering, and **authoritative runs are
+registered before they execute**, so "we only report the good ones"
+is not available as a failure mode.
+
+Status vocabulary:
+
+- **disposable** — plumbing validation. Never quoted as a result.
+- **provisional** — a real measurement taken *before* its corpus's
+  ground truth was human-approved. Real evidence, not a result.
+- **authoritative** — run against approved ground truth, registered in
+  advance, quotable.
+- **failed** — did not complete. Stays listed; failures are evidence too.
+
+| id | date | status | model | backend | corpus | runs | cases | purpose | measured cost | output |
+|---|---|---|---|---|---|---|---|---|---|---|
+| X1 | 2026-08-19 | archived-v1 | claude-sonnet-5 | claude | v1 (20 cases) | 1 | 20 | first real Claude baseline (superseded; token accounting bug) | — | `archive-v1/claude-report.json` |
+| X2 | 2026-08-19 | archived-v1 | qwen3.6:27b | ollama | v1 (20 cases) | 1 | 20 | first real Qwen baseline | no external model API charge | `archive-v1/qwen-report.json` |
+| X3 | 2026-08-20 | disposable | claude-sonnet-5 | claude | v2 subset | 3 | 5 | validate repeat-run mechanics | $0.208785 | `archive-v1/claude-sonnet-5-pilot-subset-3runs-2026-08-20.json` |
+| X4 | 2026-08-20 | disposable | claude-sonnet-5 | claude | v2 subset | 3 | 4 | quality-gate the new clean controls | $0.184629 | `archive-v1/claude-sonnet-5-clean-controls-3runs-2026-08-20.json` |
+| X5 | 2026-08-20 | disposable | claude-sonnet-5 | claude | v2 subset (post-audit) | 3 | 8 | validate audit fixes + alternatives mechanism | $0.291306 | scratch (not committed) |
+| X6 | 2026-08-20 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` | 3 | 57 | full-corpus variance evidence ahead of ground-truth approval | $1.453112 | `provisional/claude-sonnet-5-v2pilot-3runs-provisional.json` |
+| X7 | 2026-08-20 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` (5 clean cases) | 7 | 5 | separate persistent false positives from sampling noise | $0.257192 | `provisional/claude-sonnet-5-cleanFP-stress-7runs-provisional.json` |
+| X8 | 2026-08-20 | provisional | qwen3.6:27b | ollama | v2 pilot | 3 | 57 | local baseline, host night job | no external model API charge | pending |
+| X9 | 2026-08-20 | provisional | deepseek-r1:14b | ollama | v2 pilot | 3 | 57 | second local model for context | no external model API charge | pending |
+
+| X10 | 2026-08-21 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` | 5 | 57 | pre-registered: 5-run baseline matching the local models' run count | **$2.289898** (285 calls, 1 malformed) | `provisional/claude-sonnet-5-v2pilot-5runs-provisional.json` |
+| X11 | 2026-08-21 | superseded | claude-sonnet-5 | claude | — | 5 | 16 | pre-registered, then SUPERSEDED by X10: the full 5-run corpus already covers all 16 clean cases at 5 runs (19/80 FP). Row kept rather than deleted — a registered experiment that became unnecessary is still part of the record. | not run | — |
+| X12 | 2026-08-21 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` (12 hard-tier cases) | 10 | 12 | pre-registered by METADATA (all subtle+contextual+cross-file), not by prior outcome | **$1.009714** (120 calls, 0 errors) | `provisional/claude-sonnet-5-hardtier-10runs-provisional.json` |
+
+## Registering a run
+
+Before executing an authoritative run, add a row with status
+`authoritative`, the corpus fingerprint you intend to use, and the
+purpose. After it completes, fill in the measured cost and output path.
+If it fails, change the status to `failed` and leave the row.
+
+## Rules
+
+1. **No unregistered authoritative runs.** A result whose row was added
+   after the numbers were seen is provisional at best.
+2. **No deletions.** Superseded rows are marked, not removed.
+3. **No best-of-N.** Repeats of the same configuration are separate
+   rows; conflicting outcomes stay visible.
+4. **Costs are measured or absent.** Local runs record "no external
+   model API charge" — never "free" (see §24 of the methodology on cost
+   dimensions).

@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "09-dependency-risk",
   "title": "Pinned dependency replaced by a git URL",
+  "language": "config",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "requirements.txt"
+  ],
   "diff": [
     "--- a/requirements.txt",
     "+++ b/requirements.txt",
@@ -18,5 +28,6 @@
       "high"
     ],
     "explanation": "A pinned release from PyPI becomes an unpinned branch of a personal fork: unreviewed code, mutable history, no integrity guarantee."
-  }
+  },
+  "difficulty": "obvious-local"
 }

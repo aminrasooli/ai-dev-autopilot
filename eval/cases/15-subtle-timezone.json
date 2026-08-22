@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "15-subtle-timezone",
   "title": "Expiry compared against naive local time",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/tokens.py"
+  ],
   "diff": [
     "--- a/src/tokens.py",
     "+++ b/src/tokens.py",
@@ -17,5 +27,6 @@
       "high"
     ],
     "explanation": "expires_at is timezone-aware UTC; comparing it with a naive local now either raises or shifts expiry by the host's UTC offset."
-  }
+  },
+  "difficulty": "moderate"
 }

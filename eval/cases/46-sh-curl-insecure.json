@@ -1,0 +1,35 @@
+{
+  "benchmark_version": 2,
+  "id": "46-sh-curl-insecure",
+  "title": "TLS verification disabled in fetch script",
+  "language": "shell",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "scripts/fetch-release.sh"
+  ],
+  "diff": [
+    "--- a/scripts/fetch-release.sh",
+    "+++ b/scripts/fetch-release.sh",
+    "@@ -4,8 +4,8 @@ set -euo pipefail",
+    " version=\"$1\"",
+    " url=\"https://releases.example.com/app-${version}.tar.gz\"",
+    "",
+    "-curl --fail --silent --show-error \"$url\" -o \"app-${version}.tar.gz\"",
+    "+curl --fail --silent --show-error -k \"$url\" -o \"app-${version}.tar.gz\"",
+    " sha256sum --check \"app-${version}.tar.gz.sha256\""
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "insecure-network",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Adding -k disables certificate verification, so the artifact can be served by a man-in-the-middle without detection."
+  },
+  "difficulty": "obvious-local"
+}

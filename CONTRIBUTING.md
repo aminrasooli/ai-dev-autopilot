@@ -62,6 +62,18 @@ reason; add a new exclusion only with one.
 - CI runs the contract suite, a parse check, `shellcheck`, and a check that
   `generated/` is current with `core/` on every PR.
 
+## The reviewer benchmark
+
+The Local Reviewer Benchmark under `eval/` is a standalone artifact with
+its own contribution paths: benchmark cases (see
+[eval/README.md](eval/README.md) — clean controls, non-Python languages
+and cases not authored by a Claude model are the most valuable) and
+reproducible model results (see [eval/SUBMIT.md](eval/SUBMIT.md)). Both
+are validated by `bin/review-corpus` and the offline oracle run
+(`bin/review-eval --backend fake`), which CI requires to stay perfect.
+The methodology, including what the benchmark deliberately does not
+measure, is [docs/BENCHMARK_METHODOLOGY.md](docs/BENCHMARK_METHODOLOGY.md).
+
 ## Issues
 
 Use the issue forms for bug reports and hardening proposals, or open a blank

@@ -1,0 +1,41 @@
+{
+  "benchmark_version": 2,
+  "id": "21-js-prototype-pollution",
+  "title": "Recursive merge copies attacker keys",
+  "language": "javascript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/lib/merge.js"
+  ],
+  "diff": [
+    "--- a/src/lib/merge.js",
+    "+++ b/src/lib/merge.js",
+    "@@ -3,12 +3,10 @@ function deepMerge(target, source) {",
+    "   for (const key of Object.keys(source)) {",
+    "-    if (key === \"__proto__\" || key === \"constructor\" || key === \"prototype\") {",
+    "-      continue;",
+    "-    }",
+    "     if (isObject(source[key]) && isObject(target[key])) {",
+    "       deepMerge(target[key], source[key]);",
+    "     } else {",
+    "       target[key] = source[key];",
+    "     }",
+    "   }",
+    "   return target;",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "missing-validation",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "The recursive merge no longer skips __proto__/constructor keys, so a crafted JSON body can pollute Object.prototype for the whole process."
+  },
+  "difficulty": "moderate"
+}

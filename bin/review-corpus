@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# AI-DEV — validate the reviewer benchmark corpus and print its distribution.
+#
+#   review-corpus                 # validate eval/cases
+#   review-corpus --cases DIR     # validate any corpus directory (e.g. a
+#                                 # private holdout supplied from outside
+#                                 # this repository)
+#   review-corpus --json          # machine-readable summary
+#
+# Exit codes: 0 corpus valid · 2 validation errors or usage error
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-corpus: python3 is required\n' >&2; exit 2; }
+PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+  exec python3 -m reviewer.corpus "$@"

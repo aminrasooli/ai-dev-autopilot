@@ -1,0 +1,4239 @@
+{
+  "report_format": 2,
+  "backend": "claude",
+  "model": "claude-sonnet-5",
+  "runs_per_case": 10,
+  "corpus": {
+    "case_count": 12,
+    "benchmark_version": 2,
+    "sha256": "fb1dabc5abbfa9ff3707f9b6281ac7b74edb4b8e90ccd9b21f373676a0cd6886"
+  },
+  "prompt_contract": {
+    "version": 1,
+    "fingerprint": "6a4e51f7014991b2"
+  },
+  "cases": [
+    {
+      "case_id": "10-missing-regression-test",
+      "title": "Boundary bug fixed with no test",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed from >100 to >=100 (units=100 now gets 0.15 instead of 0.05) but no test was added to verify this intentional behavior change."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.705,
+            "calls": 1,
+            "input_tokens": 876,
+            "output_tokens": 380,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009409
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed (units==100 now gets 0.15 instead of 0.05) with no accompanying test update to confirm this is the intended behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.137,
+            "calls": 1,
+            "input_tokens": 876,
+            "output_tokens": 320,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008509000000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed (100 units now gets 0.15 instead of 0.05) with no accompanying test update to confirm the new behavior is intended."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.774,
+            "calls": 1,
+            "input_tokens": 876,
+            "output_tokens": 302,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008244
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed from > 100 to >= 100, altering the discount for exactly 100 units, with no test added to confirm the new behavior is intended."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.732,
+            "calls": 1,
+            "input_tokens": 876,
+            "output_tokens": 375,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009339
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed from '> 100' to '>= 100' (units=100 now gets 15% instead of 5% discount) with no accompanying test to confirm this is intended."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.758,
+            "calls": 1,
+            "input_tokens": 876,
+            "output_tokens": 349,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008949
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed from > to >= for the 100-unit discount tier with no accompanying test to verify the new behavior at units == 100."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.175,
+            "calls": 1,
+            "input_tokens": 6097,
+            "output_tokens": 357,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0082678
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/pricing.py",
+              "note": "Changing the condition from > 100 to >= 100 alters the discount tier boundary so exactly 100 units now gets 0.15 instead of 0.05, which may be an unintended behavior change with no indication this was the intended business rule."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/pricing.py",
+              "note": "No test is included to verify the new boundary behavior at units == 100, so the change in discount tier is unverified."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.828,
+            "calls": 1,
+            "input_tokens": 6097,
+            "output_tokens": 534,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0109278
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed (100 units now gets 15% instead of 5%) with no accompanying test update to verify the new behavior is intended."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.703,
+            "calls": 1,
+            "input_tokens": 876,
+            "output_tokens": 307,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008314
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/pricing.py",
+              "note": "Boundary behavior change (100 units now qualifies for 15% instead of 5%) has no accompanying test verifying the new boundary condition."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.327,
+            "calls": 1,
+            "input_tokens": 876,
+            "output_tokens": 325,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008589
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "src/pricing.py",
+              "note": "Boundary condition changed from units>100 to units>=100 (units=100 now gets 15% instead of 5% discount) with no accompanying test covering this boundary case."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.717,
+            "calls": 1,
+            "input_tokens": 6097,
+            "output_tokens": 410,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0090678
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 10
+      }
+    },
+    {
+      "case_id": "27-ts-nullish-to-or",
+      "title": "Falsy-zero retries silently become three",
+      "defect": true,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using `||` instead of `??` causes opts.retries of 0 to be replaced with 3, changing behavior for a legitimate 'no retries' value."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.798,
+            "calls": 1,
+            "input_tokens": 925,
+            "output_tokens": 107,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005514
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using || instead of ?? causes opts.retries of 0 to be replaced by the default 3, breaking the valid case of zero retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.982,
+            "calls": 1,
+            "input_tokens": 925,
+            "output_tokens": 101,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005404000000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Using `||` instead of `??` causes an explicit `retries: 0` to be silently overridden with the default 3, breaking the ability to disable retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.49,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 337,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008015500000000002
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Using `||` instead of `??` means opts.retries = 0 (disable retries) is incorrectly replaced with the default of 3."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.198,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 166,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0054505000000000005
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Using `||` instead of `??` causes opts.retries=0 (explicitly disabling retries) to be overridden with the default of 3."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.058,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 172,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0055355
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using || instead of ?? causes opts.retries of 0 to be replaced with 3, breaking the ability to explicitly disable retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.758,
+            "calls": 1,
+            "input_tokens": 925,
+            "output_tokens": 102,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005419
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using `||` instead of `??` causes opts.retries=0 to be replaced with 3, breaking the ability to disable retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.441,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 99,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0044505000000000005
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Using || instead of ?? causes opts.retries === 0 to be overridden to 3, breaking the valid use case of disabling retries."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.787,
+            "calls": 1,
+            "input_tokens": 925,
+            "output_tokens": 102,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005424
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using `||` instead of `??` causes a valid `retries: 0` (disable retries) to be incorrectly overridden with the default of 3."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.462,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 103,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045055
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/http/retry.ts",
+              "note": "Using || instead of ?? causes opts.retries=0 to be replaced with the default 3, breaking the valid 'no retries' configuration."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.709,
+            "calls": 1,
+            "input_tokens": 6146,
+            "output_tokens": 103,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045255
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 10
+      }
+    },
+    {
+      "case_id": "29-go-err-shadowed",
+      "title": "Shadowed err makes validation failure invisible",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "The inner `err :=` shadows the outer `err`, so a validate failure is only logged and the invalid record is still sent to s.queue while the function returns nil, silently allowing corrupt/invalid records through instead of rejecting them as before."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.226,
+            "calls": 1,
+            "input_tokens": 6236,
+            "output_tokens": 646,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0127645
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now only logged (and the outer err is shadowed via ':=' so it's never propagated), causing invalid records to be silently enqueued and the function to return nil even when validation fails."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.39,
+            "calls": 1,
+            "input_tokens": 6236,
+            "output_tokens": 380,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008774500000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now only logged (via a shadowed err) and the invalid record is still pushed to s.queue and the function returns nil, silently ingesting invalid records that were previously rejected."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.094,
+            "calls": 1,
+            "input_tokens": 6236,
+            "output_tokens": 436,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009614500000000002
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now only logged (with shadowed err via :=) instead of returned, so invalid records are still queued and Ingest returns nil on validation failure."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.217,
+            "calls": 1,
+            "input_tokens": 1015,
+            "output_tokens": 302,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008776
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now only logged (via a shadowed err) and the invalid record is still pushed to s.queue while the function returns nil, silently letting invalid data flow through instead of being rejected."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.14,
+            "calls": 1,
+            "input_tokens": 6236,
+            "output_tokens": 445,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0097445
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now only logged (via shadowed err) instead of returned, so invalid records are still pushed onto s.queue and the function no longer surfaces validation failures to callers."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.275,
+            "calls": 1,
+            "input_tokens": 1015,
+            "output_tokens": 403,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010291000000000002
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation failure is now only logged, not returned; invalid records are still enqueued via s.queue <- rec and the function returns nil (err is left from the earlier successful Unmarshal), silently accepting bad data."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.283,
+            "calls": 1,
+            "input_tokens": 1015,
+            "output_tokens": 129,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.006181
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now only logged (via shadowed err) and the record is still pushed to the queue, so invalid records are no longer rejected."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "internal/ingest/ingest.go",
+              "note": "The outer err used in the return statement is never set by the validation failure (variable shadowing), so Ingest always returns nil even when validation fails."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.101,
+            "calls": 1,
+            "input_tokens": 6236,
+            "output_tokens": 426,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0094645
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "The inner `err :=` shadows the outer err, so validation failures are only logged and the invalid record is still pushed to s.queue and the function returns nil instead of rejecting it."
+            },
+            {
+              "category": "missing-validation",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Records that fail validate() are no longer rejected; they are enqueued anyway, defeating the purpose of validation."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.511,
+            "calls": 1,
+            "input_tokens": 6236,
+            "output_tokens": 436,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009619500000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "The inner `err :=` shadows the outer `err`, so a validation failure is only logged, not propagated, and the invalid record is still pushed to s.queue while Ingest returns nil (success)."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.455,
+            "calls": 1,
+            "input_tokens": 6236,
+            "output_tokens": 317,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.007829500000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "30-go-loop-var-goroutine",
+      "title": "Goroutines capture the loop variable",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "go.mod still pins go 1.21, so removing `msg := msg` reintroduces the classic loop-variable-capture bug where all goroutines share the same `msg`, causing wrong/duplicate messages to be sent to wrong recipients."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/mailer/batch.go",
+              "note": "No test added to verify each goroutine sends the correct, distinct message, which would have caught the loop-variable capture regression."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.151,
+            "calls": 1,
+            "input_tokens": 1001,
+            "output_tokens": 548,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.012413
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing `msg := msg` while go.mod still targets go1.21 (pre-1.22 loop var semantics) causes all goroutines to share the same loop variable, leading to a data race and duplicate/incorrect messages sent."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.628,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 518,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0108393
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "go.mod still targets go 1.21 (pre-1.22 loop semantics), so removing `msg := msg` reintroduces the classic loop-variable capture bug, causing goroutines to send duplicate/incorrect messages via the shared `msg` variable."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.812,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 415,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0092793
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "go.mod still pins go 1.21, which does not have per-iteration loop variable scoping (that's Go 1.22+), so removing `msg := msg` reintroduces the classic closure-capture bug where all goroutines share the same loop variable and may send the wrong/duplicate message."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.766,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 560,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.011459299999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing `msg := msg` reintroduces the classic loop-variable capture bug since go.mod still targets go1.21 (pre-1.22 loop semantics), so all goroutines may send the same (likely last) message instead of their intended one."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 10.921,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 716,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.013799299999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "go.mod pins go 1.21 (pre-1.22 loop var semantics), so removing `msg := msg` reintroduces the classic closure bug where goroutines share the same loop variable and may all send the same/wrong message."
+            },
+            {
+              "category": "concurrency",
+              "severity": "medium",
+              "file": "internal/mailer/batch.go",
+              "note": "Without per-iteration variable capture, concurrent goroutines read the shared `msg` variable while the loop mutates it, creating a data race in addition to incorrect message content."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.746,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 583,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.011809299999999998
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing `msg := msg` reintroduces the classic loop-variable-capture bug since go.mod still targets go 1.21 (pre-1.22 loop semantics), so all goroutines may send the same (last) message."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.959,
+            "calls": 1,
+            "input_tokens": 1001,
+            "output_tokens": 337,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009257999999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "go.mod still specifies go 1.21, where loop variables are not per-iteration, so removing 'msg := msg' reintroduces the classic loop-capture bug and all goroutines may send the same (likely last) message."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.138,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 389,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0088993
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing 'msg := msg' reintroduces the classic Go loop-variable capture bug since go.mod still targets Go 1.21 (per-iteration variable semantics only changed in Go 1.22), so all goroutines will likely send the same (last) message instead of their intended one."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.958,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 541,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0111743
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "go.mod still targets go 1.21, where loop variables are shared across iterations, so removing `msg := msg` reintroduces a data race where all goroutines may send the same (often last) message instead of their intended one."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "internal/mailer/batch.go",
+              "note": "No test was added to verify each goroutine sends the correct distinct message, which would have caught this loop-variable capture regression."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.348,
+            "calls": 1,
+            "input_tokens": 6222,
+            "output_tokens": 504,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0106193
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 10
+      }
+    },
+    {
+      "case_id": "33-go-mutex-by-value",
+      "title": "Value receiver copies the mutex",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Inc now has a value receiver, so it mutates a copy of Counter (including the embedded sync.Mutex), meaning n++ never affects the original instance and copying a locked Mutex is also unsafe."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.112,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 401,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008964300000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from pointer (*Counter) to value (Counter) means Inc() mutates a copy of the struct, so increments on the caller's Counter are silently lost."
+            },
+            {
+              "category": "concurrency",
+              "severity": "medium",
+              "file": "internal/metrics/counter.go",
+              "note": "Copying Counter (which embeds sync.Mutex) by value violates Go's copy-lock semantics, causing each call to lock/unlock a separate mutex copy and defeating the intended synchronization."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.531,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 222,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0062793
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing Inc from pointer receiver to value receiver means the method operates on a copy of Counter, so increments to n are lost on the original and the mutex is copied (unsafe for sync.Mutex and defeats thread-safety)."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.935,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 134,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0049593
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from pointer (*Counter) to value (Counter) makes Inc() operate on a copy, so increments no longer persist on the original Counter and the mutex is also copied, breaking correctness and mutual exclusion for callers."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.728,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 138,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0050193
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from pointer to value means Inc() mutates a copy of Counter, so the increment to n is lost and the original counter never changes."
+            },
+            {
+              "category": "concurrency",
+              "severity": "medium",
+              "file": "internal/metrics/counter.go",
+              "note": "Counter contains a sync.Mutex, which must not be copied; using a value receiver copies the mutex on every call, violating go vet's copylocks check and risking undefined locking behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.614,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 385,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0087243
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from pointer to value means Inc() increments a copy of the struct, so the counter's actual value never changes."
+            },
+            {
+              "category": "concurrency",
+              "severity": "medium",
+              "file": "internal/metrics/counter.go",
+              "note": "Copying sync.Mutex by value (via value receiver) creates a separate lock per call, defeating mutual exclusion and violating go vet's copylocks check."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.664,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 542,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.011079299999999997
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from pointer (*Counter) to value (Counter) means Inc() now mutates a copy, so c.n++ no longer updates the original Counter and the counter will always stay at 0 for callers."
+            },
+            {
+              "category": "concurrency",
+              "severity": "medium",
+              "file": "internal/metrics/counter.go",
+              "note": "With a value receiver, sync.Mutex is copied on each call, breaking the mutual exclusion guarantee across calls and defeating the purpose of the lock."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.567,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 220,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0062493
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from pointer (*Counter) to value (Counter) means Inc() operates on a copy, so increments to n are lost on the original Counter and mutex copying (from sync.Mutex) is also unsafe/incorrect."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.344,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 137,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0050043
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing Inc to a value receiver means c.n++ mutates a copy, so the counter never actually increments on the original struct."
+            },
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "With a value receiver, sync.Mutex is copied on each call, so locking no longer provides any real mutual exclusion across callers (and go vet would flag copying a mutex)."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.142,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 402,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008979300000000003
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from pointer to value means Inc() mutates a copy of Counter (including its mutex), so the increment is lost on the original and concurrent use of the copied mutex is unsafe."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.769,
+            "calls": 1,
+            "input_tokens": 6142,
+            "output_tokens": 123,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0047943
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 5,
+        "severity_correct_runs": 5
+      }
+    },
+    {
+      "case_id": "36-java-dcl-no-volatile",
+      "title": "Double-checked locking without volatile",
+      "defect": true,
+      "language": "java",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking without a `volatile` instance field is unsafe in Java: another thread can observe a partially constructed ConfigCache due to instruction reordering."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.074,
+            "calls": 1,
+            "input_tokens": 6217,
+            "output_tokens": 183,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0057698
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking without declaring `instance` as `volatile` allows another thread to observe a partially-constructed ConfigCache instance due to instruction reordering."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.563,
+            "calls": 1,
+            "input_tokens": 6217,
+            "output_tokens": 241,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0066448
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking is unsafe here because the 'instance' field is not declared volatile, allowing another thread to observe a partially-constructed ConfigCache due to instruction reordering."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.105,
+            "calls": 1,
+            "input_tokens": 6217,
+            "output_tokens": 450,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0097798
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "medium",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "The lazily-initialized `instance` field is not declared `volatile`, so this double-checked locking pattern is broken under the Java Memory Model and can return a partially-constructed ConfigCache to other threads."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.64,
+            "calls": 1,
+            "input_tokens": 6217,
+            "output_tokens": 507,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0106348
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking without a volatile 'instance' field allows another thread to observe a partially-constructed ConfigCache due to instruction reordering/lack of happens-before guarantee."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.831,
+            "calls": 1,
+            "input_tokens": 6217,
+            "output_tokens": 202,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0060598
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking on a non-volatile 'instance' field is broken by the JMM: another thread can observe a partially-constructed ConfigCache due to instruction reordering; the field must be declared volatile."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.965,
+            "calls": 1,
+            "input_tokens": 996,
+            "output_tokens": 226,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.007545
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking without a volatile 'instance' field can allow another thread to observe a partially constructed ConfigCache due to instruction reordering."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.634,
+            "calls": 1,
+            "input_tokens": 996,
+            "output_tokens": 208,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0072699999999999996
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking on a non-volatile 'instance' field is unsafe under the Java Memory Model and can allow other threads to observe a partially-constructed ConfigCache instance."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.491,
+            "calls": 1,
+            "input_tokens": 6217,
+            "output_tokens": 304,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0075898
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking without `volatile` on `instance` allows other threads to observe a partially constructed ConfigCache due to instruction reordering."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.679,
+            "calls": 1,
+            "input_tokens": 996,
+            "output_tokens": 234,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.00766
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "Double-checked locking is broken because 'instance' is not declared volatile, allowing another thread to observe a partially-constructed ConfigCache due to instruction reordering."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.606,
+            "calls": 1,
+            "input_tokens": 6217,
+            "output_tokens": 244,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0067048
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 10
+      }
+    },
+    {
+      "case_id": "39-rust-u16-truncation",
+      "title": "Chunk length silently truncated to u16",
+      "defect": true,
+      "language": "rust",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload length via `as u16 as u32` silently truncates lengths above 65535 instead of erroring, causing frames to advertise a wrong (wrapped) length and corrupt data instead of failing fast."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.57,
+            "calls": 1,
+            "input_tokens": 920,
+            "output_tokens": 128,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0057940000000000005
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload length to u16 before u32 silently truncates lengths above 65535 instead of erroring, causing corrupted/mismatched frame headers for large payloads."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.663,
+            "calls": 1,
+            "input_tokens": 6141,
+            "output_tokens": 114,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0046689999999999995
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload.len() through u16 silently truncates any payload larger than 65535 bytes instead of erroring, producing an incorrect header length and corrupting the frame rather than failing loudly as before."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.183,
+            "calls": 1,
+            "input_tokens": 6141,
+            "output_tokens": 241,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.006574
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Replacing the checked u32::try_from with `as u16 as u32` silently truncates payload lengths above 65535, producing a header length that no longer matches the actual payload size instead of failing loudly."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.912,
+            "calls": 1,
+            "input_tokens": 6141,
+            "output_tokens": 284,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.007219
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload.len() through u16 silently truncates lengths above 65535 instead of erroring, producing a header with an incorrect length that will corrupt the wire format."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.177,
+            "calls": 1,
+            "input_tokens": 920,
+            "output_tokens": 113,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005569000000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Replacing the explicit u32::try_from (which panics on oversized payloads) with `as u16 as u32` silently truncates any payload length above 65535, producing a header with a wrong length instead of failing, which will corrupt framing for large payloads."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.99,
+            "calls": 1,
+            "input_tokens": 6141,
+            "output_tokens": 375,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008584
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Replacing the checked u32::try_from with `as u16 as u32` silently truncates payload lengths above 65535 instead of panicking, causing the header length to mismatch the actual payload size and corrupting the frame/protocol stream."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.036,
+            "calls": 1,
+            "input_tokens": 6141,
+            "output_tokens": 350,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008209000000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload.len() through u16 silently truncates lengths greater than 65535, causing the header to report an incorrect length instead of erroring as before."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.655,
+            "calls": 1,
+            "input_tokens": 6141,
+            "output_tokens": 107,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004564
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload.len() to u16 silently truncates lengths above 65535 instead of erroring, causing header.len to mismatch actual payload size for large chunks."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.005,
+            "calls": 1,
+            "input_tokens": 920,
+            "output_tokens": 112,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005554
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload length to u16 before back to u32 silently truncates lengths above 65535 instead of erroring, causing corrupted/misleading frame headers for large payloads."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.727,
+            "calls": 1,
+            "input_tokens": 6141,
+            "output_tokens": 115,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.004684
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 10
+      }
+    },
+    {
+      "case_id": "47-py-mktemp-race",
+      "title": "Predictable temp path replaces NamedTemporaryFile",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp is deprecated/insecure due to a TOCTOU race between name generation and file creation, unlike NamedTemporaryFile which creates the file atomically."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.102,
+            "calls": 1,
+            "input_tokens": 965,
+            "output_tokens": 115,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005776
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "Replacing tempfile.NamedTemporaryFile with tempfile.mktemp introduces a race condition/TOCTOU: mktemp only generates a name without creating the file, so another process could create a file at that path before it's opened, and the Python docs explicitly warn against its use due to this security risk."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.521,
+            "calls": 1,
+            "input_tokens": 6186,
+            "output_tokens": 153,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0053095
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "Using tempfile.mktemp() is documented as insecure due to a race condition between name generation and file creation (a TOCTOU vulnerability allowing symlink/pre-creation attacks), and its own docs recommend NamedTemporaryFile with delete=False instead."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.873,
+            "calls": 1,
+            "input_tokens": 6186,
+            "output_tokens": 144,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005174499999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp() is documented as insecure due to a race condition between name generation and file creation (TOCTOU), which the original NamedTemporaryFile approach avoided."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.218,
+            "calls": 1,
+            "input_tokens": 6186,
+            "output_tokens": 114,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0047244999999999995
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp is documented as insecure (race condition between name generation and file creation, TOCTOU vulnerability) and should be replaced with NamedTemporaryFile as before."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.198,
+            "calls": 1,
+            "input_tokens": 965,
+            "output_tokens": 117,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0058059999999999995
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp is documented as insecure (race condition between name generation and file creation, allowing symlink/pre-creation attacks) and is deprecated in favor of NamedTemporaryFile/mkstemp."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.709,
+            "calls": 1,
+            "input_tokens": 6186,
+            "output_tokens": 128,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0049345
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp() is documented as insecure due to a race condition between name generation and file creation (TOCTOU), unlike NamedTemporaryFile which creates the file atomically."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.901,
+            "calls": 1,
+            "input_tokens": 6186,
+            "output_tokens": 117,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0047694999999999994
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp is documented as insecure (race condition between name generation and file creation, susceptible to symlink/TOCTOU attacks and predictable-name collisions) and should not replace NamedTemporaryFile."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.413,
+            "calls": 1,
+            "input_tokens": 965,
+            "output_tokens": 129,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005986
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp() is documented as insecure (race condition between name generation and file creation, allowing symlink/TOCTOU attacks or file collisions) and should be replaced with NamedTemporaryFile as before."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.123,
+            "calls": 1,
+            "input_tokens": 965,
+            "output_tokens": 128,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.005971
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/export/csvdump.py",
+              "note": "tempfile.mktemp() is documented as insecure due to a race condition between name generation and file creation (TOCTOU), unlike NamedTemporaryFile which creates the file atomically."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.678,
+            "calls": 1,
+            "input_tokens": 6186,
+            "output_tokens": 117,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0047694999999999994
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "49-xfile-swapped-args",
+      "title": "Reordered parameters, one caller not updated",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee signature was swapped to (rate, amount) but charge.py still calls calculate_fee(order.total, rate), passing amount as rate and rate as amount, causing incorrect fee/charge amounts."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests were added or updated to cover the calculate_fee argument order change or the new MAX_RATE validation, which would have caught the charge.py regression."
+            },
+            {
+              "category": "missing-validation",
+              "severity": "low",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not shown as defined or imported in this diff, risking a NameError if it isn't declared elsewhere in the file."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 8.481,
+            "calls": 1,
+            "input_tokens": 6422,
+            "output_tokens": 703,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.013789299999999997
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee's parameter order was swapped to (rate, amount) but this call site still passes (order.total, rate), so rate and amount are now reversed, corrupting fee/charge calculations."
+            },
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but never defined or imported in this module, which will raise a NameError whenever calculate_fee is called."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 10.084,
+            "calls": 1,
+            "input_tokens": 6422,
+            "output_tokens": 832,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0157293
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee's signature was swapped to (rate, amount) but this call site still passes (order.total, rate), so the rate and amount are inverted, corrupting the charged amount."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 8.147,
+            "calls": 1,
+            "input_tokens": 1201,
+            "output_tokens": 639,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.011262999999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee signature was changed to (rate, amount) but this call site still passes (order.total, rate), silently swapping rate and amount and producing incorrect charges in production checkout flow."
+            },
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not defined or imported in the shown diff, risking a NameError unless it is guaranteed to exist elsewhere in the file."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests were added or updated to cover the parameter reordering of calculate_fee or the new rate cap validation, which would have caught the charge.py argument-swap bug."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 10.199,
+            "calls": 1,
+            "input_tokens": 6422,
+            "output_tokens": 781,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.014964299999999998
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee's parameter order was swapped to (rate, amount) but this call site still passes (order.total, rate), silently swapping amount and rate and corrupting fee/charge calculations."
+            },
+            {
+              "category": "api-misuse",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not defined or imported anywhere in the shown diff, risking a NameError at runtime."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests were added or updated to cover the parameter reorder, the new MAX_RATE validation, or the now-inconsistent call in charge.py."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.068,
+            "calls": 1,
+            "input_tokens": 6422,
+            "output_tokens": 729,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.014179299999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee signature was reordered to (rate, amount) but this call site still passes (order.total, rate), swapping rate and amount and silently miscalculating fees/charges."
+            },
+            {
+              "category": "api-misuse",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not defined or imported in this file, likely causing a NameError unless it's defined elsewhere not shown in the diff."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.097,
+            "calls": 1,
+            "input_tokens": 6422,
+            "output_tokens": 478,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010419300000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee call still passes (order.total, rate) but the function signature is now (rate, amount), so the arguments are swapped and the fee/charge amount will be wrong."
+            },
+            {
+              "category": "api-misuse",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not defined or imported in this file, which will raise a NameError at runtime."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests were added or updated to cover the new rate-cap validation or the parameter-order change, which would have caught the charge.py argument-swap bug."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.941,
+            "calls": 1,
+            "input_tokens": 6422,
+            "output_tokens": 849,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0159793
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee call still passes (order.total, rate) but the function signature was changed to (rate, amount), silently swapping arguments and producing wrong fees/charges."
+            },
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but never defined or imported in this file, causing a NameError whenever calculate_fee is called."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": null,
+              "note": "No tests were added/updated to cover the parameter reorder or the new MAX_RATE validation, which would have caught the mismatched call in charge.py."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 10.077,
+            "calls": 1,
+            "input_tokens": 1201,
+            "output_tokens": 678,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.011857999999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee is now (rate, amount) but this call still passes (order.total, rate), swapping the arguments and miscalculating checkout fees."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not defined or imported in this file, which will raise NameError at runtime."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 8.951,
+            "calls": 1,
+            "input_tokens": 1201,
+            "output_tokens": 580,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010377999999999998
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "calculate_fee signature was swapped to (rate, amount) but this call site still passes (order.total, rate), silently swapping the arguments and corrupting fee/charge calculations."
+            },
+            {
+              "category": "api-misuse",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not defined or imported in this file, which will raise a NameError at runtime."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.683,
+            "calls": 1,
+            "input_tokens": 6422,
+            "output_tokens": 387,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0090493
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 5
+      }
+    },
+    {
+      "case_id": "50-xfile-config-key-rename",
+      "title": "Config key renamed, code reads the old one",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed to request_timeout_seconds but client.py still reads the old key request_timeout_s, causing timeout to silently default to 0."
+            },
+            {
+              "category": "unsafe-default",
+              "severity": "medium",
+              "file": "src/sync/client.py",
+              "note": "Defaulting to 0 for a request timeout is a risky fallback that could cause immediate timeouts or, depending on the HTTP library, disable timeout entirely."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.573,
+            "calls": 1,
+            "input_tokens": 1002,
+            "output_tokens": 200,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.007181
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed to request_timeout_seconds in defaults.yaml but client.py still reads the old request_timeout_s key with a default of 0, so timeout silently becomes 0 instead of 15."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": null,
+              "note": "No test verifies that SyncClient.timeout is correctly populated from config, which would have caught the key rename mismatch."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.947,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 635,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0125896
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed to request_timeout_seconds in defaults.yaml but client.py still reads request_timeout_s with a silent default of 0, so self.timeout will always be 0 instead of 15."
+            },
+            {
+              "category": "unsafe-default",
+              "severity": "medium",
+              "file": "src/sync/client.py",
+              "note": "Using .get() with a default of 0 for a required timeout value silently masks the missing/renamed key instead of failing fast, risking requests with no or immediate timeout depending on the HTTP client semantics."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 8.685,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 587,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.011854599999999998
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed from request_timeout_s to request_timeout_seconds in defaults.yaml, but client.py still reads the old key with a silent .get(..., 0) fallback, so timeout will now always be 0 instead of 15."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.838,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 500,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010549600000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "defaults.yaml renamed the key to request_timeout_seconds but client.py still reads the old request_timeout_s key with a silent default of 0, so self.timeout will always be 0 in normal configs."
+            },
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "src/sync/client.py",
+              "note": "Falling back to a default of 0 instead of raising on a missing/renamed config key silently produces an invalid timeout instead of failing fast."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.877,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 472,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0101446
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed to request_timeout_seconds in defaults.yaml but client.py still reads the old request_timeout_s key with a silent fallback of 0, so timeout will always be 0 in production."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.235,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 382,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0087896
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "config/defaults.yaml renames request_timeout_s to request_timeout_seconds but client.py still reads the old key via .get(..., 0), so timeout silently becomes 0 instead of 15."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.27,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 508,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.010669600000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed to request_timeout_seconds in defaults.yaml but client.py still reads the old key request_timeout_s via .get with a silent default of 0, causing all requests to use a 0-second timeout without any error."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.855,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 437,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009614600000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed to request_timeout_seconds but client.py still reads the old request_timeout_s key with a silent default of 0, so timeout will always resolve to 0 instead of 15 and the mismatch won't be caught."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.111,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 398,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0090346
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "Config key was renamed to request_timeout_seconds but client.py still reads the old request_timeout_s key with a silent default of 0, so self.timeout will always be 0 instead of 15."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 5.274,
+            "calls": 1,
+            "input_tokens": 6223,
+            "output_tokens": 315,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.007779600000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 10
+      }
+    },
+    {
+      "case_id": "51-xfile-not-null-migration",
+      "title": "NOT NULL column added, insert path never sets it",
+      "defect": true,
+      "language": "sql",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column with no DEFAULT will fail the migration on any existing rows in suppliers."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "insert() still doesn't set contact_email, so every insert will violate the new NOT NULL constraint."
+            },
+            {
+              "category": "missing-validation",
+              "severity": "low",
+              "file": "src/models/supplier.py",
+              "note": "self.region.upper() will raise AttributeError if region is None, a case not previously guarded against."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.258,
+            "calls": 1,
+            "input_tokens": 6253,
+            "output_tokens": 703,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.013600599999999997
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column without a DEFAULT will fail the migration if the suppliers table already has rows."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "critical",
+              "file": "src/models/supplier.py",
+              "note": "insert() still only supplies name and region; since contact_email is now NOT NULL with no default, every insert will violate the constraint and fail."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 8.624,
+            "calls": 1,
+            "input_tokens": 1032,
+            "output_tokens": 701,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.017886
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column with no DEFAULT to an existing suppliers table will fail on any pre-existing rows, breaking the migration."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "insert() still only supplies name and region, so after the migration adds contact_email as NOT NULL, every insert will violate the constraint."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/models/supplier.py",
+              "note": "self.region.upper() will raise AttributeError if region is None, an unguarded behavior change unrelated to the stated email-column purpose of the diff."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 10.05,
+            "calls": 1,
+            "input_tokens": 6253,
+            "output_tokens": 824,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.015415599999999998
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column with no DEFAULT to an existing table will fail (or leave undefined values) for any pre-existing rows."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "insert() still omits contact_email from the INSERT statement, so every insert will now violate the new NOT NULL constraint."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/models/supplier.py",
+              "note": "self.region.upper() will raise AttributeError if region is None, a case not previously guarded against."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": null,
+              "note": "No tests were added/updated to cover the new NOT NULL column or the region.upper() behavior change."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.344,
+            "calls": 1,
+            "input_tokens": 6253,
+            "output_tokens": 764,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.014515599999999998
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "critical",
+              "file": "src/models/supplier.py",
+              "note": "insert() still only inserts name and region, but the new migration makes contact_email NOT NULL with no default, so every insert will fail after this migration is applied."
+            },
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column without a DEFAULT will fail on any existing rows in the suppliers table during migration."
+            },
+            {
+              "category": "logic-error",
+              "severity": "low",
+              "file": "src/models/supplier.py",
+              "note": "region.upper() will raise AttributeError if self.region is None, which wasn't a concern before this change."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 9.159,
+            "calls": 1,
+            "input_tokens": 6253,
+            "output_tokens": 772,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.014635599999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "unsafe-default",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column with no DEFAULT to an existing table will fail on any pre-existing rows and lacks a backfill strategy."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "Migration adds a required contact_email column but the insert statement was not updated to include contact_email, so inserts will violate the NOT NULL constraint."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.557,
+            "calls": 1,
+            "input_tokens": 1032,
+            "output_tokens": 200,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0044992999999999995
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "unsafe-default",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column with no DEFAULT to an existing table will fail on any pre-existing rows (or leave contact_email unset in insert path), causing migration/runtime failure."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "New contact_email column is NOT NULL but insert() was not updated to supply it, so all inserts will violate the NOT NULL constraint."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.153,
+            "calls": 1,
+            "input_tokens": 1032,
+            "output_tokens": 214,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0047043
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "The suppliers table now has a NOT NULL contact_email column but insert() never supplies it, so every insert will fail."
+            },
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column without a DEFAULT will fail on any existing rows in the suppliers table."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/models/supplier.py",
+              "note": "Calling self.region.upper() will raise AttributeError if region is None, which was previously allowed."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 6.582,
+            "calls": 1,
+            "input_tokens": 1032,
+            "output_tokens": 545,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.009669299999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "unsafe-default",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column without a DEFAULT will fail the migration on any suppliers table that already has rows."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "The insert() method still omits contact_email, so every insert will violate the new NOT NULL constraint and fail at runtime."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": null,
+              "note": "No tests were added or updated to cover the new required contact_email column or the changed insert behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 14.818,
+            "calls": 1,
+            "input_tokens": 6253,
+            "output_tokens": 1280,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.022260600000000002
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column without a DEFAULT will fail on migration if the suppliers table already has rows."
+            },
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "insert() was not updated to supply contact_email, so INSERT will violate the new NOT NULL constraint and fail at runtime."
+            },
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "src/models/supplier.py",
+              "note": "self.region.upper() will raise AttributeError if region is None, which was previously allowed by the unchanged insert logic."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 7.233,
+            "calls": 1,
+            "input_tokens": 6253,
+            "output_tokens": 563,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.011505600000000001
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 10,
+        "severity_correct_runs": 8
+      }
+    },
+    {
+      "case_id": "52-xfile-weaker-decorator",
+      "title": "Admin route switched to login-only decorator",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user is downgraded from require_admin to require_login, allowing any authenticated (non-admin) user to delete users."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.608,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 98,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0033549
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user was downgraded from require_admin to require_login, allowing any authenticated non-admin user to delete users."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.459,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 96,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045409
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user now only requires a logged-in user instead of an admin, allowing any authenticated user to delete accounts via a destructive admin-only operation."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.517,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 108,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0047259
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 4,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user was changed from require_admin to require_login, allowing any authenticated (non-admin) user to delete users."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.517,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 97,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045658999999999995
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 5,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user now only requires login (require_login) instead of admin privileges (require_admin), allowing any authenticated user to delete other users."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 4.119,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 159,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0054959
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 6,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user now only requires an authenticated user instead of an admin, allowing any logged-in user to delete accounts."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.494,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 96,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045509
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 7,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user now only requires a logged-in user instead of an admin, allowing any authenticated user to delete accounts."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.14,
+            "calls": 1,
+            "input_tokens": 1053,
+            "output_tokens": 97,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.008990999999999999
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 8,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user now only requires a logged-in user instead of an admin, letting any authenticated user delete accounts."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.524,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 97,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0045658999999999995
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 9,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user now only requires an authenticated user instead of an admin, allowing any logged-in user to delete other users."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 2.792,
+            "calls": 1,
+            "input_tokens": 1053,
+            "output_tokens": 96,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0029896
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 10,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "delete_user was downgraded from require_admin to require_login, allowing any authenticated (non-admin) user to delete other users."
+            }
+          ],
+          "metrics": {
+            "backend": "claude",
+            "model": "claude-sonnet-5",
+            "latency_seconds": 3.7,
+            "calls": 1,
+            "input_tokens": 6274,
+            "output_tokens": 99,
+            "local_execution_seconds": null,
+            "external_service_required": true,
+            "external_cost": "measured (claude --output-format json)",
+            "external_cost_usd": 0.0046009
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 10,
+        "ok_runs": 10,
+        "error_runs": 0,
+        "detected_runs": 10,
+        "category_correct_runs": 5,
+        "severity_correct_runs": 5
+      }
+    }
+  ],
+  "summary": {
+    "cases": 120,
+    "errors": 0,
+    "defect_cases": 120,
+    "clean_cases": 0,
+    "detected": 120,
+    "missed": 0,
+    "false_positives": 0,
+    "category_correct": 90,
+    "severity_correct": 83,
+    "mean_latency_seconds": 5.845,
+    "min_latency_seconds": 2.758,
+    "max_latency_seconds": 14.818,
+    "total_input_tokens": 557634,
+    "total_output_tokens": 41485,
+    "external_cost": [
+      "measured (claude --output-format json)"
+    ],
+    "total_external_cost_usd": 1.009714,
+    "consistency": {
+      "defect_cases_always_detected": 12,
+      "defect_cases_sometimes_detected": 0,
+      "defect_cases_never_detected": 0,
+      "clean_cases_ever_false_positive": 0,
+      "cases_with_errors": 0
+    },
+    "runs_per_case": 10
+  }
+}

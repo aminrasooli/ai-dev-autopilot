@@ -1,0 +1,37 @@
+{
+  "benchmark_version": 2,
+  "id": "24-js-interval-never-cleared",
+  "title": "Polling interval leaks per mount",
+  "language": "javascript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/components/StatusWidget.js"
+  ],
+  "diff": [
+    "--- a/src/components/StatusWidget.js",
+    "+++ b/src/components/StatusWidget.js",
+    "@@ -8,13 +8,10 @@ export function StatusWidget({ jobId }) {",
+    "   useEffect(() => {",
+    "-    const timer = setInterval(() => refresh(jobId), 5000);",
+    "-    return () => clearInterval(timer);",
+    "+    setInterval(() => refresh(jobId), 5000);",
+    "   }, [jobId]);",
+    "",
+    "   return html`<div class=\"status\">${status}</div>`;",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "resource-leak",
+    "severity": [
+      "low",
+      "medium"
+    ],
+    "explanation": "The polling setInterval is started on every mount but the cleanup that cleared it was removed, so intervals accumulate and keep firing after unmount."
+  },
+  "difficulty": "moderate"
+}

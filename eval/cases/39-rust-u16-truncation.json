@@ -1,0 +1,37 @@
+{
+  "benchmark_version": 2,
+  "id": "39-rust-u16-truncation",
+  "title": "Chunk length silently truncated to u16",
+  "language": "rust",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/proto/frame.rs"
+  ],
+  "diff": [
+    "--- a/src/proto/frame.rs",
+    "+++ b/src/proto/frame.rs",
+    "@@ -8,9 +8,9 @@ impl Frame {",
+    "     pub fn header(&self) -> Header {",
+    "         Header {",
+    "             kind: self.kind,",
+    "-            len: u32::try_from(self.payload.len()).expect(\"chunk too large\"),",
+    "+            len: self.payload.len() as u16 as u32,",
+    "         }",
+    "     }",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "data-corruption",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Casting the chunk length with `as u16` silently truncates values above 65535, corrupting the length header for large chunks."
+  },
+  "difficulty": "subtle"
+}

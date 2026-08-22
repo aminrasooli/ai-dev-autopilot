@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "01-obvious-off-by-one",
   "title": "Loop bound overruns the list",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/report.py"
+  ],
   "diff": [
     "--- a/src/report.py",
     "+++ b/src/report.py",
@@ -18,5 +28,6 @@
       "high"
     ],
     "explanation": "The +1 makes the loop index one past the end, raising IndexError whenever count >= len(entries)."
-  }
+  },
+  "difficulty": "obvious-local"
 }

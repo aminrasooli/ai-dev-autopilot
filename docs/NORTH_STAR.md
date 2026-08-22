@@ -13,8 +13,53 @@ production tree should stay small.
 
 A single, narrow wedge: an independent code reviewer that can run against
 Codex (default, unchanged) or a local model through Ollama, selected by
-configuration, with a shared prompt/output contract and a seeded-defect
-evaluation harness that scores both identically. See `reviewer/`.
+configuration, with a shared prompt/output contract and a versioned
+seeded-defect benchmark (`eval/`, methodology in
+`docs/BENCHMARK_METHODOLOGY.md`) that scores every backend identically.
+See `reviewer/`.
+
+## The human moves up the hierarchy (operating-model requirement)
+
+Unlike the deferred architecture below, this section is a standing
+*product requirement* that already governs how work on this repository
+is run: the human operator sets direction, and stops being the message
+bus.
+
+The intended operating model:
+
+- The human gives direction roughly **1–3 times per day** — charters,
+  consequential decisions, gate authorizations — not continuous
+  supervision.
+- Agents execute, test, review, retry, and hand work to each other
+  through **persistent, machine-readable artifacts** (charters, reports,
+  git state), never by the human copying output between terminals,
+  chats, or reviewers. The handoff contract lives in
+  [`docs/HANDOFF.md`](HANDOFF.md).
+- Human-only gates are **batched**, not scattered: an autonomous block
+  finishes with one consolidated list of everything that needs a human,
+  each item carrying the exact action, the reason, and the risk.
+- Routine implementation, testing, review, and retries proceed
+  autonomously *within an approved charter's scope*.
+
+**Metric: Human Operator Touches per day.** A touch is a meaningful
+human interaction that the system required in order to proceed:
+
+- counts: a new direction/charter, a consequential architecture or
+  product decision, a merge authorization, a secret/passphrase action, a
+  privileged system action, a publication authorization
+- does not count: passive status notifications, agent-to-agent handoffs
+  through artifacts, CI runs, internal retries, agents reading prior
+  reports/state
+
+Target: **≤3 meaningful touches per day.** Current baseline: not yet
+measured — no historical numbers are claimed; measurement starts when
+the recording convention in `docs/HANDOFF.md` is actually used.
+
+The governing principle: **reduce touch frequency, never remove
+accountability.** Gates that stay human — merge to main, secrets,
+privileged system changes, external publication, unusual spend,
+direction changes — are kept *because* everything routine no longer
+needs a human, which is what makes the remaining touches meaningful.
 
 ## Deferred vision
 

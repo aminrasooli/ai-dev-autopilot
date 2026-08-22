@@ -1,0 +1,39 @@
+{
+  "benchmark_version": 2,
+  "id": "44-py-mutable-default-arg",
+  "title": "Accumulator default is a shared list",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/orders/build.py"
+  ],
+  "diff": [
+    "--- a/src/orders/build.py",
+    "+++ b/src/orders/build.py",
+    "@@ -1,8 +1,7 @@",
+    "-def build_order(customer, lines=None):",
+    "-    if lines is None:",
+    "-        lines = []",
+    "+def build_order(customer, lines=[]):",
+    "     for item in customer.cart:",
+    "         lines.append(to_line(item))",
+    "     return Order(customer=customer.id, lines=lines)"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "logic-error",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The mutable default argument is shared across calls, so line items from one order leak into every later order built without an explicit list.",
+    "accepted_categories": [
+      "unsafe-default"
+    ]
+  },
+  "difficulty": "moderate"
+}

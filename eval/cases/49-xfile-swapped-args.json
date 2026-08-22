@@ -1,0 +1,57 @@
+{
+  "benchmark_version": 2,
+  "id": "49-xfile-swapped-args",
+  "title": "Reordered parameters, one caller not updated",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/billing/fees.py",
+    "src/checkout/charge.py",
+    "src/reports/monthly.py"
+  ],
+  "diff": [
+    "--- a/src/billing/fees.py",
+    "+++ b/src/billing/fees.py",
+    "@@ -1,8 +1,10 @@",
+    "-def calculate_fee(amount, rate):",
+    "+def calculate_fee(rate, amount):",
+    "     \"\"\"Fee in cents for a given amount at the supplied rate.\"\"\"",
+    "+    if rate > MAX_RATE:",
+    "+        raise ValueError(f\"fee rate {rate} exceeds the cap\")",
+    "     return int(amount * rate)",
+    "--- a/src/reports/monthly.py",
+    "+++ b/src/reports/monthly.py",
+    "@@ -12,7 +12,7 @@ def fee_line(entry):",
+    "-    fee = calculate_fee(entry.amount, entry.rate)",
+    "+    fee = calculate_fee(entry.rate, entry.amount)",
+    "     return f\"fee: {fee}\"",
+    "--- a/src/checkout/charge.py",
+    "+++ b/src/checkout/charge.py",
+    "@@ -20,7 +20,7 @@ def charge(order):",
+    "     rate = lookup_rate(order.region)",
+    "-    fee = calculate_fee(order.total, rate)",
+    "+    fee = calculate_fee(order.total, rate)  # TODO: audit fee rounding",
+    "     amount = order.total + fee",
+    "     return gateway.charge(order.id, amount)"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "contract-mismatch",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "calculate_fee's parameters were reordered and the reports caller was updated, but the checkout caller still passes (amount, rate): the order total is now bound to rate, so every charge raises ValueError against the rate cap.",
+    "accepted_categories": [
+      "logic-error"
+    ]
+  },
+  "tags": [
+    "true-cross-file"
+  ],
+  "difficulty": "cross-file"
+}

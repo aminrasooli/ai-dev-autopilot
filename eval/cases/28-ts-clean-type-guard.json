@@ -1,0 +1,34 @@
+{
+  "benchmark_version": 2,
+  "id": "28-ts-clean-type-guard",
+  "title": "Clean: type guard extracted, behavior identical",
+  "language": "typescript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/events/parse.ts"
+  ],
+  "diff": [
+    "--- a/src/events/parse.ts",
+    "+++ b/src/events/parse.ts",
+    "@@ -1,10 +1,14 @@",
+    "+function isUserEvent(e: unknown): e is UserEvent {",
+    "+  return typeof e === \"object\" && e !== null && \"userId\" in e;",
+    "+}",
+    "+",
+    " export function parseEvent(raw: unknown): UserEvent | null {",
+    "-  if (typeof raw === \"object\" && raw !== null && \"userId\" in raw) {",
+    "+  if (isUserEvent(raw)) {",
+    "     return raw as UserEvent;",
+    "   }",
+    "   return null;",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "An inline typeof check is extracted into a named type-guard function with identical semantics; nothing to report."
+  }
+}

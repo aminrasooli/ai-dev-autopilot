@@ -1,6 +1,16 @@
 {
+  "benchmark_version": 2,
   "id": "11-misleading-test",
   "title": "Test mocks the function under test",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "tests/test_totals.py"
+  ],
   "diff": [
     "--- a/tests/test_totals.py",
     "+++ b/tests/test_totals.py",
@@ -20,5 +30,6 @@
       "high"
     ],
     "explanation": "The test now patches order_total itself, so it asserts the mock returns the mock's value and passes whatever the real code does."
-  }
+  },
+  "difficulty": "moderate"
 }

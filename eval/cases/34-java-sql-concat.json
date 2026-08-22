@@ -1,0 +1,43 @@
+{
+  "benchmark_version": 2,
+  "id": "34-java-sql-concat",
+  "title": "Prepared statement replaced by concatenation",
+  "language": "java",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/main/java/app/OrderDao.java"
+  ],
+  "diff": [
+    "--- a/src/main/java/app/OrderDao.java",
+    "+++ b/src/main/java/app/OrderDao.java",
+    "@@ -20,13 +20,10 @@ public class OrderDao {",
+    "     public List<Order> findByCustomer(String name) throws SQLException {",
+    "-        String sql = \"SELECT id, total FROM orders WHERE customer = ?\";",
+    "-        try (PreparedStatement ps = conn.prepareStatement(sql)) {",
+    "-            ps.setString(1, name);",
+    "-            try (ResultSet rs = ps.executeQuery()) {",
+    "-                return mapOrders(rs);",
+    "-            }",
+    "+        String sql = \"SELECT id, total FROM orders WHERE customer = '\" + name + \"'\";",
+    "+        try (Statement st = conn.createStatement();",
+    "+             ResultSet rs = st.executeQuery(sql)) {",
+    "+            return mapOrders(rs);",
+    "         }",
+    "     }",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "sql-injection",
+    "severity": [
+      "high",
+      "critical"
+    ],
+    "explanation": "The parameterized query is replaced by string concatenation of a caller-supplied value, allowing SQL injection through the customer name."
+  },
+  "difficulty": "obvious-local"
+}

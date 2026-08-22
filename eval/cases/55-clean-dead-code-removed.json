@@ -1,0 +1,36 @@
+{
+  "benchmark_version": 2,
+  "id": "55-clean-dead-code-removed",
+  "title": "Clean: unreachable legacy branch deleted",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/render/receipt.py"
+  ],
+  "diff": [
+    "--- a/src/render/receipt.py",
+    "+++ b/src/render/receipt.py",
+    "@@ -1,17 +1,10 @@",
+    "-LEGACY_TEMPLATE = False  # hardcoded off since the v2 rollout finished",
+    "-",
+    " def render_receipt(order):",
+    "-    if LEGACY_TEMPLATE:",
+    "-        lines = [f\"RECEIPT #{order.id}\"]",
+    "-        for item in order.items:",
+    "-            lines.append(f\"  {item.name} x{item.qty}\")",
+    "-        return \"\\n\".join(lines)",
+    "     return TEMPLATE_V2.render(",
+    "         order_id=order.id,",
+    "         items=order.items,",
+    "         total=order.total,",
+    "     )"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "The deleted branch is guarded by a feature flag that the same diff shows was hardcoded False; removing provably dead code changes no behavior, and intentional deletion is not itself a defect."
+  }
+}

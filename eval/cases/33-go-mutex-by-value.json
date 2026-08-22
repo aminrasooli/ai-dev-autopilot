@@ -1,0 +1,42 @@
+{
+  "benchmark_version": 2,
+  "id": "33-go-mutex-by-value",
+  "title": "Value receiver copies the mutex",
+  "language": "go",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "internal/metrics/counter.go"
+  ],
+  "diff": [
+    "--- a/internal/metrics/counter.go",
+    "+++ b/internal/metrics/counter.go",
+    "@@ -7,9 +7,9 @@ type Counter struct {",
+    " \tmu sync.Mutex",
+    " \tn  int64",
+    " }",
+    "",
+    "-func (c *Counter) Inc() {",
+    "+func (c Counter) Inc() {",
+    " \tc.mu.Lock()",
+    " \tdefer c.mu.Unlock()",
+    " \tc.n++",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "api-misuse",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The value receiver copies the struct \u2014 and its embedded sync.Mutex \u2014 on every call, so Lock() guards a throwaway copy and c.n++ mutates that copy: the counter never increments at all.",
+    "accepted_categories": [
+      "concurrency"
+    ]
+  },
+  "difficulty": "subtle"
+}

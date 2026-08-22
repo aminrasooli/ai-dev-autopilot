@@ -1,0 +1,42 @@
+{
+  "benchmark_version": 2,
+  "id": "29-go-err-shadowed",
+  "title": "Shadowed err makes validation failure invisible",
+  "language": "go",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "internal/ingest/ingest.go"
+  ],
+  "diff": [
+    "--- a/internal/ingest/ingest.go",
+    "+++ b/internal/ingest/ingest.go",
+    "@@ -14,12 +14,13 @@ func (s *Service) Ingest(payload []byte) error {",
+    " \tvar err error",
+    " \trec := new(Record)",
+    " \tif err = json.Unmarshal(payload, rec); err != nil {",
+    " \t\treturn fmt.Errorf(\"decode: %w\", err)",
+    " \t}",
+    "-\tif err = s.validate(rec); err != nil {",
+    "-\t\treturn fmt.Errorf(\"validate: %w\", err)",
+    "+\tif err := s.validate(rec); err != nil {",
+    "+\t\tlog.Printf(\"validate: %v\", err)",
+    " \t}",
+    " \ts.queue <- rec",
+    " \treturn err",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "error-handling",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The := inside the if-block shadows the outer err, so the validation error is checked locally but the function returns the outer nil err, letting invalid payloads through."
+  },
+  "difficulty": "subtle"
+}

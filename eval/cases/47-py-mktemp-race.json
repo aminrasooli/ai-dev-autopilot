@@ -1,0 +1,42 @@
+{
+  "benchmark_version": 2,
+  "id": "47-py-mktemp-race",
+  "title": "Predictable temp path replaces NamedTemporaryFile",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/export/csvdump.py"
+  ],
+  "diff": [
+    "--- a/src/export/csvdump.py",
+    "+++ b/src/export/csvdump.py",
+    "@@ -3,11 +3,11 @@ import tempfile",
+    "",
+    " def dump_rows(rows):",
+    "-    with tempfile.NamedTemporaryFile(",
+    "-            mode=\"w\", suffix=\".csv\", delete=False) as fh:",
+    "-        write_csv(fh, rows)",
+    "-        return fh.name",
+    "+    path = tempfile.mktemp(suffix=\".csv\")",
+    "+    with open(path, \"w\") as fh:",
+    "+        write_csv(fh, rows)",
+    "+    return path"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "api-misuse",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "tempfile.mktemp returns a name without creating the file, a TOCTOU window in which another local process can pre-create or symlink the path.",
+    "accepted_categories": [
+      "concurrency"
+    ]
+  },
+  "difficulty": "subtle"
+}

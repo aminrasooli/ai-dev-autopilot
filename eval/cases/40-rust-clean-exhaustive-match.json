@@ -1,0 +1,36 @@
+{
+  "benchmark_version": 2,
+  "id": "40-rust-clean-exhaustive-match",
+  "title": "Clean: if-chain replaced by match",
+  "language": "rust",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/jobs/state.rs"
+  ],
+  "diff": [
+    "--- a/src/jobs/state.rs",
+    "+++ b/src/jobs/state.rs",
+    "@@ -4,13 +4,11 @@ pub fn label(state: &JobState) -> &'static str {",
+    "-    if let JobState::Queued = state {",
+    "-        \"queued\"",
+    "-    } else if let JobState::Running = state {",
+    "-        \"running\"",
+    "-    } else {",
+    "-        \"done\"",
+    "-    }",
+    "+    match state {",
+    "+        JobState::Queued => \"queued\",",
+    "+        JobState::Running => \"running\",",
+    "+        JobState::Done => \"done\",",
+    "+    }",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": false,
+    "explanation": "An if/else chain over an enum is replaced by an exhaustive match with identical arms; the compiler-checked refactor changes nothing observable."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "benchmark_version": 2,
+  "id": "36-java-dcl-no-volatile",
+  "title": "Double-checked locking without volatile",
+  "language": "java",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/main/java/app/ConfigCache.java"
+  ],
+  "diff": [
+    "--- a/src/main/java/app/ConfigCache.java",
+    "+++ b/src/main/java/app/ConfigCache.java",
+    "@@ -3,15 +3,18 @@ package app;",
+    " public final class ConfigCache {",
+    "-    private static final ConfigCache INSTANCE = new ConfigCache();",
+    "+    private static ConfigCache instance;",
+    "",
+    "     public static ConfigCache get() {",
+    "-        return INSTANCE;",
+    "+        if (instance == null) {",
+    "+            synchronized (ConfigCache.class) {",
+    "+                if (instance == null) {",
+    "+                    instance = new ConfigCache();",
+    "+                }",
+    "+            }",
+    "+        }",
+    "+        return instance;",
+    "     }",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "concurrency",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The lazily initialized singleton uses double-checked locking on a non-volatile field, so another thread can observe a partially constructed instance."
+  },
+  "difficulty": "subtle"
+}

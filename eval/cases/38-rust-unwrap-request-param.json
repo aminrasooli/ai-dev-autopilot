@@ -1,0 +1,40 @@
+{
+  "benchmark_version": 2,
+  "id": "38-rust-unwrap-request-param",
+  "title": "Request parameter unwrap panics the worker",
+  "language": "rust",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/handlers/list.rs"
+  ],
+  "diff": [
+    "--- a/src/handlers/list.rs",
+    "+++ b/src/handlers/list.rs",
+    "@@ -5,12 +5,8 @@ pub async fn list_items(req: Request) -> Response {",
+    "-    let page: u32 = match req.query(\"page\").unwrap_or(\"1\").parse() {",
+    "-        Ok(p) => p,",
+    "-        Err(_) => return Response::bad_request(\"page must be a number\"),",
+    "-    };",
+    "+    let page: u32 = req.query(\"page\").unwrap_or(\"1\").parse().unwrap();",
+    "     let items = store::page(page).await;",
+    "     Response::json(&items)",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "error-handling",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Replacing the graceful 400 response with .unwrap() lets any non-numeric page parameter panic the handler \u2014 a remote crash trigger.",
+    "accepted_categories": [
+      "missing-validation"
+    ]
+  },
+  "difficulty": "obvious-local"
+}

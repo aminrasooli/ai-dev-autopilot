@@ -1,0 +1,47 @@
+{
+  "benchmark_version": 2,
+  "id": "22-js-balance-read-modify-write",
+  "title": "Concurrent withdrawals lose updates",
+  "language": "javascript",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "claude"
+  },
+  "affected_files": [
+    "src/wallet.js"
+  ],
+  "diff": [
+    "--- a/src/wallet.js",
+    "+++ b/src/wallet.js",
+    "@@ -10,9 +10,11 @@ async function withdraw(userId, amount) {",
+    "   if (amount <= 0) {",
+    "     throw new Error(\"amount must be positive\");",
+    "   }",
+    "-  const row = await db.query(",
+    "-    \"UPDATE wallets SET balance = balance - $1 WHERE user_id = $2 AND balance >= $1 RETURNING balance\",",
+    "-    [amount, userId]);",
+    "-  if (row.rowCount === 0) throw new Error(\"insufficient funds\");",
+    "-  return row.rows[0].balance;",
+    "+  const current = await getBalance(userId);",
+    "+  if (current < amount) throw new Error(\"insufficient funds\");",
+    "+  const next = current - amount;",
+    "+  await db.query(\"UPDATE wallets SET balance = $1 WHERE user_id = $2\",",
+    "+                 [next, userId]);",
+    "+  return next;",
+    " }"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "concurrency",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "Replacing the atomic decrement with read-then-write lets two concurrent withdrawals both read the same balance and one update is silently lost.",
+    "accepted_categories": [
+      "data-corruption"
+    ]
+  },
+  "difficulty": "moderate"
+}
