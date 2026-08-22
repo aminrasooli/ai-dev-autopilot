@@ -30,6 +30,7 @@ Status vocabulary:
 | X10 | 2026-08-21 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` | 5 | 57 | pre-registered: 5-run baseline matching the local models' run count | **$2.289898** (285 calls, 1 malformed) | `provisional/claude-sonnet-5-v2pilot-5runs-provisional.json` |
 | X11 | 2026-08-21 | superseded | claude-sonnet-5 | claude | — | 5 | 16 | pre-registered, then SUPERSEDED by X10: the full 5-run corpus already covers all 16 clean cases at 5 runs (19/80 FP). Row kept rather than deleted — a registered experiment that became unnecessary is still part of the record. | not run | — |
 | X12 | 2026-08-21 | provisional | claude-sonnet-5 | claude | v2 pilot `56e4a32f…` (12 hard-tier cases) | 10 | 12 | pre-registered by METADATA (all subtle+contextual+cross-file), not by prior outcome | **$1.009714** (120 calls, 0 errors) | `provisional/claude-sonnet-5-hardtier-10runs-provisional.json` |
+| X13 | 2026-08-22 | provisional | claude-sonnet-5 | claude | v2 frozen `f31d4631…` (post-ground-truth, 54 cases) | 3 | 54 | M1 fresh-clone reproducibility evidence: run from a genuinely fresh `git clone` of `origin/main` at commit `485912b5`, not a working copy — against the frozen answer key, not the superseded 57-case pilot fingerprint X6/X7/X10 ran against. Row added after the run completed, so provisional per rule 1 even though ground truth is approved. | $2.213189 (162 calls, 0 errors) | `provisional/claude-sonnet-5-m1-frozen54-3runs-freshclone.json` |
 
 ## Registering a run
 
