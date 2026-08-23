@@ -54,6 +54,17 @@ _REQUIRED_FIELDS = (
 )
 _KNOWN_FIELDS = set(_REQUIRED_FIELDS) | {"tags", "difficulty"}
 
+# Optional, non-scoring ground-truth provenance fields (M3 methodology
+# decision, docs/M3_METHODOLOGY_DECISION.md): a case author may run a
+# one-time offline validation script — never part of the harness, never
+# seen by a model, never CI — to raise confidence in a state/cache or
+# concurrency case's label, and record that here. These fields never
+# affect detected/miss/category/severity scoring.
+_EXECUTION_PROVENANCE_FIELDS = {
+    "execution_validated", "validation_note", "validation_artifact_sha256",
+}
+_ARTIFACT_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
 # Shapes that must never appear in a public case file. Deliberately
 # vendor-shaped prefixes, not generic entropy heuristics: a case ABOUT a
 # committed secret uses an invented prefix instead (e.g. payk_live_...),
@@ -154,6 +165,24 @@ def validate_case(obj, origin="case"):
     else:
         if not isinstance(gt.get("explanation"), str) or not gt["explanation"].strip():
             errors.append(f"{origin}: ground_truth.explanation must be non-empty")
+
+        if "execution_validated" in gt and not isinstance(
+                gt["execution_validated"], bool):
+            errors.append(f"{origin}: ground_truth.execution_validated "
+                          "must be a boolean")
+        if gt.get("execution_validated") is True and (
+                not isinstance(gt.get("validation_note"), str)
+                or not gt["validation_note"].strip()):
+            errors.append(f"{origin}: execution_validated=true requires a "
+                          "non-empty ground_truth.validation_note")
+        if "validation_note" in gt and not isinstance(gt["validation_note"], str):
+            errors.append(f"{origin}: ground_truth.validation_note must be "
+                          "a string")
+        artifact = gt.get("validation_artifact_sha256")
+        if artifact is not None and not _ARTIFACT_SHA256_RE.fullmatch(str(artifact)):
+            errors.append(f"{origin}: ground_truth.validation_artifact_sha256 "
+                          "must be a lowercase 64-hex-char sha256")
+
         if gt["defect"]:
             if gt.get("category") not in CATEGORIES:
                 errors.append(f"{origin}: ground_truth.category "
@@ -183,8 +212,9 @@ def validate_case(obj, origin="case"):
                 if len(alts) > 2:
                     errors.append(f"{origin}: at most 2 accepted_categories "
                                   "(alternatives must stay rare and defensible)")
-            unknown_gt = set(gt) - {"defect", "category", "severity",
-                                    "explanation", "accepted_categories"}
+            unknown_gt = set(gt) - ({"defect", "category", "severity",
+                                     "explanation", "accepted_categories"}
+                                    | _EXECUTION_PROVENANCE_FIELDS)
             if unknown_gt:
                 errors.append(f"{origin}: unknown ground_truth fields "
                               f"{sorted(unknown_gt)}")
@@ -193,7 +223,8 @@ def validate_case(obj, origin="case"):
             if contradictions:
                 errors.append(f"{origin}: clean case must not carry "
                               f"{sorted(contradictions)}")
-            unknown_gt = set(gt) - {"defect", "explanation"}
+            unknown_gt = set(gt) - ({"defect", "explanation"}
+                                    | _EXECUTION_PROVENANCE_FIELDS)
             if unknown_gt:
                 errors.append(f"{origin}: unknown ground_truth fields "
                               f"{sorted(unknown_gt)}")
@@ -207,8 +238,11 @@ def validate_case(obj, origin="case"):
         errors.append(f"{origin}: difficulty {difficulty!r} not in {DIFFICULTIES}")
     if isinstance(gt, dict) and gt.get("defect") and difficulty is None:
         errors.append(f"{origin}: defective cases must declare a difficulty")
-    if isinstance(gt, dict) and gt.get("defect") is False and difficulty is not None:
-        errors.append(f"{origin}: clean cases must not declare a difficulty")
+    # Clean cases may optionally declare a difficulty too (M3 methodology
+    # decision: "hard clean controls" need a machine-distinguishable tier
+    # from v2's undifferentiated clean cases). Here difficulty means how
+    # convincingly suspicious a correct diff looks, not how hard a defect
+    # is to find — there is no defect. Optional, unlike the defective case.
 
     raw = json.dumps(obj)
     for pattern in _SECRET_PATTERNS:
@@ -311,6 +345,11 @@ def summarize(cases):
         "author_families": count_by(lambda c: c["provenance"]["author_family"]),
         "statuses": count_by(lambda c: c["status"]),
         "cross_file_cases": sum(1 for c in cases if len(c["affected_files"]) > 1),
+        # Non-scoring provenance visibility, not a quality signal: how
+        # many cases carry an offline execution-validated ground truth
+        # (docs/M3_METHODOLOGY_DECISION.md).
+        "execution_validated_cases": sum(
+            1 for c in cases if c["ground_truth"].get("execution_validated")),
         # A stable fingerprint of the exact corpus content, so a result
         # report can name precisely what it ran against without carrying
         # any filesystem path.
