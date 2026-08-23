@@ -60,20 +60,25 @@ gates in section 3 are preserved forever.
 
 ## 2. Current status (update this section at every milestone)
 
-- Date: 2026-08-21
-- Current milestone: M0 pre-flight (M1 is nearly complete)
-- Done recently: Phase 1 merged to main. Phase 2 pilot on draft PR #12
-  with repeat-run support, full test suite, CI green. Ground-truth
-  review completed by JP with decisions applied (including D2=B and
-  D3=DELETE); corpus stands at 54 cases post-review, splits
-  re-verified by the validator at commit. Key finding so far:
-  detection saturates on small planted diffs, and on hard cases the
-  reviewer keeps recall but loses precision (it sees something is
-  wrong, then mislabels what).
-- Single next action: finish the README/product-direction alignment,
-  add this roadmap to PR #12, verify CI, then JP merges PR #12; B0
-  backup and nightly scheduler re-enable complete M0.
-- Blockers: JP's remaining pre-flight hours. Nothing else.
+- Date: 2026-08-22
+- Current milestone: M3 Hard benchmark v3 (M0, M1 and M2 are complete)
+- Done recently: M2 cross-model pilot closed (PR #16, merge commit
+  85a265706f478a7b0d3c5e40e7b17c293dd66b4e) — Sonnet, Qwen3.6:27b and
+  DeepSeek-R1:14b run 3x each against the frozen 54-case corpus,
+  pre-registered before execution. Sonnet 1.00 defect recall, Qwen 0.99
+  with no external model API charge, DeepSeek 0.82; Sonnet materially
+  stronger than Qwen on category/severity classification, DeepSeek
+  materially weaker on classification. Detection is now saturated for
+  the top two models across every difficulty tier — the open question
+  is no longer "can it find the bug" but "can it classify it," plus
+  whether the corpus itself is hard enough, which is M3's job.
+- Single next action: resolve the one open M3 methodology fork
+  (diff-only vs. execution-based oracle for state/cache and concurrency
+  cases — see `docs/M3_DESIGN_BRIEF.md`), then begin authoring the M3
+  hard-case taxonomy as a new benchmark version; the frozen v2 corpus
+  is not touched.
+- Blockers: none identified; the methodology fork above is a deliberate
+  pause point, not a blocker.
 
 ---
 
