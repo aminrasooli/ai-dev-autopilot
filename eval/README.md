@@ -11,9 +11,9 @@ Status: **v2 pilot** — 53 self-authored cases. Not an independent
 benchmark; results are reproducible evidence, not rankings.
 
 M3 hard-benchmark work (`docs/ROADMAP.md` §4) lives separately in
-[`cases-v3/`](cases-v3/), starting with
-[`cases-v3/tranche-1/`](cases-v3/tranche-1/) — never mixed into
-`cases/`, so the frozen v2 fingerprint above never moves.
+[`cases-v3/`](cases-v3/), with all v3 cases in the single directory
+[`cases-v3/cases/`](cases-v3/cases/) — never mixed into `cases/`, so
+the frozen v2 fingerprint above never moves.
 
 ## Run it
 
