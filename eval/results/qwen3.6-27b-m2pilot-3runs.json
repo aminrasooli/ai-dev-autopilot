@@ -1,0 +1,5665 @@
+{
+  "report_format": 2,
+  "backend": "ollama",
+  "model": "qwen3.6:27b",
+  "runs_per_case": 3,
+  "corpus": {
+    "case_count": 54,
+    "benchmark_version": 2,
+    "sha256": "f31d46310988f61c4534344ad05a52a4385fd15159126a0be85aad532f045690"
+  },
+  "prompt_contract": {
+    "version": 1,
+    "fingerprint": "6a4e51f7014991b2"
+  },
+  "cases": [
+    {
+      "case_id": "01-obvious-off-by-one",
+      "title": "Loop bound overruns the list",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/report.py",
+              "note": "Adding 1 to the range upper bound causes an IndexError when count equals or exceeds the length of entries, as it attempts to access an index out of bounds."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 15.191,
+            "calls": 1,
+            "input_tokens": 471,
+            "output_tokens": 86,
+            "local_execution_seconds": 15.164,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/report.py",
+              "note": "Incrementing the range limit by 1 causes an IndexError when count equals or exceeds the length of the entries list, as it attempts to access an index out of bounds."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.478,
+            "calls": 1,
+            "input_tokens": 471,
+            "output_tokens": 73,
+            "local_execution_seconds": 7.453,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/report.py",
+              "note": "Adding 1 to the range causes an IndexError when count equals the length of entries, as it attempts to access an out-of-bounds index."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.085,
+            "calls": 1,
+            "input_tokens": 471,
+            "output_tokens": 92,
+            "local_execution_seconds": 9.059,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 2
+      }
+    },
+    {
+      "case_id": "02-subtle-cache-key",
+      "title": "Cache key drops the user id",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/profile.py",
+              "note": "The cache key no longer includes user_id, causing all users with the same locale to share the same cached profile, resulting in incorrect data being returned to users."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.35,
+            "calls": 1,
+            "input_tokens": 504,
+            "output_tokens": 95,
+            "local_execution_seconds": 9.324,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/profile.py",
+              "note": "Removing user_id from the cache key causes cache collisions where a single cached profile is incorrectly served to multiple users requesting the same locale."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.613,
+            "calls": 1,
+            "input_tokens": 504,
+            "output_tokens": 86,
+            "local_execution_seconds": 8.587,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/profile.py",
+              "note": "Removing user_id from the cache key causes all users to share the same cached profile for a given locale, resulting in incorrect data being returned to users."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.978,
+            "calls": 1,
+            "input_tokens": 504,
+            "output_tokens": 90,
+            "local_execution_seconds": 8.953,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "03-missing-validation",
+      "title": "Quantity accepted without bounds check",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "high",
+              "file": "src/checkout.py",
+              "note": "Removal of quantity validation allows zero, negative, or excessively large quantities, leading to incorrect order totals and potential data corruption."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.665,
+            "calls": 1,
+            "input_tokens": 502,
+            "output_tokens": 86,
+            "local_execution_seconds": 8.639,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/checkout.py",
+              "note": "Removal of quantity validation allows zero or negative quantities and quantities exceeding MAX_PER_ORDER, leading to invalid orders and potential financial data corruption."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.885,
+            "calls": 1,
+            "input_tokens": 502,
+            "output_tokens": 88,
+            "local_execution_seconds": 8.843,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "src/checkout.py",
+              "note": "Removal of quantity range validation allows negative or zero quantities and quantities exceeding MAX_PER_ORDER, potentially causing incorrect pricing or inventory issues."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "src/checkout.py",
+              "note": "Existing tests likely validated the removed range checks; without updating tests to verify new behavior or adding regression tests, the removal may go undetected if tests are not updated."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 15.061,
+            "calls": 1,
+            "input_tokens": 502,
+            "output_tokens": 164,
+            "local_execution_seconds": 15.036,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 2,
+        "severity_correct_runs": 2
+      }
+    },
+    {
+      "case_id": "04-shell-quoting",
+      "title": "Unquoted variable in cleanup script",
+      "defect": true,
+      "language": "shell",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "shell-quoting",
+              "severity": "high",
+              "file": "scripts/cleanup.sh",
+              "note": "Removing quotes around $workdir introduces word splitting and globbing vulnerabilities, potentially causing unintended file deletion or security issues if the path contains spaces or special characters."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.685,
+            "calls": 1,
+            "input_tokens": 463,
+            "output_tokens": 72,
+            "local_execution_seconds": 7.658,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "shell-quoting",
+              "severity": "high",
+              "file": "scripts/cleanup.sh",
+              "note": "Removing quotes around $workdir allows word splitting and glob expansion, risking deletion of unintended files if the path contains spaces or wildcards."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.43,
+            "calls": 1,
+            "input_tokens": 463,
+            "output_tokens": 68,
+            "local_execution_seconds": 7.404,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "shell-quoting",
+              "severity": "high",
+              "file": "scripts/cleanup.sh",
+              "note": "Removing quotes around the variable $workdir introduces word-splitting and globbing risks, potentially causing accidental deletion of multiple directories or failing on paths with spaces."
+            },
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "scripts/cleanup.sh",
+              "note": "Removing the parameter expansion error check (:?) means the script will silently attempt to remove /build if the workdir argument is empty, rather than failing with an error."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 16.002,
+            "calls": 1,
+            "input_tokens": 463,
+            "output_tokens": 170,
+            "local_execution_seconds": 15.959,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "05-command-injection",
+      "title": "User input interpolated into a shell command",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "command-injection",
+              "severity": "critical",
+              "file": "src/thumbs.py",
+              "note": "The change replaces subprocess.run with os.system using an f-string without escaping user-controlled input, allowing arbitrary command execution if upload_name contains shell metacharacters."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.901,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 73,
+            "local_execution_seconds": 7.875,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "command-injection",
+              "severity": "critical",
+              "file": "src/thumbs.py",
+              "note": "Replacing subprocess.run with os.system using f-string interpolation allows an attacker with control over upload_name to inject arbitrary shell commands."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.024,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 86,
+            "local_execution_seconds": 8.982,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "command-injection",
+              "severity": "critical",
+              "file": "src/thumbs.py",
+              "note": "Replacing subprocess.run with os.system using string interpolation of user-supplied upload_name creates a command injection vulnerability allowing arbitrary command execution."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.432,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 66,
+            "local_execution_seconds": 7.406,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "06-path-traversal",
+      "title": "Attachment path joined without containment",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "path-traversal",
+              "severity": "high",
+              "file": "src/attachments.py",
+              "note": "Removing the realpath validation and startswith check allows path traversal attacks, enabling an attacker to read arbitrary files on the system by supplying names like '../../etc/passwd'."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.248,
+            "calls": 1,
+            "input_tokens": 516,
+            "output_tokens": 98,
+            "local_execution_seconds": 10.223,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "path-traversal",
+              "severity": "critical",
+              "file": "src/attachments.py",
+              "note": "The removal of realpath resolution and startswith validation allows path traversal attacks, enabling an attacker to read arbitrary files on the system by supplying names like '../../etc/passwd'."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.998,
+            "calls": 1,
+            "input_tokens": 516,
+            "output_tokens": 99,
+            "local_execution_seconds": 8.973,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "path-traversal",
+              "severity": "critical",
+              "file": "src/attachments.py",
+              "note": "Removing the realpath resolution and startswith check allows attackers to read arbitrary files via path traversal sequences (e.g., '../etc/passwd')."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.392,
+            "calls": 1,
+            "input_tokens": 516,
+            "output_tokens": 92,
+            "local_execution_seconds": 8.367,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "07-sensitive-logging",
+      "title": "Authorization header written to the log",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "secret-exposure",
+              "severity": "high",
+              "file": "src/http_client.py",
+              "note": "The Authorization header containing the bearer token is logged in plaintext, risking credential leakage in log files."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.24,
+            "calls": 1,
+            "input_tokens": 485,
+            "output_tokens": 75,
+            "local_execution_seconds": 8.215,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "secret-exposure",
+              "severity": "high",
+              "file": "src/http_client.py",
+              "note": "The logger call exposes the Authorization header containing the Bearer token in plain text, leading to credential leakage in logs."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.349,
+            "calls": 1,
+            "input_tokens": 485,
+            "output_tokens": 64,
+            "local_execution_seconds": 7.307,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "secret-exposure",
+              "severity": "high",
+              "file": "src/http_client.py",
+              "note": "The Authorization header containing a bearer token is logged in plain text, risking credential leakage."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.216,
+            "calls": 1,
+            "input_tokens": 485,
+            "output_tokens": 73,
+            "local_execution_seconds": 8.182,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "08-unsafe-binding",
+      "title": "Debug server bound to all interfaces",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "insecure-network",
+              "severity": "low",
+              "file": "src/devserver.py",
+              "note": "Binding the development server to 0.0.0.0 exposes it to all network interfaces, increasing attack surface if debug mode is enabled and the port is accessible externally."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.422,
+            "calls": 1,
+            "input_tokens": 479,
+            "output_tokens": 75,
+            "local_execution_seconds": 8.398,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "insecure-network",
+              "severity": "medium",
+              "file": "src/devserver.py",
+              "note": "Binding the development server to 0.0.0.0 exposes it to all network interfaces, including public ones, which is a security risk for a debug-enabled server."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.53,
+            "calls": 1,
+            "input_tokens": 479,
+            "output_tokens": 76,
+            "local_execution_seconds": 8.505,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "insecure-network",
+              "severity": "high",
+              "file": "src/devserver.py",
+              "note": "Changing the host from 127.0.0.1 to 0.0.0.0 binds the development server to all network interfaces, potentially exposing the debug-enabled application to external networks."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.184,
+            "calls": 1,
+            "input_tokens": 479,
+            "output_tokens": 83,
+            "local_execution_seconds": 9.141,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 1
+      }
+    },
+    {
+      "case_id": "09-dependency-risk",
+      "title": "Pinned dependency replaced by a git URL",
+      "defect": true,
+      "language": "config",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "dependency-risk",
+              "severity": "high",
+              "file": "requirements.txt",
+              "note": "Replacing a pinned stable release of 'requests' with an untrusted fork from a generic user repository introduces significant security and stability risks, as the source is not audited or maintained by the original authors."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.931,
+            "calls": 1,
+            "input_tokens": 476,
+            "output_tokens": 102,
+            "local_execution_seconds": 10.907,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "dependency-risk",
+              "severity": "high",
+              "file": "requirements.txt",
+              "note": "Replacing a trusted, version-pinned PyPI package with an unpinned dependency from an untrusted GitHub fork introduces significant supply chain security risks and potential stability issues."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.294,
+            "calls": 1,
+            "input_tokens": 476,
+            "output_tokens": 94,
+            "local_execution_seconds": 10.27,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "dependency-risk",
+              "severity": "high",
+              "file": "requirements.txt",
+              "note": "Replacing the stable PyPI version of 'requests' with an unversioned git reference to an unknown fork introduces supply-chain risks, potential instability, and lacks reproducibility."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.205,
+            "calls": 1,
+            "input_tokens": 476,
+            "output_tokens": 93,
+            "local_execution_seconds": 10.179,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "11-misleading-test",
+      "title": "Test mocks the function under test",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "misleading-test",
+              "severity": "critical",
+              "file": "tests/test_totals.py",
+              "note": "The test patches the function under test with a mock that returns a hardcoded value, meaning the actual logic in totals.order_total is never executed and the test always passes regardless of implementation correctness."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.261,
+            "calls": 1,
+            "input_tokens": 531,
+            "output_tokens": 102,
+            "local_execution_seconds": 11.237,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "misleading-test",
+              "severity": "critical",
+              "file": "tests/test_totals.py",
+              "note": "The test mocks the function it intends to test, causing it to always pass without verifying the actual implementation logic."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.366,
+            "calls": 1,
+            "input_tokens": 531,
+            "output_tokens": 87,
+            "local_execution_seconds": 8.34,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "misleading-test",
+              "severity": "critical",
+              "file": "tests/test_totals.py",
+              "note": "The test mocks the function it is supposed to test, causing it to only verify the mock return value and completely bypassing the actual business logic."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.185,
+            "calls": 1,
+            "input_tokens": 531,
+            "output_tokens": 85,
+            "local_execution_seconds": 8.16,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "12-destructive-migration",
+      "title": "Migration drops a table it renames",
+      "defect": true,
+      "language": "sql",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "critical",
+              "file": "migrations/0042_rename_events.sql",
+              "note": "The migration creates a structural copy of the table but does not migrate the existing data, resulting in permanent data loss when the original table is dropped."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.054,
+            "calls": 1,
+            "input_tokens": 480,
+            "output_tokens": 100,
+            "local_execution_seconds": 11.029,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "critical",
+              "file": "migrations/0042_rename_events.sql",
+              "note": "The migration attempts to create a new table and then drop the original table without moving data, resulting in immediate and total data loss for the events table."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.919,
+            "calls": 1,
+            "input_tokens": 480,
+            "output_tokens": 98,
+            "local_execution_seconds": 10.877,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "migrations/0042_rename_events.sql",
+              "note": "Dropping the original 'events' table before creating the new index on 'events_v2' risks data loss if the index creation fails or the migration is rolled back, as the original table is already destroyed."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "migrations/0042_rename_events.sql",
+              "note": "The migration removes the original table 'events' but does not rename it to 'events_v2', potentially breaking foreign key references or application code expecting the table name 'events' or a seamless rename."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 20.32,
+            "calls": 1,
+            "input_tokens": 480,
+            "output_tokens": 199,
+            "local_execution_seconds": 20.295,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "13-permission-widening",
+      "title": "Install step makes config world-writable",
+      "defect": true,
+      "language": "shell",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "high",
+              "file": "scripts/install.sh",
+              "note": "Changing file permissions from 640 to 777 grants execute and full read/write access to all users, creating a significant security vulnerability for the configuration file."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.975,
+            "calls": 1,
+            "input_tokens": 465,
+            "output_tokens": 96,
+            "local_execution_seconds": 10.933,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "high",
+              "file": "scripts/install.sh",
+              "note": "Setting permissions to 777 on a configuration file allows any user to read, modify, or delete it, violating the principle of least privilege and risking configuration tampering."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.142,
+            "calls": 1,
+            "input_tokens": 465,
+            "output_tokens": 97,
+            "local_execution_seconds": 11.117,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "permission-widening",
+              "severity": "high",
+              "file": "scripts/install.sh",
+              "note": "Changing permissions of a configuration file from 640 to 777 grants read, write, and execute permissions to all users, creating a significant security risk by allowing unauthorized modification of application configuration."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.765,
+            "calls": 1,
+            "input_tokens": 465,
+            "output_tokens": 82,
+            "local_execution_seconds": 9.725,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "14-secret-committed",
+      "title": "API key hardcoded as a fallback",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "secret-exposure",
+              "severity": "critical",
+              "file": "src/settings.py",
+              "note": "A hardcoded live API key is committed in the source code as a fallback default value."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.372,
+            "calls": 1,
+            "input_tokens": 492,
+            "output_tokens": 57,
+            "local_execution_seconds": 7.347,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "secret-exposure",
+              "severity": "critical",
+              "file": "src/settings.py",
+              "note": "A hardcoded payment API key is exposed as a default fallback, compromising security credentials."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.255,
+            "calls": 1,
+            "input_tokens": 492,
+            "output_tokens": 56,
+            "local_execution_seconds": 7.23,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "secret-exposure",
+              "severity": "critical",
+              "file": "src/settings.py",
+              "note": "A live payment API key is hardcoded as a default value in the source code, leading to credential leakage and potential financial loss."
+            },
+            {
+              "category": "unsafe-default",
+              "severity": "high",
+              "file": "src/settings.py",
+              "note": "The application silently falls back to a hardcoded secret instead of failing securely when the environment variable is missing, which may mask configuration errors in production."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 16.525,
+            "calls": 1,
+            "input_tokens": 492,
+            "output_tokens": 153,
+            "local_execution_seconds": 16.5,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "15-subtle-timezone",
+      "title": "Expiry compared against naive local time",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/tokens.py",
+              "note": "Replacing datetime.now(timezone.utc) with datetime.now() introduces a bug where token expiration is calculated using local time, which is susceptible to timezone shifts and daylight saving time changes, potentially causing tokens to expire prematurely or remain valid longer than intended."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.338,
+            "calls": 1,
+            "input_tokens": 456,
+            "output_tokens": 88,
+            "local_execution_seconds": 10.313,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/tokens.py",
+              "note": "Changing datetime.now(timezone.utc) to datetime.now() removes timezone awareness, which can cause incorrect expiration checks depending on system timezone or if expires_at is timezone-aware."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.226,
+            "calls": 1,
+            "input_tokens": 456,
+            "output_tokens": 97,
+            "local_execution_seconds": 11.201,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/tokens.py",
+              "note": "Removing timezone.utc causes now to be local time, which can lead to incorrect expiration checks if token expires_at is in UTC or vice versa."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.599,
+            "calls": 1,
+            "input_tokens": 456,
+            "output_tokens": 69,
+            "local_execution_seconds": 8.567,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "16-clean-rename",
+      "title": "Clean: variable renamed for clarity",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.907,
+            "calls": 1,
+            "input_tokens": 499,
+            "output_tokens": 18,
+            "local_execution_seconds": 3.88,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.839,
+            "calls": 1,
+            "input_tokens": 499,
+            "output_tokens": 18,
+            "local_execution_seconds": 3.813,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.361,
+            "calls": 1,
+            "input_tokens": 499,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.337,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "17-clean-docs",
+      "title": "Clean: README wording improved",
+      "defect": false,
+      "language": "docs",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.488,
+            "calls": 1,
+            "input_tokens": 479,
+            "output_tokens": 14,
+            "local_execution_seconds": 3.445,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.477,
+            "calls": 1,
+            "input_tokens": 479,
+            "output_tokens": 14,
+            "local_execution_seconds": 3.452,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.417,
+            "calls": 1,
+            "input_tokens": 479,
+            "output_tokens": 14,
+            "local_execution_seconds": 3.392,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "18-clean-test-added",
+      "title": "Clean: regression test added for a past bug",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "misleading-test",
+              "severity": "low",
+              "file": "tests/test_pricing.py",
+              "note": "The test case title implies the boundary is at 100, but the assertions cover both 100 and 99, making the title partially inaccurate and potentially misleading about what specific boundary condition is being validated."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.245,
+            "calls": 1,
+            "input_tokens": 512,
+            "output_tokens": 107,
+            "local_execution_seconds": 12.22,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.892,
+            "calls": 1,
+            "input_tokens": 512,
+            "output_tokens": 18,
+            "local_execution_seconds": 3.868,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.785,
+            "calls": 1,
+            "input_tokens": 512,
+            "output_tokens": 18,
+            "local_execution_seconds": 3.746,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 1
+      }
+    },
+    {
+      "case_id": "19-clean-error-message",
+      "title": "Clean: error message made actionable",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.824,
+            "calls": 1,
+            "input_tokens": 474,
+            "output_tokens": 18,
+            "local_execution_seconds": 3.782,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.386,
+            "calls": 1,
+            "input_tokens": 474,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.362,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.327,
+            "calls": 1,
+            "input_tokens": 474,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.302,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "20-clean-timeout-added",
+      "title": "Clean: HTTP call gains a timeout",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.424,
+            "calls": 1,
+            "input_tokens": 462,
+            "output_tokens": 14,
+            "local_execution_seconds": 3.388,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.329,
+            "calls": 1,
+            "input_tokens": 462,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.304,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.279,
+            "calls": 1,
+            "input_tokens": 462,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.254,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "21-js-prototype-pollution",
+      "title": "Recursive merge copies attacker keys",
+      "defect": true,
+      "language": "javascript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "high",
+              "file": "src/lib/merge.js",
+              "note": "The removal of prototype pollution checks allows attackers to inject properties like __proto__ into objects, enabling prototype pollution vulnerabilities."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.561,
+            "calls": 1,
+            "input_tokens": 531,
+            "output_tokens": 87,
+            "local_execution_seconds": 10.537,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/lib/merge.js",
+              "note": "Removal of prototype pollution protections allows attackers to overwrite Object.prototype properties via the __proto__ key."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.597,
+            "calls": 1,
+            "input_tokens": 531,
+            "output_tokens": 85,
+            "local_execution_seconds": 8.565,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "insecure-network",
+              "severity": "high",
+              "file": "src/lib/merge.js",
+              "note": "Removing prototype pollution protections allows attackers to overwrite Object.prototype properties, leading to potential remote code execution or authentication bypass."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.894,
+            "calls": 1,
+            "input_tokens": 531,
+            "output_tokens": 88,
+            "local_execution_seconds": 8.868,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "22-js-balance-read-modify-write",
+      "title": "Concurrent withdrawals lose updates",
+      "defect": true,
+      "language": "javascript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "critical",
+              "file": "src/wallet.js",
+              "note": "The atomic check-and-update pattern using 'WHERE balance >= $1' was replaced with a non-atomic read-modify-write sequence, creating a race condition that allows overdrafts under concurrent withdrawals."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.094,
+            "calls": 1,
+            "input_tokens": 609,
+            "output_tokens": 101,
+            "local_execution_seconds": 12.068,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "critical",
+              "file": "src/wallet.js",
+              "note": "The change replaces an atomic read-modify-write operation with a separate read followed by an update, creating a race condition where concurrent withdrawals can deduct more than the available balance."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.806,
+            "calls": 1,
+            "input_tokens": 609,
+            "output_tokens": 95,
+            "local_execution_seconds": 9.782,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "error",
+          "error": "MalformedResponse: review output failed validation: findings[0].category 'race-condition' is not in the vocabulary"
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 2,
+        "error_runs": 1,
+        "detected_runs": 2,
+        "category_correct_runs": 2,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "23-js-fetch-ok-not-checked",
+      "title": "HTTP error responses parsed as success",
+      "defect": true,
+      "language": "javascript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "src/api/client.js",
+              "note": "The error handling logic for non-2xx HTTP responses was removed, causing the function to attempt parsing error responses as JSON and potentially return malformed data or throw confusing generic errors instead of a structured ApiError."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.866,
+            "calls": 1,
+            "input_tokens": 507,
+            "output_tokens": 103,
+            "local_execution_seconds": 11.826,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "high",
+              "file": "src/api/client.js",
+              "note": "Removing the HTTP status check allows non-2xx responses (e.g., 500 Internal Server Error) to be parsed as JSON, likely causing unhandled exceptions when `res.json()` fails on error bodies or returning misleading data to the caller."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 13.117,
+            "calls": 1,
+            "input_tokens": 507,
+            "output_tokens": 116,
+            "local_execution_seconds": 13.092,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "high",
+              "file": "src/api/client.js",
+              "note": "Removing the HTTP status check means non-2xx responses (e.g., 404, 500) are parsed as JSON and returned, likely causing downstream parsing errors or silent failures instead of throwing a clear ApiError."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.489,
+            "calls": 1,
+            "input_tokens": 507,
+            "output_tokens": 110,
+            "local_execution_seconds": 12.464,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "24-js-interval-never-cleared",
+      "title": "Polling interval leaks per mount",
+      "defect": true,
+      "language": "javascript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "resource-leak",
+              "severity": "high",
+              "file": "src/components/StatusWidget.js",
+              "note": "The cleanup function returning clearInterval(timer) was removed, causing setInterval timers to persist across re-renders and component unmounts, leading to memory leaks and potential application crashes or unexpected behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.738,
+            "calls": 1,
+            "input_tokens": 511,
+            "output_tokens": 102,
+            "local_execution_seconds": 11.714,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "resource-leak",
+              "severity": "medium",
+              "file": "src/components/StatusWidget.js",
+              "note": "The cleanup function returning clearInterval(timer) was removed, causing setInterval timers to persist and accumulate when the component unmounts or jobId changes."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.712,
+            "calls": 1,
+            "input_tokens": 511,
+            "output_tokens": 91,
+            "local_execution_seconds": 10.687,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "resource-leak",
+              "severity": "high",
+              "file": "src/components/StatusWidget.js",
+              "note": "The interval timer is no longer cleared on unmount or when dependencies change, causing multiple intervals to stack and preventing garbage collection."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.63,
+            "calls": 1,
+            "input_tokens": 511,
+            "output_tokens": 89,
+            "local_execution_seconds": 10.605,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 1
+      }
+    },
+    {
+      "case_id": "26-ts-route-before-auth",
+      "title": "Admin route registered before auth middleware",
+      "defect": true,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/server.ts",
+              "note": "Moving the admin router registration before the requireAuth middleware allows unauthenticated users to access protected admin routes."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.123,
+            "calls": 1,
+            "input_tokens": 498,
+            "output_tokens": 84,
+            "local_execution_seconds": 10.085,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/server.ts",
+              "note": "Moving the admin router mount before the requireAuth middleware allows unauthenticated access to all admin endpoints."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.74,
+            "calls": 1,
+            "input_tokens": 498,
+            "output_tokens": 59,
+            "local_execution_seconds": 7.715,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/server.ts",
+              "note": "Moving the admin router registration before the requireAuth middleware allows unauthenticated access to admin endpoints."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.869,
+            "calls": 1,
+            "input_tokens": 498,
+            "output_tokens": 82,
+            "local_execution_seconds": 9.828,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "27-ts-nullish-to-or",
+      "title": "Falsy-zero retries silently become three",
+      "defect": true,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Using || instead of ?? for retries causes valid explicit values like 0 to fall back to the default of 3, preventing users from disabling retries."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.095,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 95,
+            "local_execution_seconds": 11.071,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Changing nullish coalescing (??) to logical OR (||) causes valid values like 0 to be treated as falsy, defaulting retries to 3 instead of respecting the user-provided 0."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.53,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 109,
+            "local_execution_seconds": 12.505,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/http/retry.ts",
+              "note": "Replacing the nullish coalescing operator (??) with the logical OR operator (||) causes the default value of 3 to be used when opts.retries is 0, overriding the explicit zero retries configuration."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.469,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 109,
+            "local_execution_seconds": 12.444,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "28-ts-clean-type-guard",
+      "title": "Clean: type guard extracted, behavior identical",
+      "defect": false,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 4.143,
+            "calls": 1,
+            "input_tokens": 533,
+            "output_tokens": 20,
+            "local_execution_seconds": 4.119,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 2.463,
+            "calls": 1,
+            "input_tokens": 533,
+            "output_tokens": 20,
+            "local_execution_seconds": 2.437,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 2.264,
+            "calls": 1,
+            "input_tokens": 533,
+            "output_tokens": 18,
+            "local_execution_seconds": 2.239,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "29-go-err-shadowed",
+      "title": "Shadowed err makes validation failure invisible",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now logged but ignored, allowing invalid records to be processed and queued instead of being rejected."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.543,
+            "calls": 1,
+            "input_tokens": 562,
+            "output_tokens": 86,
+            "local_execution_seconds": 10.503,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "The validation error is logged but not returned, causing the function to return nil and process an invalid record."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.755,
+            "calls": 1,
+            "input_tokens": 562,
+            "output_tokens": 86,
+            "local_execution_seconds": 8.73,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/ingest/ingest.go",
+              "note": "Validation errors are now logged but swallowed instead of returned, causing invalid records to be queued and the function to incorrectly return nil."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.17,
+            "calls": 1,
+            "input_tokens": 562,
+            "output_tokens": 90,
+            "local_execution_seconds": 9.145,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "30-go-loop-var-goroutine",
+      "title": "Goroutines capture the loop variable",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "internal/mailer/batch.go",
+              "note": "The loop variable 'msg' is removed but still used in the goroutine closure, causing all goroutines to reference the same loop variable and process the last message in the slice instead of their respective messages."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.37,
+            "calls": 1,
+            "input_tokens": 539,
+            "output_tokens": 107,
+            "local_execution_seconds": 12.344,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing the shadowed variable declaration 'msg := msg' causes all goroutines to close over the loop variable 'msg', resulting in race conditions where emails may be sent with incorrect or mutated data."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.561,
+            "calls": 1,
+            "input_tokens": 539,
+            "output_tokens": 105,
+            "local_execution_seconds": 10.535,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "critical",
+              "file": "internal/mailer/batch.go",
+              "note": "Removing the loop variable shadowing (`msg := msg`) causes all goroutines to race on and use the final value of `msg` from the loop iteration, resulting in incorrect message delivery."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.516,
+            "calls": 1,
+            "input_tokens": 539,
+            "output_tokens": 104,
+            "local_execution_seconds": 10.48,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 1,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "31-go-defer-in-loop",
+      "title": "File handles accumulate across the whole loop",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "resource-leak",
+              "severity": "high",
+              "file": "internal/archive/scan.go",
+              "note": "The deferred call to f.Close() will not execute until the function ChecksumAll returns, causing file handles to remain open for all files in the loop rather than being closed after each iteration, which can lead to resource exhaustion."
+            },
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "internal/archive/scan.go",
+              "note": "Errors returned by f.Close() are now silently ignored due to the removal of the closeErr check, meaning file handle closure failures will not be reported to the caller."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 20.057,
+            "calls": 1,
+            "input_tokens": 575,
+            "output_tokens": 186,
+            "local_execution_seconds": 20.032,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "resource-leak",
+              "severity": "high",
+              "file": "internal/archive/scan.go",
+              "note": "Using defer in a loop causes file descriptors to remain open until the function returns, potentially exhausting the system file descriptor limit for large inputs."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.121,
+            "calls": 1,
+            "input_tokens": 575,
+            "output_tokens": 90,
+            "local_execution_seconds": 9.096,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "resource-leak",
+              "severity": "high",
+              "file": "internal/archive/scan.go",
+              "note": "Using defer inside a loop causes file descriptors to remain open until ChecksumAll returns, potentially exhausting system resources if the input slice is large."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.255,
+            "calls": 1,
+            "input_tokens": 575,
+            "output_tokens": 91,
+            "local_execution_seconds": 9.218,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "32-go-clean-table-test",
+      "title": "Clean: table-driven test added for rounding",
+      "defect": false,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "internal/price/round_test.go",
+              "note": "The test suite lacks coverage for floating-point precision edge cases, negative values, and large magnitudes, which are critical for a currency rounding function."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.21,
+            "calls": 1,
+            "input_tokens": 594,
+            "output_tokens": 72,
+            "local_execution_seconds": 9.185,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/price/round_test.go",
+              "note": "The test file tests a function `RoundCents` but does not import or include the implementation, and likely relies on floating-point multiplication which is unsafe for monetary values, risking precision errors not covered by the limited test cases."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "internal/price/round_test.go",
+              "note": "The test cases are insufficient for a rounding function, missing negative numbers, large values, and edge cases like 0.005 which often fail due to floating-point representation issues."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 18.882,
+            "calls": 1,
+            "input_tokens": 594,
+            "output_tokens": 192,
+            "local_execution_seconds": 18.857,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "internal/price/round_test.go",
+              "note": "The test suite lacks coverage for negative values, amounts with many decimal places that require rounding, and edge cases like NaN or Inf, which could reveal incorrect rounding behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.899,
+            "calls": 1,
+            "input_tokens": 594,
+            "output_tokens": 97,
+            "local_execution_seconds": 9.874,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 3
+      }
+    },
+    {
+      "case_id": "33-go-mutex-by-value",
+      "title": "Value receiver copies the mutex",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver of Inc() from a pointer to a value causes c.mu.Lock() to lock a copy of the mutex, leading to a runtime panic because the copied mutex is already locked by the original or causes data races on the counter value."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.699,
+            "calls": 1,
+            "input_tokens": 486,
+            "output_tokens": 112,
+            "local_execution_seconds": 12.674,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver of Inc() from a pointer to a value type causes the mutex lock and increment to operate on a copy of the Counter, leading to data races and lost updates."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.503,
+            "calls": 1,
+            "input_tokens": 486,
+            "output_tokens": 99,
+            "local_execution_seconds": 11.461,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "internal/metrics/counter.go",
+              "note": "Changing the receiver from a pointer to a value type causes the mutex and counter to be copied on every call, breaking thread safety and increment logic."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.8,
+            "calls": 1,
+            "input_tokens": 486,
+            "output_tokens": 92,
+            "local_execution_seconds": 10.775,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "34-java-sql-concat",
+      "title": "Prepared statement replaced by concatenation",
+      "defect": true,
+      "language": "java",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "sql-injection",
+              "severity": "critical",
+              "file": "src/main/java/app/OrderDao.java",
+              "note": "The change replaces a parameterized PreparedStatement with string concatenation in a raw Statement, making the query vulnerable to SQL injection."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.177,
+            "calls": 1,
+            "input_tokens": 578,
+            "output_tokens": 93,
+            "local_execution_seconds": 11.152,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "sql-injection",
+              "severity": "critical",
+              "file": "src/main/java/app/OrderDao.java",
+              "note": "The change replaces a parameterized PreparedStatement with string concatenation in SQL query, making it vulnerable to SQL injection attacks."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.386,
+            "calls": 1,
+            "input_tokens": 578,
+            "output_tokens": 92,
+            "local_execution_seconds": 9.35,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "sql-injection",
+              "severity": "critical",
+              "file": "src/main/java/app/OrderDao.java",
+              "note": "The change replaces parameterized queries with string concatenation, making the application vulnerable to SQL injection attacks."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.085,
+            "calls": 1,
+            "input_tokens": 578,
+            "output_tokens": 89,
+            "local_execution_seconds": 9.06,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "35-java-equals-no-hashcode",
+      "title": "equals() added without hashCode()",
+      "defect": true,
+      "language": "java",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/main/java/app/SkuKey.java",
+              "note": "The equals() method lacks null checks for this.sku, this.warehouse, k.sku, and k.warehouse, causing NullPointerExceptions when any of these fields are null."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/main/java/app/SkuKey.java",
+              "note": "A hashCode() method is not implemented alongside equals(), which violates the general contract and may cause failures in hash-based collections like HashMap or HashSet."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 18.586,
+            "calls": 1,
+            "input_tokens": 532,
+            "output_tokens": 173,
+            "local_execution_seconds": 18.543,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/main/java/app/SkuKey.java",
+              "note": "The equals method lacks null checks for sku and warehouse fields, leading to NullPointerExceptions if either field is null."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.751,
+            "calls": 1,
+            "input_tokens": 532,
+            "output_tokens": 87,
+            "local_execution_seconds": 8.709,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/main/java/app/SkuKey.java",
+              "note": "The equals method is missing a corresponding hashCode implementation, violating the Java contract that equal objects must have equal hash codes and causing incorrect behavior in hash-based collections."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/main/java/app/SkuKey.java",
+              "note": "The equals method performs unchecked cast and field access without null checks, potentially throwing NullPointerException if sku or warehouse fields are null."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 16.336,
+            "calls": 1,
+            "input_tokens": 532,
+            "output_tokens": 167,
+            "local_execution_seconds": 16.311,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "36-java-dcl-no-volatile",
+      "title": "Double-checked locking without volatile",
+      "defect": true,
+      "language": "java",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "The `instance` field is not declared `volatile`, which means the Double-Checked Locking pattern is broken on modern JVMs due to potential visibility issues where a thread may see a non-null but partially constructed object."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.829,
+            "calls": 1,
+            "input_tokens": 542,
+            "output_tokens": 112,
+            "local_execution_seconds": 12.803,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "high",
+              "file": "src/main/java/app/ConfigCache.java",
+              "note": "The singleton instance field is neither volatile nor effectively final, which allows the happens-before relationship to be violated and permits other threads to observe a partially constructed object despite the double-checked locking pattern."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.279,
+            "calls": 1,
+            "input_tokens": 542,
+            "output_tokens": 102,
+            "local_execution_seconds": 10.241,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 2.265,
+            "calls": 1,
+            "input_tokens": 542,
+            "output_tokens": 18,
+            "local_execution_seconds": 2.24,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 2,
+        "category_correct_runs": 2,
+        "severity_correct_runs": 2
+      }
+    },
+    {
+      "case_id": "37-java-clean-extract-method",
+      "title": "Clean: validation extracted to a method",
+      "defect": false,
+      "language": "java",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "concurrency",
+              "severity": "critical",
+              "file": "src/main/java/app/TransferService.java",
+              "note": "The refactoring removed the validation from the critical path, creating a time-of-check-to-time-of-use (TOCTOU) race condition where the balance check is performed before the ledger update, allowing concurrent transfers to bypass the insufficient funds constraint if the ledger operation is atomic."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 13.935,
+            "calls": 1,
+            "input_tokens": 605,
+            "output_tokens": 122,
+            "local_execution_seconds": 13.91,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/main/java/app/TransferService.java",
+              "note": "The validation logic has been moved to a helper method but is never called, so the transfer operation proceeds without checking for positive amounts or sufficient funds."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.881,
+            "calls": 1,
+            "input_tokens": 605,
+            "output_tokens": 97,
+            "local_execution_seconds": 9.855,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/main/java/app/TransferService.java",
+              "note": "The validation logic has been moved to a method call that occurs after the ledger move operation, removing input validation and allowing invalid transfers (zero/negative amounts or insufficient funds) to execute."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.415,
+            "calls": 1,
+            "input_tokens": 605,
+            "output_tokens": 102,
+            "local_execution_seconds": 10.384,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 3
+      }
+    },
+    {
+      "case_id": "38-rust-unwrap-request-param",
+      "title": "Request parameter unwrap panics the worker",
+      "defect": true,
+      "language": "rust",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "src/handlers/list.rs",
+              "note": "Replacing explicit error handling with .unwrap() causes a panic and returns a 500 error instead of a 400 Bad Request when the 'page' parameter is not a valid number."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.163,
+            "calls": 1,
+            "input_tokens": 540,
+            "output_tokens": 104,
+            "local_execution_seconds": 12.136,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "src/handlers/list.rs",
+              "note": "Using unwrap() on parse() will cause a panic if the page parameter is not a valid u32, leading to a server crash instead of returning a proper 400 Bad Request response."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.498,
+            "calls": 1,
+            "input_tokens": 540,
+            "output_tokens": 104,
+            "local_execution_seconds": 10.473,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "high",
+              "file": "src/handlers/list.rs",
+              "note": "Replacing explicit error handling with .unwrap() causes the service to panic if the 'page' query parameter is not a valid u32, leading to a potential denial-of-service condition."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.166,
+            "calls": 1,
+            "input_tokens": 540,
+            "output_tokens": 101,
+            "local_execution_seconds": 10.142,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "39-rust-u16-truncation",
+      "title": "Chunk length silently truncated to u16",
+      "defect": true,
+      "language": "rust",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "The explicit truncation to u16 and back to u32 silently drops data if the payload exceeds 65535 bytes, replacing a safe panic with incorrect length reporting."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.777,
+            "calls": 1,
+            "input_tokens": 494,
+            "output_tokens": 102,
+            "local_execution_seconds": 11.752,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "The change silently truncates the payload length to 16 bits by casting to u16 before casting to u32, potentially corrupting the header length field for payloads larger than 65535 bytes without any error indication."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.551,
+            "calls": 1,
+            "input_tokens": 494,
+            "output_tokens": 110,
+            "local_execution_seconds": 12.526,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/proto/frame.rs",
+              "note": "Casting payload length to u16 before u32 truncates lengths above 65535 bytes, causing data corruption and silent payload truncation for larger messages."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.643,
+            "calls": 1,
+            "input_tokens": 494,
+            "output_tokens": 100,
+            "local_execution_seconds": 11.618,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "40-rust-clean-exhaustive-match",
+      "title": "Clean: if-chain replaced by match",
+      "defect": false,
+      "language": "rust",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.963,
+            "calls": 1,
+            "input_tokens": 541,
+            "output_tokens": 18,
+            "local_execution_seconds": 3.939,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 2.263,
+            "calls": 1,
+            "input_tokens": 541,
+            "output_tokens": 18,
+            "local_execution_seconds": 2.238,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 2.254,
+            "calls": 1,
+            "input_tokens": 541,
+            "output_tokens": 18,
+            "local_execution_seconds": 2.228,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "41-py-idor-owner-check",
+      "title": "Invoice fetch stops checking ownership",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/api/invoices.py",
+              "note": "The removal of the owner_id filter allows any authenticated user to view any invoice by ID, breaking authorization boundaries and exposing sensitive data."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.827,
+            "calls": 1,
+            "input_tokens": 504,
+            "output_tokens": 92,
+            "local_execution_seconds": 10.803,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/api/invoices.py",
+              "note": "The ownership check (owner_id=user.id) was removed from the invoice query, allowing any authenticated user to access any invoice (IDOR vulnerability)."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.12,
+            "calls": 1,
+            "input_tokens": 504,
+            "output_tokens": 95,
+            "local_execution_seconds": 11.095,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/api/invoices.py",
+              "note": "The removal of the owner_id filter allows any authenticated user to retrieve invoices belonging to other users, resulting in broken access control."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.45,
+            "calls": 1,
+            "input_tokens": 504,
+            "output_tokens": 88,
+            "local_execution_seconds": 10.424,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "42-py-jwt-verify-disabled",
+      "title": "JWT signature verification turned off",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/auth/session.py",
+              "note": "Disabling JWT signature verification allows any attacker to forge valid session tokens and impersonate any user."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.874,
+            "calls": 1,
+            "input_tokens": 491,
+            "output_tokens": 81,
+            "local_execution_seconds": 9.831,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/auth/session.py",
+              "note": "Disabling JWT signature verification allows any forged token to be accepted as valid, completely bypassing authentication."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.253,
+            "calls": 1,
+            "input_tokens": 491,
+            "output_tokens": 85,
+            "local_execution_seconds": 10.229,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/auth/session.py",
+              "note": "Disabling signature verification in jwt.decode allows any forged token to be accepted as valid, completely breaking authentication."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.272,
+            "calls": 1,
+            "input_tokens": 491,
+            "output_tokens": 86,
+            "local_execution_seconds": 10.247,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "43-py-float-currency",
+      "title": "Money arithmetic switched to float",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/billing/total.py",
+              "note": "Replacing Decimal with float for financial calculations introduces precision errors and rounding issues, leading to potential data corruption in billing totals."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 15.75,
+            "calls": 1,
+            "input_tokens": 519,
+            "output_tokens": 90,
+            "local_execution_seconds": 15.725,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/billing/total.py",
+              "note": "Replacing Decimal arithmetic with float arithmetic introduces precision errors in billing calculations, potentially causing incorrect charges or rounding discrepancies."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 6.695,
+            "calls": 1,
+            "input_tokens": 519,
+            "output_tokens": 64,
+            "local_execution_seconds": 6.67,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/billing/total.py",
+              "note": "Replacing Decimal arithmetic with float arithmetic introduces precision errors for financial calculations, potentially causing incorrect billing totals."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 8.805,
+            "calls": 1,
+            "input_tokens": 519,
+            "output_tokens": 86,
+            "local_execution_seconds": 8.778,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "44-py-mutable-default-arg",
+      "title": "Accumulator default is a shared list",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/orders/build.py",
+              "note": "Using a mutable default argument `lines=[]` causes the list to persist and accumulate items across multiple calls, leading to data corruption and unexpected behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.689,
+            "calls": 1,
+            "input_tokens": 484,
+            "output_tokens": 90,
+            "local_execution_seconds": 10.662,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/orders/build.py",
+              "note": "Using a mutable default argument `lines=[]` causes the list to be shared across all function calls, leading to data corruption where order lines accumulate incorrectly."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.005,
+            "calls": 1,
+            "input_tokens": 484,
+            "output_tokens": 94,
+            "local_execution_seconds": 10.98,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "critical",
+              "file": "src/orders/build.py",
+              "note": "Using a mutable default argument (lines=[]) causes the list to persist and accumulate items across function calls, leading to shared state and data corruption."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.066,
+            "calls": 1,
+            "input_tokens": 484,
+            "output_tokens": 94,
+            "local_execution_seconds": 11.033,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 2,
+        "severity_correct_runs": 2
+      }
+    },
+    {
+      "case_id": "45-py-except-pass-payment",
+      "title": "Payment confirmation failures swallowed",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "critical",
+              "file": "src/payments/confirm.py",
+              "note": "The code silently swallows all exceptions during payment confirmation and proceeds to mark the order as paid and ship it regardless of whether the payment succeeded, leading to orders being shipped without actual payment confirmation."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.186,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 105,
+            "local_execution_seconds": 12.16,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/payments/confirm.py",
+              "note": "Payment confirmation result is ignored and exceptions are swallowed, causing the system to mark orders as paid and ship them regardless of whether the actual payment succeeded."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.281,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 95,
+            "local_execution_seconds": 11.255,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "critical",
+              "file": "src/payments/confirm.py",
+              "note": "Silencing all exceptions from gateway.confirm() causes the system to mark orders as paid and ship them regardless of whether the payment actually succeeded or failed."
+            },
+            {
+              "category": "data-corruption",
+              "severity": "critical",
+              "file": "src/payments/confirm.py",
+              "note": "The code proceeds to mark the order as paid and ship it even if the payment gateway returned an error or raised an exception, leading to financial loss and incorrect order state."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 18.786,
+            "calls": 1,
+            "input_tokens": 496,
+            "output_tokens": 173,
+            "local_execution_seconds": 18.761,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 1,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "46-sh-curl-insecure",
+      "title": "TLS verification disabled in fetch script",
+      "defect": true,
+      "language": "shell",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "insecure-network",
+              "severity": "high",
+              "file": "scripts/fetch-release.sh",
+              "note": "The addition of the -k flag to curl disables SSL certificate verification, making the download vulnerable to man-in-the-middle attacks."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.818,
+            "calls": 1,
+            "input_tokens": 519,
+            "output_tokens": 88,
+            "local_execution_seconds": 10.79,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "insecure-network",
+              "severity": "high",
+              "file": "scripts/fetch-release.sh",
+              "note": "The addition of the -k flag to curl disables SSL certificate verification, making the download vulnerable to man-in-the-middle attacks and undermining the security of the HTTPS transport."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.841,
+            "calls": 1,
+            "input_tokens": 519,
+            "output_tokens": 75,
+            "local_execution_seconds": 7.809,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "insecure-network",
+              "severity": "high",
+              "file": "scripts/fetch-release.sh",
+              "note": "Adding the -k flag to curl disables TLS certificate verification, making the download vulnerable to man-in-the-middle attacks and allowing attackers to inject malicious code."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 7.514,
+            "calls": 1,
+            "input_tokens": 519,
+            "output_tokens": 72,
+            "local_execution_seconds": 7.488,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "47-py-mktemp-race",
+      "title": "Predictable temp path replaces NamedTemporaryFile",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "error",
+          "error": "MalformedResponse: review output failed validation: findings[0].category 'race-condition' is not in the vocabulary"
+        },
+        {
+          "run": 2,
+          "status": "error",
+          "error": "MalformedResponse: review output failed validation: findings[0].category 'race-condition' is not in the vocabulary"
+        },
+        {
+          "run": 3,
+          "status": "error",
+          "error": "MalformedResponse: review output failed validation: findings[0].category 'race-condition' is not in the vocabulary"
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 0,
+        "error_runs": 3,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "48-py-clean-logging-added",
+      "title": "Clean: request logging added without payloads",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "api-misuse",
+              "severity": "high",
+              "file": "src/api/middleware.py",
+              "note": "The middleware assumes the response object returned by the handler has a 'status' attribute, which may not be true for all frameworks or error conditions where an exception might be raised or a different object type returned, potentially causing a crash."
+            },
+            {
+              "category": "error-handling",
+              "severity": "medium",
+              "file": "src/api/middleware.py",
+              "note": "If handler(request) raises an exception, the elapsed time is not logged and the exception is propagated, but there is no handling for logging the error context which could aid debugging."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 20.094,
+            "calls": 1,
+            "input_tokens": 543,
+            "output_tokens": 187,
+            "local_execution_seconds": 20.069,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 2.563,
+            "calls": 1,
+            "input_tokens": 543,
+            "output_tokens": 20,
+            "local_execution_seconds": 2.516,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "error-handling",
+              "severity": "high",
+              "file": "src/api/middleware.py",
+              "note": "The middleware assumes handler(request) always returns a response object, but if the handler raises an exception, the logging code will fail and the exception might be masked or cause unexpected behavior since 'response' is undefined."
+            },
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "src/api/middleware.py",
+              "note": "The code accesses request.id and response.status without checking if these attributes exist, which could raise AttributeError if the request/response objects have a different interface."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 17.273,
+            "calls": 1,
+            "input_tokens": 543,
+            "output_tokens": 175,
+            "local_execution_seconds": 17.247,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 2
+      }
+    },
+    {
+      "case_id": "49-xfile-swapped-args",
+      "title": "Reordered parameters, one caller not updated",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/checkout/charge.py",
+              "note": "The call to calculate_fee in charge.py still passes arguments in the old order (amount, rate) while the function signature has been updated to (rate, amount), causing fees to be calculated incorrectly."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "MAX_RATE is referenced but not defined or imported in the shown diff, which will cause a NameError at runtime."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 18.826,
+            "calls": 1,
+            "input_tokens": 660,
+            "output_tokens": 170,
+            "local_execution_seconds": 18.8,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "The call to calculate_fee in charge.py still passes arguments as (amount, rate) but the function signature has changed to (rate, amount), causing the amount to be treated as the rate and the rate as the amount."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.356,
+            "calls": 1,
+            "input_tokens": 660,
+            "output_tokens": 108,
+            "local_execution_seconds": 11.331,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "critical",
+              "file": "src/checkout/charge.py",
+              "note": "The call to calculate_fee passes (order.total, rate) but the function signature was changed to (rate, amount), resulting in the total being treated as the rate and the rate as the amount, leading to incorrect fee calculations."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/billing/fees.py",
+              "note": "The validation check for MAX_RATE is added but the constant MAX_RATE is not defined in the visible scope, likely causing a NameError at runtime."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 18.353,
+            "calls": 1,
+            "input_tokens": 660,
+            "output_tokens": 182,
+            "local_execution_seconds": 18.328,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 2
+      }
+    },
+    {
+      "case_id": "50-xfile-config-key-rename",
+      "title": "Config key renamed, code reads the old one",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "The configuration key was renamed to 'request_timeout_seconds' but the code still accesses 'request_timeout_s', causing it to fall back to an unsafe default of 0 instead of using the configured value."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.965,
+            "calls": 1,
+            "input_tokens": 546,
+            "output_tokens": 102,
+            "local_execution_seconds": 11.94,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "The configuration key was renamed to 'request_timeout_seconds' in defaults.yaml, but the client code still attempts to read the old key 'request_timeout_s' via a .get() fallback that defaults to 0, causing the client to effectively have no timeout instead of the configured 15 seconds."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.257,
+            "calls": 1,
+            "input_tokens": 546,
+            "output_tokens": 122,
+            "local_execution_seconds": 12.215,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "src/sync/client.py",
+              "note": "The code was updated to use .get() with a fallback to 0, but the fallback key still references the old 'request_timeout_s' name instead of the new 'request_timeout_seconds' defined in config/defaults.yaml, causing the timeout to always default to 0."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 11.834,
+            "calls": 1,
+            "input_tokens": 546,
+            "output_tokens": 118,
+            "local_execution_seconds": 11.808,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "51-xfile-not-null-migration",
+      "title": "NOT NULL column added, insert path never sets it",
+      "defect": true,
+      "language": "sql",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "The migration adds a NOT NULL column without providing a default value, which will fail on existing rows or require manual intervention to populate the field."
+            },
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/models/supplier.py",
+              "note": "The insert method does not include the new 'contact_email' field in the SQL statement, causing a mismatch with the schema change and potentially failing or inserting incomplete data."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 18.341,
+            "calls": 1,
+            "input_tokens": 548,
+            "output_tokens": 169,
+            "local_execution_seconds": 18.314,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "data-corruption",
+              "severity": "high",
+              "file": "src/models/supplier.py",
+              "note": "Converting region to uppercase may cause data loss or inconsistency if the original case is significant for business logic or user expectations."
+            },
+            {
+              "category": "logic-error",
+              "severity": "high",
+              "file": "migrations/0057_supplier_email.sql",
+              "note": "Adding a NOT NULL column without a default value will fail on existing databases that already contain rows in the suppliers table."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 12.235,
+            "calls": 1,
+            "input_tokens": 548,
+            "output_tokens": 122,
+            "local_execution_seconds": 12.209,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/models/supplier.py",
+              "note": "Calling .upper() on self.region may raise an AttributeError if the region is None, whereas the previous code would have passed None to the database safely."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.38,
+            "calls": 1,
+            "input_tokens": 548,
+            "output_tokens": 92,
+            "local_execution_seconds": 9.356,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "52-xfile-weaker-decorator",
+      "title": "Admin route switched to login-only decorator",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "Replacing @require_admin with @require_login on the delete_user endpoint allows any authenticated user to delete other users, violating principle of least privilege."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.934,
+            "calls": 1,
+            "input_tokens": 586,
+            "output_tokens": 90,
+            "local_execution_seconds": 10.909,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "The delete_user endpoint was downgraded from require_admin to require_login, allowing any authenticated user to delete other users instead of restricting the action to administrators."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.674,
+            "calls": 1,
+            "input_tokens": 586,
+            "output_tokens": 95,
+            "local_execution_seconds": 9.646,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "critical",
+              "file": "src/admin/routes.py",
+              "note": "The `delete_user` endpoint authorization was weakened from `@require_admin` to `@require_login`, allowing any authenticated user to delete other users."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.408,
+            "calls": 1,
+            "input_tokens": 586,
+            "output_tokens": 92,
+            "local_execution_seconds": 9.381,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 3,
+        "severity_correct_runs": 3
+      }
+    },
+    {
+      "case_id": "53-xfile-clean-helper-move",
+      "title": "Clean: helper moved to validators, callers updated",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.892,
+            "calls": 1,
+            "input_tokens": 654,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.867,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 2.321,
+            "calls": 1,
+            "input_tokens": 654,
+            "output_tokens": 14,
+            "local_execution_seconds": 2.296,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "src/common/utils.py",
+              "note": "The removal of the normalize_email function and its migration to validators.py is not accompanied by updated tests to verify the new import paths and functionality in the calling modules."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 10.033,
+            "calls": 1,
+            "input_tokens": 654,
+            "output_tokens": 95,
+            "local_execution_seconds": 10.007,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 1
+      }
+    },
+    {
+      "case_id": "54-clean-dependency-bump",
+      "title": "Clean: pinned patch-version dependency bump",
+      "defect": false,
+      "language": "config",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.59,
+            "calls": 1,
+            "input_tokens": 587,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.564,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 1.927,
+            "calls": 1,
+            "input_tokens": 587,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.903,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 1.901,
+            "calls": 1,
+            "input_tokens": 587,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.876,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "55-clean-dead-code-removed",
+      "title": "Clean: unreachable legacy branch deleted",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "low",
+              "file": "src/render/receipt.py",
+              "note": "The variable LEGACY_TEMPLATE was removed but is unused in the remaining code, so the change is safe but indicates dead code removal rather than a functional bug fix."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 9.241,
+            "calls": 1,
+            "input_tokens": 544,
+            "output_tokens": 73,
+            "local_execution_seconds": 9.216,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 1.83,
+            "calls": 1,
+            "input_tokens": 544,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.798,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 1.866,
+            "calls": 1,
+            "input_tokens": 544,
+            "output_tokens": 14,
+            "local_execution_seconds": 1.841,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 1
+      }
+    },
+    {
+      "case_id": "56-clean-set-lookup-perf",
+      "title": "Clean: membership test moved to a set",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 3.332,
+            "calls": 1,
+            "input_tokens": 494,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.307,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 4.022,
+            "calls": 1,
+            "input_tokens": 494,
+            "output_tokens": 20,
+            "local_execution_seconds": 3.998,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "qwen3.6:27b",
+            "latency_seconds": 4.029,
+            "calls": 1,
+            "input_tokens": 494,
+            "output_tokens": 20,
+            "local_execution_seconds": 4.004,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    }
+  ],
+  "summary": {
+    "cases": 162,
+    "errors": 4,
+    "defect_cases": 116,
+    "clean_cases": 42,
+    "detected": 115,
+    "missed": 1,
+    "false_positives": 11,
+    "category_correct": 88,
+    "severity_correct": 75,
+    "mean_latency_seconds": 9.465,
+    "min_latency_seconds": 1.83,
+    "max_latency_seconds": 20.32,
+    "total_input_tokens": 82461,
+    "total_output_tokens": 13215,
+    "external_cost": [
+      "no external model API charge (local compute time is not free)"
+    ],
+    "total_external_cost_usd": null,
+    "consistency": {
+      "defect_cases_always_detected": 38,
+      "defect_cases_sometimes_detected": 1,
+      "defect_cases_never_detected": 0,
+      "clean_cases_ever_false_positive": 6,
+      "cases_with_errors": 2
+    },
+    "runs_per_case": 3
+  }
+}
