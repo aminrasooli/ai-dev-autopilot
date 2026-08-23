@@ -10,6 +10,11 @@ Read that before citing any number from here.
 Status: **v2 pilot** — 53 self-authored cases. Not an independent
 benchmark; results are reproducible evidence, not rankings.
 
+M3 hard-benchmark work (`docs/ROADMAP.md` §4) lives separately in
+[`cases-v3/`](cases-v3/), starting with
+[`cases-v3/tranche-1/`](cases-v3/tranche-1/) — never mixed into
+`cases/`, so the frozen v2 fingerprint above never moves.
+
 ## Run it
 
 ```sh

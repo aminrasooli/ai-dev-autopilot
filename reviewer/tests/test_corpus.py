@@ -100,13 +100,65 @@ class ValidateCaseTests(unittest.TestCase):
         del case["difficulty"]
         self.assert_rejected(case, "must declare a difficulty")
 
-    def test_clean_case_must_not_declare_difficulty(self):
-        case = make_case(defect=False)
-        case["difficulty"] = "subtle"
-        self.assert_rejected(case, "must not declare a difficulty")
-
     def test_unknown_difficulty_rejected(self):
         self.assert_rejected(make_case(difficulty="trivial"), "difficulty")
+
+    def test_clean_case_may_declare_difficulty(self):
+        case = make_case(defect=False)
+        case["difficulty"] = "subtle"
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_clean_case_difficulty_still_checked_against_vocabulary(self):
+        case = make_case(defect=False)
+        case["difficulty"] = "trivial"
+        self.assert_rejected(case, "difficulty")
+
+    def test_execution_validated_true_requires_note(self):
+        case = make_case()
+        case["ground_truth"]["execution_validated"] = True
+        self.assert_rejected(case, "requires a non-empty ground_truth.validation_note")
+
+    def test_execution_validated_with_note_passes(self):
+        case = make_case()
+        case["ground_truth"]["execution_validated"] = True
+        case["ground_truth"]["validation_note"] = (
+            "ran a 4-goroutine race harness 200x offline, race manifested "
+            "in 37/200 runs")
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_execution_validated_on_clean_case_passes(self):
+        case = make_case(defect=False)
+        case["ground_truth"]["execution_validated"] = True
+        case["ground_truth"]["validation_note"] = "ran offline, no race observed"
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_execution_validated_must_be_boolean(self):
+        case = make_case()
+        case["ground_truth"]["execution_validated"] = "yes"
+        self.assert_rejected(case, "execution_validated")
+
+    def test_validation_artifact_sha256_bad_format_rejected(self):
+        case = make_case()
+        case["ground_truth"]["execution_validated"] = True
+        case["ground_truth"]["validation_note"] = "note"
+        case["ground_truth"]["validation_artifact_sha256"] = "not-a-hash"
+        self.assert_rejected(case, "validation_artifact_sha256")
+
+    def test_validation_artifact_sha256_valid_format_passes(self):
+        case = make_case()
+        case["ground_truth"]["execution_validated"] = True
+        case["ground_truth"]["validation_note"] = "note"
+        case["ground_truth"]["validation_artifact_sha256"] = "a" * 64
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_still_unknown_ground_truth_field_rejected(self):
+        case = make_case()
+        case["ground_truth"]["vibes_check"] = True
+        self.assert_rejected(case, "unknown ground_truth fields")
 
     def test_accepted_categories_accepts_valid_alternative(self):
         case = make_case()
@@ -216,6 +268,14 @@ class LoadCorpusTests(unittest.TestCase):
         self.assertEqual(summary["author_families"], {"claude": 3})
         self.assertEqual(summary["severities"],
                          {"(clean)": 1, "medium-high": 2})
+
+    def test_summarize_counts_execution_validated_cases(self):
+        a = make_case("ev-a")
+        a["ground_truth"]["execution_validated"] = True
+        a["ground_truth"]["validation_note"] = "offline race harness"
+        b = make_case("ev-b")
+        summary = corpus.summarize([a, b])
+        self.assertEqual(summary["execution_validated_cases"], 1)
 
     def test_fingerprint_is_content_addressed_and_order_independent(self):
         a, b = make_case("fp-a"), make_case("fp-b")
