@@ -186,19 +186,14 @@ them because a stale branch or scheduler run once pointed that way.
 
 1. Real-bug A-tier candidate approval (`REAL-BUG-ADMISSION-PACKET.md`) —
    optional, not blocking M3
-2. Review the M2 pilot evidence and communication drafts (LinkedIn,
-   r/LocalLLaMA, Persian) prepared alongside this update — none are
-   published; publication is a human gate per ROADMAP §3
+2. Review the M2 pilot evidence and communication drafts prepared
+   alongside this update — none are published; publication is a human
+   gate per ROADMAP §3
 3. Decide the one open M3 methodology fork named in
    `docs/M3_DESIGN_BRIEF.md` (diff-only vs. execution-based oracle for
    state/cache and concurrency cases) — recommended as a short Fable
    milestone-decision session per ROADMAP §3, before any M3 case
    authoring starts
-4. Separately, a private cleanup item: stale/inconsistent wording was
-   observed between two local Git time-guard hook messages during this
-   session (a weekday-only window message and an "every day" blackout
-   message). Not a repository matter — flagged for the private ops
-   runbook, not detailed here.
 
 ## Next autonomous work
 
