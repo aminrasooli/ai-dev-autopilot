@@ -114,10 +114,10 @@ outside submission).
 Scope, exactly as `docs/ROADMAP.md` §4 defines it: larger realistic
 diffs, true cross-file reasoning, state/cache failures, authorization
 failures, concurrency failures, hard clean controls; detection no
-longer saturated. Status: **corpus authored and frozen; measurement
-preregistered; target-model runs pending.** The methodology fork was
-resolved in `docs/M3_METHODOLOGY_DECISION.md`; the corpus landed as a
-separate versioned directory (PR #18 tranche 1, PR #19 tranche 2 —
+longer saturated. Status: **authoritative measurement complete;
+evidence on PR #20; human merge gate pending.** The methodology fork
+was resolved in `docs/M3_METHODOLOGY_DECISION.md`; the corpus landed as
+a separate versioned directory (PR #18 tranche 1, PR #19 tranche 2 —
 merge commit `79f4032cc11eddf6d13d2424a6720e1031b2ce95`), never
 touching the frozen v2 corpus above.
 
@@ -134,10 +134,26 @@ observing any target-model (Sonnet 5 / Qwen 3.6 27B / DeepSeek R1 14b)
 result against v3, and immutable after freeze per the freeze record in
 `eval/cases-v3/README.md`. Experiments X17 (Sonnet), X18 (Qwen) and
 X19 (DeepSeek) — 3 runs × 37 cases each against this exact fingerprint
-— are preregistered as authoritative, results pending, in
-`eval/EXPERIMENTS.md`, with the measurement contract (denominators
-87 defective / 24 clean observations per model, reporting fields, cost
-and latency language) fixed in advance in `eval/cases-v3/README.md`.
+— were preregistered as authoritative (commit `4a53b394`, pushed
+2026-08-24T02:55:35Z), executed 2026-08-23 20:24–21:19 PDT, and
+recorded afterward in `eval/EXPERIMENTS.md`, with the measurement
+contract fixed in advance in `eval/cases-v3/README.md`.
+
+**Authoritative M3 evidence** (full analysis:
+`eval/results/M3-HARD-SCORECARD.md`; all three reports pass
+`reviewer.verify`): Sonnet detected 85/87 defective observations
+(0 misses, 2 errors) but false-positived on 21/24 clean observations;
+Qwen 82/87 (0 misses, 5 defect-side errors) with 19/24 clean FPs;
+DeepSeek-R1:14b collapsed to 12/87 detection (4/24 clean FPs, mostly
+by silence). Category/severity correctness: Sonnet 0.93/0.88, Qwen
+0.72/0.68, DeepSeek 0.04/0.04. **Gate reading:** detection for the two
+leading models remains saturated (every completed defective
+observation detected) — the "detection no longer saturated" criterion
+is not yet demonstrated for leading models; differentiation instead
+appeared in hard-clean-control precision, classification, and the
+weakest model's detection collapse. Whether that satisfies the M3 gate
+or calls for M4-scope hardening is a human decision at the PR #20
+merge gate; the frozen corpus is immutable either way.
 
 Gap analysis (grounded in the M2 evidence above and a direct inventory
 of `eval/cases/`) and a proposed hard-case taxonomy live at
