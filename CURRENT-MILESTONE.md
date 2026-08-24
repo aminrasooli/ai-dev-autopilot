@@ -114,10 +114,30 @@ outside submission).
 Scope, exactly as `docs/ROADMAP.md` §4 defines it: larger realistic
 diffs, true cross-file reasoning, state/cache failures, authorization
 failures, concurrency failures, hard clean controls; detection no
-longer saturated. Status: **design/gap-analysis phase only** — no v3
-cases authored, no infrastructure built, the frozen v2 corpus above is
-untouched. M3 must land as a new benchmark version/boundary, never as a
-mutation of the frozen 54-case v2 corpus.
+longer saturated. Status: **corpus authored and frozen; measurement
+preregistered; target-model runs pending.** The methodology fork was
+resolved in `docs/M3_METHODOLOGY_DECISION.md`; the corpus landed as a
+separate versioned directory (PR #18 tranche 1, PR #19 tranche 2 —
+merge commit `79f4032cc11eddf6d13d2424a6720e1031b2ce95`), never
+touching the frozen v2 corpus above.
+
+**Frozen v3 corpus (durable declaration):** `eval/cases-v3/cases/`,
+37 cases (29 defective / 8 clean), fingerprint
+
+```
+81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790
+```
+
+computed by `bin/review-corpus --cases eval/cases-v3/cases --json`,
+frozen 2026-08-23 as merged in PR #19 — authored and hardened without
+observing any target-model (Sonnet 5 / Qwen 3.6 27B / DeepSeek R1 14b)
+result against v3, and immutable after freeze per the freeze record in
+`eval/cases-v3/README.md`. Experiments X17 (Sonnet), X18 (Qwen) and
+X19 (DeepSeek) — 3 runs × 37 cases each against this exact fingerprint
+— are preregistered as authoritative, results pending, in
+`eval/EXPERIMENTS.md`, with the measurement contract (denominators
+87 defective / 24 clean observations per model, reporting fields, cost
+and latency language) fixed in advance in `eval/cases-v3/README.md`.
 
 Gap analysis (grounded in the M2 evidence above and a direct inventory
 of `eval/cases/`) and a proposed hard-case taxonomy live at
@@ -142,7 +162,7 @@ fresh clone or worktree of `origin/main`.
 
 ## Stable base
 
-**`origin/main`** @ `85a265706f478a7b0d3c5e40e7b17c293dd66b4e` (PR #16
+**`origin/main`** @ `79f4032cc11eddf6d13d2424a6720e1031b2ce95` (PR #19
 merge commit, the current tip of `origin/main` as of this file). Verify
 with `git fetch origin main` before trusting this line — reality wins
 if it has moved.
