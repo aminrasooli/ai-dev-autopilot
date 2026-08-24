@@ -1,0 +1,3407 @@
+{
+  "report_format": 2,
+  "backend": "ollama",
+  "model": "deepseek-r1:14b",
+  "runs_per_case": 3,
+  "corpus": {
+    "case_count": 37,
+    "benchmark_version": 2,
+    "sha256": "81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790"
+  },
+  "prompt_contract": {
+    "version": 1,
+    "fingerprint": "6a4e51f7014991b2"
+  },
+  "cases": [
+    {
+      "case_id": "t1-01-py-gift-card-bulk-discount",
+      "title": "Bulk discount tiers, added without excluding gift cards",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 8.244,
+            "calls": 1,
+            "input_tokens": 1197,
+            "output_tokens": 13,
+            "local_execution_seconds": 8.215,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.881,
+            "calls": 1,
+            "input_tokens": 1197,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.852,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.895,
+            "calls": 1,
+            "input_tokens": 1197,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.866,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-02-go-order-history-handler-leak",
+      "title": "New order-history handler skips closing the response body on 404",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.796,
+            "calls": 1,
+            "input_tokens": 1101,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.767,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "command-injection",
+              "severity": "critical",
+              "file": "internal/api/orders.go",
+              "note": "Use of fmt.Sprintf with user input could allow command injection"
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 3.126,
+            "calls": 1,
+            "input_tokens": 1101,
+            "output_tokens": 53,
+            "local_execution_seconds": 3.098,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "error",
+          "error": "MalformedResponse: review output failed validation: verdict must be one of ('approve', 'changes_required'), got None"
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 2,
+        "error_runs": 1,
+        "detected_runs": 1,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-03-ts-cart-reducer-inplace-mutation",
+      "title": "Cart reducer split into handlers; quantity update mutates state in place",
+      "defect": true,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 3.765,
+            "calls": 1,
+            "input_tokens": 2476,
+            "output_tokens": 13,
+            "local_execution_seconds": 3.734,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.914,
+            "calls": 1,
+            "input_tokens": 2476,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.883,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.927,
+            "calls": 1,
+            "input_tokens": 2476,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.896,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-04-xfile-plan-limit-stale-tier-field",
+      "title": "Per-plan upload limits: one caller keys off the legacy tier field",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "src/jobs/bulk_export.py",
+              "note": "The bulk export function uses `user.tier` instead of `user.plan`, which is deprecated and could lead to incorrect quota checks."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 5.158,
+            "calls": 1,
+            "input_tokens": 1201,
+            "output_tokens": 71,
+            "local_execution_seconds": 5.13,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "contract-mismatch",
+              "severity": "high",
+              "file": "src/jobs/bulk_export.py",
+              "note": "Bulk export uses `user.tier` instead of `user.plan`, violating contract"
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 3.563,
+            "calls": 1,
+            "input_tokens": 1201,
+            "output_tokens": 61,
+            "local_execution_seconds": 3.534,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "src/jobs/bulk_export.py",
+              "note": "The bulk export check uses `user.tier` instead of `plan`, which was deprecated in the config change"
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 3.815,
+            "calls": 1,
+            "input_tokens": 1201,
+            "output_tokens": 66,
+            "local_execution_seconds": 3.786,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 3,
+        "category_correct_runs": 1,
+        "severity_correct_runs": 1
+      }
+    },
+    {
+      "case_id": "t1-05-xfile-migration-sentinel-loss",
+      "title": "NOT NULL default backfill quietly retires a manual-triage signal",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.802,
+            "calls": 1,
+            "input_tokens": 1086,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.774,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.893,
+            "calls": 1,
+            "input_tokens": 1086,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.864,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.908,
+            "calls": 1,
+            "input_tokens": 1086,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.88,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-06-xfile-idempotency-key-time-bucketed",
+      "title": "Idempotency key gains a per-minute bucket for rate limiting, breaking retry dedupe",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.99,
+            "calls": 1,
+            "input_tokens": 1224,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.962,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.876,
+            "calls": 1,
+            "input_tokens": 1224,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.848,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.906,
+            "calls": 1,
+            "input_tokens": 1224,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.877,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-07-xfile-cache-before-auth-path-prefix",
+      "title": "New response cache runs before auth; its prefix check catches an authed route",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.849,
+            "calls": 1,
+            "input_tokens": 1121,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.821,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "src/app/cache.py",
+              "note": "The cache implementation does not validate or sanitize input paths, potentially allowing path traversal attacks."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_cache_middleware.py",
+              "note": "Tests do not cover cases where cached responses might be served to unauthorized users."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 5.774,
+            "calls": 1,
+            "input_tokens": 1121,
+            "output_tokens": 101,
+            "local_execution_seconds": 5.742,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.877,
+            "calls": 1,
+            "input_tokens": 1121,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.841,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 1,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-08-xfile-impersonation-stale-role-cache",
+      "title": "Per-session role cache, sized for short web sessions, reused for 8-hour impersonation",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.96,
+            "calls": 1,
+            "input_tokens": 1184,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.931,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.885,
+            "calls": 1,
+            "input_tokens": 1184,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.857,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.01,
+            "calls": 1,
+            "input_tokens": 1184,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.981,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-09-clean-httpkit-major-bump",
+      "title": "Clean: httpkit v2 -> v3 bump, every wait-forever call site migrated",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.192,
+            "calls": 1,
+            "input_tokens": 1298,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.16,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.913,
+            "calls": 1,
+            "input_tokens": 1298,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.885,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.866,
+            "calls": 1,
+            "input_tokens": 1298,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.836,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-10-clean-auth-decorator-consolidation",
+      "title": "Clean: five inline admin checks consolidated into one require_role decorator",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.982,
+            "calls": 1,
+            "input_tokens": 1158,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.933,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.858,
+            "calls": 1,
+            "input_tokens": 1158,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.83,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/app/routes_billing.py",
+              "note": "The decorator and function have conflicting logic in require_role checks."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_routes_billing_auth.py",
+              "note": "Tests should cover scenarios where user has neither admin nor auditor roles."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 5.392,
+            "calls": 1,
+            "input_tokens": 1158,
+            "output_tokens": 95,
+            "local_execution_seconds": 5.363,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 1
+      }
+    },
+    {
+      "case_id": "t1-11-clean-narrowed-except-clauses",
+      "title": "Clean: three broad except clauses narrowed, one deliberately left broad",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.799,
+            "calls": 1,
+            "input_tokens": 1091,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.77,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.084,
+            "calls": 1,
+            "input_tokens": 1091,
+            "output_tokens": 17,
+            "local_execution_seconds": 1.056,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.866,
+            "calls": 1,
+            "input_tokens": 1091,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.838,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-12-py-concurrency-inventory-oversell",
+      "title": "Per-SKU reservation lock and the new restock path use different locks",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.831,
+            "calls": 1,
+            "input_tokens": 1128,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.802,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.935,
+            "calls": 1,
+            "input_tokens": 1128,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.907,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.894,
+            "calls": 1,
+            "input_tokens": 1128,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.866,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-13-py-concurrency-connection-pool-checkin",
+      "title": "New connection-pool reaper drains the whole pool before refilling any of it",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.639,
+            "calls": 1,
+            "input_tokens": 993,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.611,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.86,
+            "calls": 1,
+            "input_tokens": 993,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.832,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.076,
+            "calls": 1,
+            "input_tokens": 993,
+            "output_tokens": 17,
+            "local_execution_seconds": 1.048,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-14-py-cache-stale-read-after-invalidation",
+      "title": "Cache invalidation moved before the DB write, reopening a stale-read window",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.801,
+            "calls": 1,
+            "input_tokens": 1085,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.773,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.88,
+            "calls": 1,
+            "input_tokens": 1085,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.852,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.883,
+            "calls": 1,
+            "input_tokens": 1085,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.855,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t1-15-xfile-cache-key-collision-polymorphic",
+      "title": "Shared caching mixin drops the model-type discriminator from the cache key",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.977,
+            "calls": 1,
+            "input_tokens": 1156,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.945,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.098,
+            "calls": 1,
+            "input_tokens": 1156,
+            "output_tokens": 17,
+            "local_execution_seconds": 1.069,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.086,
+            "calls": 1,
+            "input_tokens": 1156,
+            "output_tokens": 17,
+            "local_execution_seconds": 1.058,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-01-java-paged-export-boundary-dup",
+      "title": "Exporter paginated with a look-ahead row; the look-ahead row is also written",
+      "defect": true,
+      "language": "java",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.276,
+            "calls": 1,
+            "input_tokens": 1418,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.246,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.873,
+            "calls": 1,
+            "input_tokens": 1418,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.84,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.913,
+            "calls": 1,
+            "input_tokens": 1418,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.884,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-02-js-webhook-ack-before-persist",
+      "title": "Webhook receiver acknowledges events before they are durably stored",
+      "defect": true,
+      "language": "javascript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.474,
+            "calls": 1,
+            "input_tokens": 1548,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.424,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.883,
+            "calls": 1,
+            "input_tokens": 1548,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.854,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.874,
+            "calls": 1,
+            "input_tokens": 1548,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.842,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-03-go-shutdown-drain-unflushed",
+      "title": "Graceful-shutdown drain collects channel leftovers into a batch nobody flushes",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.838,
+            "calls": 1,
+            "input_tokens": 1138,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.81,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.87,
+            "calls": 1,
+            "input_tokens": 1138,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.842,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.904,
+            "calls": 1,
+            "input_tokens": 1138,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.876,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-04-rust-lease-unit-migration-miss",
+      "title": "Config durations migrate from milliseconds to seconds; one call site keeps from_millis",
+      "defect": true,
+      "language": "rust",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.191,
+            "calls": 1,
+            "input_tokens": 1376,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.162,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.863,
+            "calls": 1,
+            "input_tokens": 1376,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.835,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "other",
+              "severity": "medium",
+              "file": null,
+              "note": "The code contains a comment about operators misreading fields, but the change introduces potential confusion by renaming fields from milliseconds to seconds without clear handling of existing configurations."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 3.828,
+            "calls": 1,
+            "input_tokens": 1376,
+            "output_tokens": 66,
+            "local_execution_seconds": 3.8,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 1,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-05-xfile-flag-reload-rebind-stale",
+      "title": "Hot-reload rebinds the flags global; a from-import consumer never sees updates",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "command-injection",
+              "severity": "high",
+              "file": null,
+              "note": "The `features.py` file contains a potential command injection vulnerability through the use of `json.load()` without proper validation."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 4.529,
+            "calls": 1,
+            "input_tokens": 1135,
+            "output_tokens": 62,
+            "local_execution_seconds": 4.5,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.889,
+            "calls": 1,
+            "input_tokens": 1135,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.858,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.874,
+            "calls": 1,
+            "input_tokens": 1135,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.845,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 1,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-06-xfile-partial-unique-email-lookup",
+      "title": "Uniqueness scoped to live accounts; a lookup helper still assumes global uniqueness",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.268,
+            "calls": 1,
+            "input_tokens": 1415,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.239,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.005,
+            "calls": 1,
+            "input_tokens": 1415,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.957,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.175,
+            "calls": 1,
+            "input_tokens": 1415,
+            "output_tokens": 17,
+            "local_execution_seconds": 1.135,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-07-xfile-retry-widened-nonidempotent",
+      "title": "Retry widened to timeouts under an idempotency contract; new caller posts messages",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.164,
+            "calls": 1,
+            "input_tokens": 1282,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.134,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/lib/retry.py",
+              "note": "Retry decorator allows non-retryable exceptions to be caught and retried."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_retry.py",
+              "note": "Test coverage missing for the case where a non-retryable exception is raised."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 5.632,
+            "calls": 1,
+            "input_tokens": 1282,
+            "output_tokens": 99,
+            "local_execution_seconds": 5.604,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.875,
+            "calls": 1,
+            "input_tokens": 1282,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.846,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 1,
+        "category_correct_runs": 1,
+        "severity_correct_runs": 1
+      }
+    },
+    {
+      "case_id": "t2-08-xfile-cursor-sort-field-divergence",
+      "title": "List sort changes to updated_at; the pagination cursor still walks created_at",
+      "defect": true,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.477,
+            "calls": 1,
+            "input_tokens": 1412,
+            "output_tokens": 17,
+            "local_execution_seconds": 2.448,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.876,
+            "calls": 1,
+            "input_tokens": 1412,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.848,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "services/tickets/src/handlers/tickets.ts",
+              "note": "No validation is performed on the cursor parameter in the handler."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "services/tickets/src/__tests__/tickets.test.ts",
+              "note": "The test for oversized cursor does not assert that the response body includes an empty array when no tickets are found, which could lead to incorrect behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 6.798,
+            "calls": 1,
+            "input_tokens": 1412,
+            "output_tokens": 120,
+            "local_execution_seconds": 6.769,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 1,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-09-ts-export-route-omits-owner-check",
+      "title": "New export route calls the record loader the way internal jobs do",
+      "defect": true,
+      "language": "typescript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.175,
+            "calls": 1,
+            "input_tokens": 1360,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.137,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.921,
+            "calls": 1,
+            "input_tokens": 1360,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.892,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.859,
+            "calls": 1,
+            "input_tokens": 1360,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.831,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-10-xfile-grants-refresh-interval-widened",
+      "title": "Grants view treated as near-real-time; its refresh moves to hourly in a load-tuning pass",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.184,
+            "calls": 1,
+            "input_tokens": 1297,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.156,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "src/jobs/schedule.py",
+              "note": "Interval for expire_sessions job is set to 15 minutes, which may be too frequent considering the database load mentioned."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "tests/test_schedule.py",
+              "note": "No test coverage for the grants rebuild job interval change."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 5.933,
+            "calls": 1,
+            "input_tokens": 1297,
+            "output_tokens": 104,
+            "local_execution_seconds": 5.904,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.903,
+            "calls": 1,
+            "input_tokens": 1297,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.875,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 1,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-11-xfile-tenant-header-ingress-passthrough",
+      "title": "Internal tenant header trusts ingress stripping; the same diff turns stripping off",
+      "defect": true,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "auth-bypass",
+              "severity": "high",
+              "file": "internal/middleware/tenant.go",
+              "note": "The middleware allows any service with X-Internal-Tenant header to bypass tenant subdomain checks, creating a potential auth bypass vulnerability."
+            },
+            {
+              "category": "test-gap",
+              "severity": "low",
+              "file": "internal/middleware/tenant_test.go",
+              "note": "Missing test coverage for the case where both X-Internal-Tenant header and tenant subdomain are present, potentially leading to unintended behavior."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 8.556,
+            "calls": 1,
+            "input_tokens": 1450,
+            "output_tokens": 126,
+            "local_execution_seconds": 8.526,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": true,
+            "severity_correct": true
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.126,
+            "calls": 1,
+            "input_tokens": 1450,
+            "output_tokens": 17,
+            "local_execution_seconds": 1.094,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "error",
+          "error": "MalformedResponse: review output failed validation: findings[1].category 'security-headers' is not in the vocabulary"
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 2,
+        "error_runs": 1,
+        "detected_runs": 1,
+        "category_correct_runs": 1,
+        "severity_correct_runs": 1
+      }
+    },
+    {
+      "case_id": "t2-12-py-cache-mutable-allowlist-aliasing",
+      "title": "Policy preview appends to the cached allowlist it was handed",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.945,
+            "calls": 1,
+            "input_tokens": 1188,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.917,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.9,
+            "calls": 1,
+            "input_tokens": 1188,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.871,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.901,
+            "calls": 1,
+            "input_tokens": 1188,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.873,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-13-py-negative-cache-uninvalidated-create",
+      "title": "Cached key misses are never invalidated when the key is finally created",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.278,
+            "calls": 1,
+            "input_tokens": 1443,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.249,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.873,
+            "calls": 1,
+            "input_tokens": 1443,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.841,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.866,
+            "calls": 1,
+            "input_tokens": 1443,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.827,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-14-py-replica-read-after-write",
+      "title": "Read/write split routes the post-create readback to a lagging replica",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.177,
+            "calls": 1,
+            "input_tokens": 1283,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.145,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.88,
+            "calls": 1,
+            "input_tokens": 1283,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.848,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.865,
+            "calls": 1,
+            "input_tokens": 1283,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.837,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-15-py-async-cancel-drops-inflight-batch",
+      "title": "Shutdown cancels the flush loop mid-ship; the popped batch is not re-queued on cancel",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.005,
+            "calls": 1,
+            "input_tokens": 1237,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.976,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.859,
+            "calls": 1,
+            "input_tokens": 1237,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.83,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.886,
+            "calls": 1,
+            "input_tokens": 1237,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.858,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-16-js-inflight-map-poisoned-on-rejection",
+      "title": "Fetch dedupe map cleans up on success only; one failure pins the rejection forever",
+      "defect": true,
+      "language": "javascript",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.982,
+            "calls": 1,
+            "input_tokens": 1242,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.953,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.867,
+            "calls": 1,
+            "input_tokens": 1242,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.839,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.937,
+            "calls": 1,
+            "input_tokens": 1242,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.908,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 0,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-17-py-nested-executor-submit-deadlock",
+      "title": "Worker tasks submit sub-tasks to their own bounded pool and block on the result",
+      "defect": true,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "low",
+              "file": "src/thumbs/render.py",
+              "note": "No validation is performed on the input photo.path before loading and resizing the image, which could lead to unexpected behavior if the path contains invalid data."
+            },
+            {
+              "category": "test-gap",
+              "severity": "medium",
+              "file": "tests/test_render.py",
+              "note": "The test for render_cover does not verify that the rendering actually succeeds or check for exceptions; it only checks the return value, which could mask issues in the function logic."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 8.53,
+            "calls": 1,
+            "input_tokens": 1180,
+            "output_tokens": 131,
+            "local_execution_seconds": 8.484,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": true,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.868,
+            "calls": 1,
+            "input_tokens": 1180,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.836,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.897,
+            "calls": 1,
+            "input_tokens": 1180,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.868,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": false,
+            "false_positive": false,
+            "category_correct": false,
+            "severity_correct": false
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "detected_runs": 1,
+        "category_correct_runs": 0,
+        "severity_correct_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-18-go-clean-excl-lockfile",
+      "title": "Clean: lockfile gains a stat-then-create shape; exclusivity rests on O_EXCL",
+      "defect": false,
+      "language": "go",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "logic-error",
+              "severity": "medium",
+              "file": "internal/runlock/runlock.go",
+              "note": "Race condition in lock acquisition logic"
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 3.761,
+            "calls": 1,
+            "input_tokens": 1077,
+            "output_tokens": 49,
+            "local_execution_seconds": 3.733,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "medium",
+              "file": "internal/runlock/runlock.go",
+              "note": "Missing validation of lock file contents before attempting to read PID."
+            },
+            {
+              "category": "shell-quoting",
+              "severity": "low",
+              "file": "internal/runlock/runlock.go",
+              "note": "Potential shell injection risk in how the lock file is handled."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 5.525,
+            "calls": 1,
+            "input_tokens": 1077,
+            "output_tokens": 96,
+            "local_execution_seconds": 5.478,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "changes_required",
+          "findings": [
+            {
+              "category": "missing-validation",
+              "severity": "low",
+              "file": "internal/runlock/runlock.go",
+              "note": "No validation of the lock file contents before using it to determine if another process is running."
+            }
+          ],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 3.429,
+            "calls": 1,
+            "input_tokens": 1077,
+            "output_tokens": 60,
+            "local_execution_seconds": 3.4,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": true,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 3
+      }
+    },
+    {
+      "case_id": "t2-19-sql-clean-online-migration",
+      "title": "Clean: heavyweight-looking orders migration built from online-safe steps",
+      "defect": false,
+      "language": "sql",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.004,
+            "calls": 1,
+            "input_tokens": 1224,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.972,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.967,
+            "calls": 1,
+            "input_tokens": 1224,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.938,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.879,
+            "calls": 1,
+            "input_tokens": 1224,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.851,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-20-java-clean-lockfree-counters",
+      "title": "Clean: synchronized counters rewritten onto ConcurrentHashMap atomics",
+      "defect": false,
+      "language": "java",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.2,
+            "calls": 1,
+            "input_tokens": 1344,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.171,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.866,
+            "calls": 1,
+            "input_tokens": 1344,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.837,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.872,
+            "calls": 1,
+            "input_tokens": 1344,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.837,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-21-py-clean-idempotent-capture-retry",
+      "title": "Clean: timeout retry added around a payment capture keyed for idempotency",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 1.787,
+            "calls": 1,
+            "input_tokens": 1073,
+            "output_tokens": 13,
+            "local_execution_seconds": 1.759,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.856,
+            "calls": 1,
+            "input_tokens": 1073,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.828,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.869,
+            "calls": 1,
+            "input_tokens": 1073,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.841,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    },
+    {
+      "case_id": "t2-22-py-clean-immutable-snapshot-routing",
+      "title": "Clean: reader locks removed; the table becomes an atomically-published immutable snapshot",
+      "defect": false,
+      "language": "python",
+      "runs": [
+        {
+          "run": 1,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 2.16,
+            "calls": 1,
+            "input_tokens": 1298,
+            "output_tokens": 13,
+            "local_execution_seconds": 2.131,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 2,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.872,
+            "calls": 1,
+            "input_tokens": 1298,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.843,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        },
+        {
+          "run": 3,
+          "status": "ok",
+          "verdict": "approve",
+          "findings": [],
+          "metrics": {
+            "backend": "ollama",
+            "model": "deepseek-r1:14b",
+            "latency_seconds": 0.907,
+            "calls": 1,
+            "input_tokens": 1298,
+            "output_tokens": 13,
+            "local_execution_seconds": 0.878,
+            "external_service_required": false,
+            "external_cost": "no external model API charge (local compute time is not free)",
+            "external_cost_usd": null
+          },
+          "score": {
+            "detected": null,
+            "false_positive": false,
+            "category_correct": null,
+            "severity_correct": null
+          }
+        }
+      ],
+      "consistency": {
+        "runs": 3,
+        "ok_runs": 3,
+        "error_runs": 0,
+        "false_positive_runs": 0
+      }
+    }
+  ],
+  "summary": {
+    "cases": 111,
+    "errors": 2,
+    "defect_cases": 85,
+    "clean_cases": 24,
+    "detected": 12,
+    "missed": 73,
+    "false_positives": 4,
+    "category_correct": 3,
+    "severity_correct": 3,
+    "mean_latency_seconds": 1.947,
+    "min_latency_seconds": 0.856,
+    "max_latency_seconds": 8.556,
+    "total_input_tokens": 138206,
+    "total_output_tokens": 2597,
+    "external_cost": [
+      "no external model API charge (local compute time is not free)"
+    ],
+    "total_external_cost_usd": null,
+    "consistency": {
+      "defect_cases_always_detected": 1,
+      "defect_cases_sometimes_detected": 9,
+      "defect_cases_never_detected": 19,
+      "clean_cases_ever_false_positive": 2,
+      "cases_with_errors": 2
+    },
+    "runs_per_case": 3
+  }
+}

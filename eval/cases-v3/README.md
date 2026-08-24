@@ -18,6 +18,82 @@ vs. execution-oracle methodology fork are decided in
 the taxonomy is in
 [`../../docs/M3_DESIGN_BRIEF.md`](../../docs/M3_DESIGN_BRIEF.md).
 
+## Freeze — M3 Hard Benchmark v3 (2026-08-23)
+
+This corpus is **frozen** exactly as merged to `main` by PR #19, merge
+commit `79f4032cc11eddf6d13d2424a6720e1031b2ce95`:
+
+```
+corpus:      eval/cases-v3/cases/  (37 cases — 29 defective / 8 clean)
+fingerprint: 81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790
+```
+
+The fingerprint is computed by
+`bin/review-corpus --cases eval/cases-v3/cases --json` (methodology:
+`docs/M3_METHODOLOGY_DECISION.md`). The corpus was authored and
+hardened **without observing any Claude Sonnet 5, Qwen 3.6 27B, or
+DeepSeek R1 14B result against v3** — no target model saw any v3 case
+before this freeze.
+
+**Immutable after freeze.** No case may be edited, deleted, replaced,
+or re-tuned in response to model results — including changing a clean
+case because a model false-positives on it, or a defective case because
+a model misses it — and the frozen corpus's history is never rewritten.
+If a factual corpus error is ever discovered, the correction must be
+disclosed and made under a **new** fingerprint (a new benchmark
+identity per `docs/BENCHMARK_METHODOLOGY.md` §11a), with new
+experiments; results against this fingerprint are never retro-edited.
+
+## Preregistered measurement contract (X17–X19)
+
+Defined before any target-model result exists; uses only the harness's
+existing scoring semantics (`reviewer/evaluate.py` report summary — no
+new scoring system). Per model: **3 runs × 37 cases = 111 observations**,
+of which **29 × 3 = 87 defective observations** and **8 × 3 = 24 clean
+observations**. The scorecard reports, per model:
+
+- **Detection**: detected x/87 and %; missed x/87 and %.
+- **Clean false positives**: x/24 and % — the raw x/24 count is always
+  shown, because at n=24 a single clean-observation flip moves the
+  rate by ~4 points.
+- **Category correctness** and **severity correctness**: raw count + rate.
+- **Errors**: technical execution errors stay visible as errors (the
+  existing summary's `errors` field), never silently converted into
+  quality misses.
+- **Run-to-run consistency**: the existing report `consistency` block
+  (always/sometimes/never detected, clean cases ever-false-positive,
+  cases with errors).
+- **Latency**: existing mean/min/max. Caveat, fixed in advance: hosted
+  Sonnet latency and local RTX-6000 Ollama latency are different
+  execution environments and are **not** an apples-to-apples
+  infrastructure speed comparison.
+- **Tokens and cost**, where honestly measurable: Sonnet's external
+  cost is measured (`claude --output-format json`); for local models,
+  "no external model API charge (local compute time is not free)" —
+  never "free". Local wall-clock execution time reported where
+  honestly measurable.
+
+Subgroup analysis uses only the **pre-existing** dimensions: the
+corpus's `difficulty` values (subtle / cross-file / moderate), its
+ground-truth categories, and the taxonomy clusters listed in this
+README. All sufficiently represented predefined groups are reported —
+not a post-hoc selection of interesting ones. No leaderboard language,
+no launch-grade claims. M2 and M3 are different corpora: a lower M3
+score is not "the model got worse"; the preregistered question is
+whether M3 reduced detection saturation and exposed differentiation.
+
+Preregistered output paths (`eval/results/`, must not pre-exist;
+checkpoints resume a genuinely interrupted run only, per the existing
+checkpoint methodology):
+
+```
+claude-sonnet-5-m3hard-3runs.json   (+ .checkpoint.json)   X17
+qwen3.6-27b-m3hard-3runs.json       (+ .checkpoint.json)   X18
+deepseek-r1-14b-m3hard-3runs.json   (+ .checkpoint.json)   X19
+```
+
+## Schema note
+
 All cases carry `benchmark_version: 2`: the schema additions M3 needed
 (optional `difficulty` on clean cases, optional
 `ground_truth.execution_validated` provenance) are non-scoring,
