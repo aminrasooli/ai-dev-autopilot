@@ -7,7 +7,7 @@ where that reality is summarized. Superseded reports (`REPORT-PHASE2-*`,
 `OVERNIGHT-REPORT-*`, `DEEP-EVIDENCE-REPORT-*`) stay in the worktree as
 history; this file is what a fresh session reads first.
 
-## Current milestone: M3 Hard benchmark v3 (per `docs/ROADMAP.md` §2 and §4)
+## Current milestone: M4 Credibility and provenance (per `docs/ROADMAP.md` §2 and §4)
 
 `docs/ROADMAP.md` is the canonical public governing strategy and owns
 milestone numbering; this section summarizes status against it and must
@@ -109,14 +109,19 @@ public leaderboard (`eval/LEADERBOARD.md` stays inactive until its own
 preconditions are met: corpus `stable` status, ≥2 models at runs≥3,
 outside submission).
 
-### M3 — CURRENT: hard benchmark v3
+### M3 — COMPLETE: hard benchmark v3
 
 Scope, exactly as `docs/ROADMAP.md` §4 defines it: larger realistic
 diffs, true cross-file reasoning, state/cache failures, authorization
 failures, concurrency failures, hard clean controls; detection no
-longer saturated. Status: **authoritative measurement complete;
-evidence on PR #20; human merge gate pending.** The methodology fork
-was resolved in `docs/M3_METHODOLOGY_DECISION.md`; the corpus landed as
+longer saturated. Status: **CLOSED.** Evidence merged by PR #20
+(`ba5da0bd1a8d454a5cfdb2e93d9c816c18a81310`); the gate's literal
+"detection no longer saturated" wording was not satisfied for the two
+leading models (see the scorecard below) and was revised by PR #21
+(`aca26bdb57fec22a0d81722001d45a3052d5c695`), a disclosed same-day
+procedural waiver recorded in `docs/ROADMAP.md` §4's note under the
+milestone table — not re-argued here. The methodology fork was
+resolved in `docs/M3_METHODOLOGY_DECISION.md`; the corpus landed as
 a separate versioned directory (PR #18 tranche 1, PR #19 tranche 2 —
 merge commit `79f4032cc11eddf6d13d2424a6720e1031b2ce95`), never
 touching the frozen v2 corpus above.
@@ -151,9 +156,14 @@ leading models remains saturated (every completed defective
 observation detected) — the "detection no longer saturated" criterion
 is not yet demonstrated for leading models; differentiation instead
 appeared in hard-clean-control precision, classification, and the
-weakest model's detection collapse. Whether that satisfies the M3 gate
-or calls for M4-scope hardening is a human decision at the PR #20
-merge gate; the frozen corpus is immutable either way.
+weakest model's detection collapse. **Resolved by PR #21:** the
+criterion itself was revised — under a disclosed same-day procedural
+waiver, recorded in `docs/ROADMAP.md` §4's note, not re-argued here —
+to measure the headroom the evidence actually showed (clean-control
+precision collapse) rather than a detection-rate floor that a
+flag-everything reviewer trivially satisfies. The frozen corpus was
+not touched; only the gate's wording and its human disposition
+changed.
 
 Gap analysis (grounded in the M2 evidence above and a direct inventory
 of `eval/cases/`) and a proposed hard-case taxonomy live at
@@ -172,13 +182,13 @@ work, in the design brief.
 
 ## Canonical branch
 
-**`main`**. PR #12, #14 and #16 merged; there is no separate feature
-branch to work from. Any future session or scheduler starts from a
-fresh clone or worktree of `origin/main`.
+**`main`**. PR #12, #14, #16, #18, #19, #20 and #21 merged; there is no
+separate feature branch to work from. Any future session or scheduler
+starts from a fresh clone or worktree of `origin/main`.
 
 ## Stable base
 
-**`origin/main`** @ `79f4032cc11eddf6d13d2424a6720e1031b2ce95` (PR #19
+**`origin/main`** @ `aca26bdb57fec22a0d81722001d45a3052d5c695` (PR #21
 merge commit, the current tip of `origin/main` as of this file). Verify
 with `git fetch origin main` before trusting this line — reality wins
 if it has moved.
@@ -209,38 +219,41 @@ M2 (see above), and the Human Operator Touches operating model
 - An authority/risk/competence-ledger engine
 - Any of the above resurrected under a different name because old code
   or an old prompt already built toward it
-- M3 scope creep: authorship diversification (non-Claude-authored
-  cases) is M4's job, not M3's — do not pull it forward
-- Execution-based oracles / sandboxed test running for M3 unless a
-  human has explicitly decided that fork (see `docs/M3_DESIGN_BRIEF.md`
-  — the diff-only-vs-execution question is unresolved by design)
+- M4 scope creep: no real-bug case is admitted into a scored corpus
+  merely because it exists on a public host and has a permissive
+  license (see `docs/M4_DESIGN_BRIEF.md`) — every candidate goes
+  through the candidate queue, never straight into `eval/cases*`
+- Mining/scraping infrastructure beyond a bounded candidate queue
+- Execution-based oracles / sandboxed test running for M3-lineage cases
+  unless a human has explicitly decided that fork (see
+  `docs/M3_DESIGN_BRIEF.md` — the diff-only-vs-execution question is
+  unresolved by design)
+- Any M5+ work (public launch, leaderboard activation) before M4's own
+  gate is met
 
 These remain North Star destinations, not current backlog. Do not build
 them because a stale branch or scheduler run once pointed that way.
 
-## Next human gate (M0, M1 and M2 are complete; nothing above is blocking)
+## Next human gate (M0, M1, M2 and M3 are complete; nothing above is blocking)
 
-1. Real-bug A-tier candidate approval (`REAL-BUG-ADMISSION-PACKET.md`) —
-   optional, not blocking M3
-2. Review the M2 pilot evidence and communication drafts prepared
-   alongside this update — none are published; publication is a human
-   gate per ROADMAP §3
-3. Decide the one open M3 methodology fork named in
-   `docs/M3_DESIGN_BRIEF.md` (diff-only vs. execution-based oracle for
-   state/cache and concurrency cases) — recommended as a short Fable
-   milestone-decision session per ROADMAP §3, before any M3 case
-   authoring starts
+See `docs/M4_DESIGN_BRIEF.md` and the session decision packet it was
+produced alongside for the current, dated list — this file intentionally
+does not duplicate a list that changes every M4 work session. As of the
+M4 kickoff session (2026-08-24): real-bug candidate approvals, the
+minimum human-authored-case tranche, and the r/LocalLLaMA post
+publish/no-publish decision are the standing human gates; publication of
+any drafted post remains a human gate per ROADMAP §3 regardless of how
+this list evolves.
 
 ## Next autonomous work
 
-M3 only, once the methodology fork in gate 3 above is resolved: author
-the hard-case taxonomy proposed in `docs/M3_DESIGN_BRIEF.md` as a new
-`benchmark_version: 3` corpus (or a clearly-versioned extension
-directory), starting from the taxonomy's highest-confidence items
-(larger realistic diffs; deeper cross-file, authorization and
-concurrency cases; a labeled hard-clean-control tier building on the
-5 v2 clean cases that already show real false-positive confusion).
-Nothing outside M3 scope (no routing, no agent teams, no M4+ work).
+M4 only, exactly as scoped in `docs/M4_DESIGN_BRIEF.md`: license-checked
+real-bug candidate intake (queue only, never automatic admission),
+non-Claude-authored case proposals via `eval/proposals/` (blocked in any
+session without local Ollama/GPU access — see the design brief's
+handoff), the human-author packet, and private-holdout scaffolding that
+stops at the `~/ops` boundary. Nothing outside M4 scope (no M5 launch
+prep, no routing, no agent teams).
 
 ## Instructions for a future session with zero chat history
 
