@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# AI-DEV — validate the real-bug candidate queue (M4, docs/M4_DESIGN_BRIEF.md).
+#
+#   review-realbug validate eval/realbug-queue   # validate the queue
+#   review-realbug summary  eval/realbug-queue   # print a distribution
+#   review-realbug summary  eval/realbug-queue --json
+#
+# A queue, not an admission path: nothing here writes into eval/cases* or
+# eval/proposals/. Exit codes: 0 valid · 2 validation errors or usage error.
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-realbug: python3 is required\n' >&2; exit 2; }
+PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+  exec python3 -m reviewer.realbug "$@"

@@ -1,0 +1,22 @@
+{
+  "candidate_id": "click-pager-windows-error-reporting",
+  "repository": "pallets/click",
+  "repository_url": "https://github.com/pallets/click",
+  "commit": "fc5c7f45da0a4443f60ba2d322fe4bf829977739",
+  "parent_commit": "150d1071d69c5cdad7de78590013ffe56cf9e3bb",
+  "language": "python",
+  "changed_files": [
+    "CHANGES.md",
+    "src/click/_termui_impl.py",
+    "tests/test_termui.py"
+  ],
+  "diff_size_lines": 72,
+  "issue_or_pr_reference": "https://github.com/pallets/click/pull/3764",
+  "license": "BSD-3-Clause",
+  "bugfix_confidence": 0.75,
+  "incorporation_safe": true,
+  "recommended_treatment": "transformed",
+  "status": "candidate",
+  "found_by": "gh search commits \"fix\" --owner pallets --owner psf --owner httpie --owner fastapi, hand-reviewed via gh api repos/pallets/click/commits/<sha>",
+  "notes": "Real bug: an exception raised inside a pager subprocess on Windows was being reported incorrectly / swallowed rather than surfaced to the caller, fixed with a changelog entry and a dedicated test. Slightly larger and lower-confidence than the other candidates in this batch (72 lines across a changelog file plus source+test, and platform-specific error-handling logic is inherently harder to isolate cleanly than a pure logic bug) -- 0.75 rather than 0.8+. Recommend 'transformed', not 'verbatim': reconstruct a minimal subprocess-wrapper-with-error-swallowing scenario rather than copying click's actual pager implementation. Category fit: error-handling (swallowed/mis-propagated error) -- v2 already has 4 error-handling cases but none are platform/subprocess-specific."
+}

@@ -1,0 +1,20 @@
+{
+  "candidate_id": "werkzeug-external-url-boolean-logic",
+  "repository": "pallets/werkzeug",
+  "repository_url": "https://github.com/pallets/werkzeug",
+  "commit": "884437aef93e543ebaff3b9cdbe857ee47e7e00c",
+  "parent_commit": "1b00618e787f40dfb21eba29caf8f8be7c8e1d93",
+  "language": "python",
+  "changed_files": [
+    "src/werkzeug/routing/map.py",
+    "tests/test_routing.py"
+  ],
+  "diff_size_lines": 21,
+  "license": "BSD-3-Clause",
+  "bugfix_confidence": 0.8,
+  "incorporation_safe": true,
+  "recommended_treatment": "transformed",
+  "status": "candidate",
+  "found_by": "gh search commits \"fix\" --owner pallets --owner psf --owner httpie --owner fastapi, hand-reviewed via gh api repos/pallets/werkzeug/commits/<sha>",
+  "notes": "Real bug: an inverted/incorrect boolean condition in URL-rule matching for the 'external' (build outside the current host) case in werkzeug's routing map, fixed alongside a dedicated routing test. Small, single-mechanism diff (21 lines, one source file + one test file) -- exactly the shape this queue wants: isolable, not entangled with unrelated changes. Recommend 'transformed': rebuild a minimal routing-like function with the same inverted-boolean defect pattern rather than copying werkzeug's actual routing internals verbatim. Category fit: logic-error (inverted condition) -- a well-represented category in v2 but this instance is 'real', giving a same-category real-vs-synthetic comparison point once admitted."
+}

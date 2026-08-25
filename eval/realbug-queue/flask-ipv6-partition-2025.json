@@ -1,0 +1,23 @@
+{
+  "candidate_id": "flask-ipv6-partition-2025",
+  "repository": "pallets/flask",
+  "repository_url": "https://github.com/pallets/flask",
+  "commit": "05e9c6bd630ecf4ec0ec884b1fc7901663737bc7",
+  "parent_commit": "514fc6b3e8402e4c646d5284e97a4f0ab50a7c4b",
+  "language": "python",
+  "changed_files": [
+    "src/flask/app.py",
+    "src/flask/testing.py",
+    "tests/test_basic.py",
+    "tests/test_testing.py"
+  ],
+  "diff_size_lines": 28,
+  "issue_or_pr_reference": "https://github.com/pallets/flask/pull/6096",
+  "license": "BSD-3-Clause",
+  "bugfix_confidence": 0.85,
+  "incorporation_safe": true,
+  "recommended_treatment": "transformed",
+  "status": "candidate",
+  "found_by": "gh search commits \"fix\" --owner pallets --owner psf --owner httpie --owner fastapi, hand-reviewed via gh api repos/pallets/flask/commits/<sha>",
+  "notes": "Real bug: SERVER_NAME/host handling used str.partition(':') to split host from port, which breaks on IPv6 literal addresses like '[::1]:5000' (the address itself contains colons). Fix + two dedicated regression tests landed in the same commit under an explicit PR, which is strong evidence this is a genuine isolated bug fix rather than a refactor. Diff touches 2 source files and 2 test files (28 lines total) -- recommend 'transformed' rather than 'verbatim': reconstruct the parsing bug and its fix with renamed identifiers and different surrounding code so no verbatim Flask source or test text enters the corpus, while preserving the exact defect mechanism (naive string-split host/port parsing breaking on IPv6). Category fit: logic-error, network/parsing edge case -- v2/v3 have no IPv6-specific case."
+}

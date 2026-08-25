@@ -1,0 +1,22 @@
+{
+  "candidate_id": "git-dir-off-by-one-reject-demo",
+  "repository": "git/git",
+  "repository_url": "https://github.com/git/git",
+  "commit": "04ff8008f3a27274e53c69209362a5bbe3dc4457",
+  "parent_commit": "5bf922a4e914f15d899d38218ad0591933025ed4",
+  "language": "c",
+  "changed_files": [
+    "dir.c",
+    "t/t3011-common-prefixes-and-directory-traversal.sh",
+    "t/t7061-wtstatus-ignore.sh",
+    "t/t7521-ignored-mode.sh"
+  ],
+  "diff_size_lines": 9,
+  "license": "GPL-2.0-only",
+  "bugfix_confidence": 0.85,
+  "incorporation_safe": false,
+  "recommended_treatment": "reject",
+  "status": "rejected",
+  "found_by": "gh search commits \"fix off-by-one\" --owner git, hand-reviewed via gh api repos/git/git/commits/<sha>",
+  "notes": "Deliberately included to prove the license gate actually rejects a candidate rather than the queue only ever containing pre-approved-looking entries. This is a genuine, high-confidence, well-tested off-by-one bug fix in git's directory-traversal/ignore-matching code (git/git's GitHub API license field reads NOASSERTION, but git is well-known and independently documented to be GPL-2.0-only). GPL-2.0 is copyleft and not in this project's permissive allowlist -- 'transformed' or 'verbatim' incorporation is not acceptable at this project's risk tolerance without a separate legal decision this queue is not authorized to make. 'synthetic-reconstruction' (capturing only the off-by-one *pattern* with zero derived code) would be legally fine but is not worth doing here: git's off-by-one directory-matching bug is dense with git-specific gitignore semantics that would take real authoring effort to reconstruct faithfully, and this project already has a 'logic-error' example in the other candidates in this batch. Recommendation: reject and move on rather than spend synthetic-reconstruction effort on a marginal category gap."
+}
