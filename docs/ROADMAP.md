@@ -112,7 +112,7 @@ gates in section 3 are preserved forever.
 | M0 | Pre-flight (calendar gate: before travel) | Ground truth reviewed by JP's own eyes; PR #12 merged by JP; B0 encrypted backup completed; nightly scheduler re-enabled |
 | M1 | Benchmark v2 frozen | Answer key frozen; repeat runs; reproducible from a fresh clone |
 | M2 | Cross-model pilot | Sonnet vs Qwen vs DeepSeek on frozen corpus, 3 repetitions, honest cost + latency + quality scorecard, clearly labeled a pilot |
-| M3 | Hard benchmark v3 | Large realistic diffs, true cross-file reasoning, state/cache, authorization, concurrency, hard clean controls; detection no longer saturated |
+| M3 | Hard benchmark v3 | Large realistic diffs, true cross-file reasoning, state/cache, authorization, concurrency, hard clean controls; and the frozen corpus is demonstrably unsaturated: on the preregistered raw-count axes, no evaluated reviewer performs near-perfectly on defect detection and clean-control discrimination at the same time, and at least one evaluated reviewer materially outperforms both a flag-everything and an approve-everything strategy. Criterion revised 2026-08-24, after results, under a disclosed same-day procedural waiver — see the note below this table |
 | M4 | Credibility and provenance | Real historical bugs (license-checked), cases authored by non-Claude models, human-written cases, private holdout live and rotating |
 | M5 | Public launch | Stable corpus, reproducible runs, multi-dimensional scorecard (repeatability, cost, latency, precision, classification, hard tier), SUBMIT.md accepting outside results, leaderboard page |
 | M6 | Traction gate | Numbers in section 5 measured; go/no-go for platform |
@@ -123,6 +123,53 @@ gates in section 3 are preserved forever.
 
 Order is strict. No milestone starts before the previous one's gate.
 
+**Note on the M3 criterion (revised 2026-08-24, after results, under a disclosed same-day procedural waiver).**
+
+M3 originally read "...; detection no longer saturated." The
+preregistered X17-X19 measurement did not satisfy that wording: the two
+leading reviewers detected every defective observation they completed
+(85/85 and 82/82). That literal failure stands, and is recorded in
+`eval/results/M3-HARD-SCORECARD.md`.
+
+The same evidence showed why the wording cannot work as written.
+`detected` is defined as "at least one finding on a defective case", so
+a reviewer's detection rate is bounded below by the rate at which it
+raises findings on *clean* diffs -- a property of the reviewer, not of
+case difficulty. Measured here that floor is 0.83-0.88 for the leading
+reviewers, so no amount of additional defect subtlety could have moved
+their detection rate, and a reviewer that flags every diff scores 100%
+detection forever. Detection rate alone therefore cannot measure
+whether a corpus is hard.
+
+What the corpus did do is remove the saturation the milestone was
+protecting against. Against the same three reviewers, the strongest
+held detection at 1.00 while its correct-approval rate on clean
+controls fell from 0.79 on the v2 corpus to 0.13 here (3 of 24 clean
+observations), and the weakest reviewer's detection fell from 0.82 to
+0.14. The revised criterion measures that headroom directly, on the
+same preregistered axes, and cannot be met by a flag-everything or an
+approve-everything reviewer. If a future reviewer ever does score
+near-perfectly on both axes at once, this corpus version is saturated
+and a new version is required -- that is the criterion's own retirement
+condition.
+
+The replacement criterion was **not** preregistered. It was adopted
+after the results, deliberately and on the record. The gate was
+questioned on 2026-08-23/24.
+
+Section 0 rule 3 and section 9 failure mode 2 require gate changes to
+land by deliberate PR edit on a different day than the conversation
+that questioned them, specifically to prevent a gate being rationalized
+away in the same sitting as a disappointing result. JP explicitly
+waived that specific requirement for this one decision, choosing on
+2026-08-24 -- the same day the gate was questioned -- to proceed rather
+than wait. This note discloses that waiver rather than concealing it.
+The waiver is procedural only: it does not change the substantive
+criterion above beyond what independent review already produced, it
+does not amend rule 3 or failure mode 2 for any future gate decision,
+and no frozen case, raw report, registry row or scoring rule was
+changed because of it.
+
 ---
 
 ## 5. Gates (pre-committed so they cannot quietly move)
@@ -130,8 +177,10 @@ Order is strict. No milestone starts before the previous one's gate.
 - M0 calendar gate: complete before the flight. Without the nightly
   scheduler on, the low-touch operating model does not exist.
 - M5 launch gate: a stranger can reproduce the headline result from
-  the README alone, AND the corpus is no longer detection-saturated
-  (M3 done), AND ground truth was human-reviewed.
+  the README alone, AND the corpus is demonstrably unsaturated by the
+  revised M3 criterion (M3 done -- criterion revised 2026-08-24 after
+  results, under a disclosed same-day procedural waiver, per the note
+  under the milestone table), AND ground truth was human-reviewed.
 - M6 traction gate, measured 3 weeks after M5 launch, priority order:
   1. At least 1 independent reproduction or result submission from a
      stranger (worth more than everything else combined).
