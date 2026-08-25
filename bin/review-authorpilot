@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# AI-DEV — non-Claude authorship pilot (M4-B, docs/M4_DESIGN_BRIEF.md §B).
+#
+#   review-authorpilot run --model qwen3.6:27b --author-family qwen \
+#       --language python --category resource-leak \
+#       --out-dir eval/authorship-pilot/attempts
+#
+# Requires a reachable local Ollama daemon with the named model already
+# pulled — this never downloads a model. Writes one attempt record per
+# run; never writes into eval/proposals/ or eval/cases* directly.
+# Exit codes: 0 attempt recorded (ready or rejected) · 1 model unreachable.
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-authorpilot: python3 is required\n' >&2; exit 2; }
+PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+  exec python3 -m reviewer.authorpilot "$@"
