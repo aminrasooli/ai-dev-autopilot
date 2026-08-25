@@ -78,6 +78,105 @@ class ValidateCaseTests(unittest.TestCase):
                                      "author_family": "human"})
         self.assert_rejected(case, "requires provenance.reference")
 
+    def _mined_provenance(self, **overrides):
+        prov = {
+            "type": "mined-real-fix", "author_family": "human",
+            "human_authored": False, "reference": "https://example.com/c/abc123",
+            "source_repository": "example/widget", "source_commit": "abc123",
+            "source_license": "MIT", "transformation": "transformed",
+        }
+        prov.update(overrides)
+        return prov
+
+    def test_mined_real_fix_full_provenance_passes(self):
+        case = make_case(provenance=self._mined_provenance())
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_mined_real_fix_requires_source_repository(self):
+        prov = self._mined_provenance()
+        del prov["source_repository"]
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires provenance.source_repository")
+
+    def test_mined_real_fix_requires_source_commit(self):
+        prov = self._mined_provenance()
+        del prov["source_commit"]
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires provenance.source_commit")
+
+    def test_mined_real_fix_requires_source_license(self):
+        prov = self._mined_provenance()
+        del prov["source_license"]
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires provenance.source_license")
+
+    def test_mined_real_fix_requires_transformation(self):
+        prov = self._mined_provenance()
+        del prov["transformation"]
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires provenance.transformation")
+
+    def test_bad_transformation_value_rejected(self):
+        prov = self._mined_provenance(transformation="mostly-copied")
+        self.assert_rejected(make_case(provenance=prov),
+                             "provenance.transformation")
+
+    def test_transformation_outside_mined_real_fix_rejected(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "claude",
+            "transformation": "verbatim"})
+        self.assert_rejected(case, "only applies to provenance.type mined-real-fix")
+
+    def test_empty_string_provenance_field_rejected(self):
+        prov = self._mined_provenance(source_license="")
+        self.assert_rejected(make_case(provenance=prov),
+                             "provenance.source_license must be a non-empty string")
+
+    def test_human_family_requires_explicit_human_authored(self):
+        case = make_case(provenance={"type": "seeded-synthetic",
+                                     "author_family": "human"})
+        self.assert_rejected(case, "requires an explicit provenance.human_authored")
+
+    def test_human_authored_false_is_the_human_reviewed_case(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "human",
+            "human_authored": False})
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_human_authored_true_requires_human_family(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "claude",
+            "human_authored": True})
+        self.assert_rejected(case, "requires author_family 'human'")
+
+    def test_human_authored_must_be_boolean(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "human",
+            "human_authored": "yes"})
+        self.assert_rejected(case, "provenance.human_authored must be a boolean")
+
+    def test_author_model_recorded_for_non_claude_family(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "qwen",
+            "author_model": "qwen3.6:27b"})
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_deepseek_is_a_known_author_family(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "deepseek",
+            "author_model": "deepseek-r1:14b"})
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_unknown_provenance_field_rejected(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "claude",
+            "surprise": True})
+        self.assert_rejected(case, "unknown provenance fields")
+
     def test_unknown_category_rejected(self):
         case = make_case()
         case["ground_truth"]["category"] = "vibes"

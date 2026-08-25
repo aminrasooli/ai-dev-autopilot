@@ -37,7 +37,14 @@ PROVENANCE_TYPES = (
     "seeded-synthetic", "authored-realistic", "mined-real-fix", "mutation",
 )
 
-AUTHOR_FAMILIES = ("claude", "qwen", "human", "mixed", "other")
+AUTHOR_FAMILIES = ("claude", "qwen", "deepseek", "human", "mixed", "other")
+
+# M4 (docs/ROADMAP.md §4, docs/M4_DESIGN_BRIEF.md): how source material for
+# a mined-real-fix case was incorporated. Required exactly when
+# provenance.type == "mined-real-fix" — that is the one class where "how
+# much of the original code survives" is a real licensing/credibility
+# question, not a stylistic detail.
+TRANSFORMATIONS = ("verbatim", "transformed", "synthetic-reconstruction")
 
 STATUSES = ("pilot", "stable")
 
@@ -152,10 +159,63 @@ def validate_case(obj, origin="case"):
             errors.append(f"{origin}: provenance.author_family "
                           f"{prov.get('author_family')!r} not in {AUTHOR_FAMILIES}")
         ref = prov.get("reference")
-        if prov.get("type") == "mined-real-fix" and not (
-                isinstance(ref, str) and ref.strip()):
+        is_mined = prov.get("type") == "mined-real-fix"
+        if is_mined and not (isinstance(ref, str) and ref.strip()):
             errors.append(f"{origin}: mined-real-fix requires provenance.reference")
-        unknown_prov = set(prov) - {"type", "author_family", "reference"}
+
+        # M4 provenance fields (docs/M4_DESIGN_BRIEF.md). All optional,
+        # non-scoring, fingerprint-only additions per
+        # docs/BENCHMARK_METHODOLOGY.md §11a — existing v2/v3 cases carry
+        # none of them and remain valid. mined-real-fix is the one type
+        # where they become required: that is the class this project
+        # incorporates someone else's code into, so the licensing and
+        # transformation record is not optional for it.
+        for field in ("source_repository", "source_commit", "source_license",
+                      "provenance_notes"):
+            if field in prov and not (
+                    isinstance(prov[field], str) and prov[field].strip()):
+                errors.append(f"{origin}: provenance.{field} must be a "
+                              "non-empty string")
+        if is_mined:
+            for field in ("source_repository", "source_commit", "source_license"):
+                if not (isinstance(prov.get(field), str) and prov[field].strip()):
+                    errors.append(f"{origin}: mined-real-fix requires "
+                                  f"provenance.{field}")
+        transformation = prov.get("transformation")
+        if transformation is not None and transformation not in TRANSFORMATIONS:
+            errors.append(f"{origin}: provenance.transformation "
+                          f"{transformation!r} not in {TRANSFORMATIONS}")
+        if is_mined and transformation is None:
+            errors.append(f"{origin}: mined-real-fix requires "
+                          "provenance.transformation")
+        if not is_mined and transformation is not None:
+            errors.append(f"{origin}: provenance.transformation only applies "
+                          "to provenance.type mined-real-fix")
+
+        author_model = prov.get("author_model")
+        if author_model is not None and not (
+                isinstance(author_model, str) and author_model.strip()):
+            errors.append(f"{origin}: provenance.author_model must be a "
+                          "non-empty string")
+
+        human_authored = prov.get("human_authored")
+        if "human_authored" in prov and not isinstance(human_authored, bool):
+            errors.append(f"{origin}: provenance.human_authored must be a "
+                          "boolean")
+        elif prov.get("author_family") == "human" and human_authored is None:
+            errors.append(f"{origin}: author_family 'human' requires an "
+                          "explicit provenance.human_authored (true only "
+                          "when a human wrote the case content itself, "
+                          "false for human-reviewed/tool-formatted cases)")
+        if human_authored is True and prov.get("author_family") != "human":
+            errors.append(f"{origin}: provenance.human_authored=true requires "
+                          "author_family 'human'")
+
+        unknown_prov = set(prov) - {
+            "type", "author_family", "reference", "source_repository",
+            "source_commit", "source_license", "transformation",
+            "author_model", "human_authored", "provenance_notes",
+        }
         if unknown_prov:
             errors.append(f"{origin}: unknown provenance fields {sorted(unknown_prov)}")
 
@@ -350,6 +410,12 @@ def summarize(cases):
         # (docs/M3_METHODOLOGY_DECISION.md).
         "execution_validated_cases": sum(
             1 for c in cases if c["ground_truth"].get("execution_validated")),
+        # M4 provenance visibility (docs/M4_DESIGN_BRIEF.md), same
+        # non-scoring spirit as execution_validated_cases above.
+        "human_authored_cases": sum(
+            1 for c in cases if c["provenance"].get("human_authored") is True),
+        "mined_real_fix_cases": sum(
+            1 for c in cases if c["provenance"]["type"] == "mined-real-fix"),
         # A stable fingerprint of the exact corpus content, so a result
         # report can name precisely what it ran against without carrying
         # any filesystem path.

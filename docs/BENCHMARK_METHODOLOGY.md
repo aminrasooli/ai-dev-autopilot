@@ -159,11 +159,31 @@ One JSON file per case in `eval/cases/`. Machine-validated by
 | `ground_truth` | object | yes | see below |
 | `tags` | list | no | free-form, e.g. `["cross-file"]` |
 
-`provenance.author_family` ∈ `claude`, `qwen`, `human`, `mixed`, `other` —
-who/what authored the case, machine-readable so self-authorship bias
-(§10) can be sliced in analysis. `provenance.reference` is required for
-`mined-real-fix` (commit URL or equivalent) and must never point at
-private infrastructure.
+`provenance.author_family` ∈ `claude`, `qwen`, `deepseek`, `human`,
+`mixed`, `other` — who/what authored the case, machine-readable so
+self-authorship bias (§10) can be sliced in analysis. `provenance.reference`
+is required for `mined-real-fix` (commit URL or equivalent) and must
+never point at private infrastructure.
+
+**M4 provenance fields (`docs/M4_DESIGN_BRIEF.md`, docs/ROADMAP.md §4),
+all optional and fingerprint-only per §11a** — existing v2/v3 cases carry
+none of them and remain valid unchanged:
+
+| field | type | required when | meaning |
+|---|---|---|---|
+| `source_repository` | string | `provenance.type = mined-real-fix` | the repository the fix was mined from |
+| `source_commit` | string | `provenance.type = mined-real-fix` | the specific bug-fix commit |
+| `source_license` | string | `provenance.type = mined-real-fix` | the source repository's license at the commit used |
+| `transformation` | enum: `verbatim`, `transformed`, `synthetic-reconstruction` | `provenance.type = mined-real-fix`; rejected otherwise | how much of the original code survives into the case |
+| `author_model` | string | never required | exact model identifier (e.g. `qwen3.6:27b`), refining the coarse `author_family` bucket |
+| `human_authored` | bool | `author_family = human` (must be explicit) | `true` only when a human wrote the case content itself; `false` marks a human-*reviewed* case (concept/decision by a human, mechanical formatting by tooling) — never inferred, always stated |
+| `provenance_notes` | string | never required | free-form provenance context that doesn't fit another field |
+
+`human_authored` is the schema's answer to "human-written vs.
+human-reviewed" (M4-C): a case can only claim to be human-written if this
+field is explicitly `true`, and the validator refuses to leave it
+unstated for any `author_family: human` case — silence is not allowed to
+read as a claim.
 
 `ground_truth` for defective cases:
 `{defect: true, category, severity: [min, max], explanation}` — category
