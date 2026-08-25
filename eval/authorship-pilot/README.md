@@ -23,7 +23,7 @@ cannot reach http://127.0.0.1:11434/api/generate: <urlopen error [Errno 111] Con
 ```
 
 Root cause, checked directly: `ollama serve` cannot even start in this
-session's environment (`mkdir /home/jp/.ollama/models: read-only file
+session's environment (`mkdir ~/.ollama/models: read-only file
 system`), and no models are pulled (`~/.ollama/models` does not exist).
 This is the same host-GPU dependency M2 and M3's Qwen/DeepSeek legs
 already had (`eval/EXPERIMENTS.md` X15/X16/X18/X19 all ran "local via
