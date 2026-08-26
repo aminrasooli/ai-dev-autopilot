@@ -159,6 +159,49 @@ class RunPilotTests(unittest.TestCase):
         self.assertIsNone(record["proposal"])
         self.assertTrue(any("category" in e for e in record["validation_errors"]))
 
+    def test_language_mismatch_is_rejected_not_relabeled(self):
+        # VALID_DEFECT_JSON is a Python case; this attempt asked for Go.
+        # The old behaviour stamped the requested language onto the case
+        # and returned `ready`, producing a proposal labelled `go` whose
+        # diff and affected_files are Python — a wrong label in a scored
+        # corpus, and one no human skimming a status column would catch.
+        record = authorpilot.run_pilot(
+            "qwen3.6:27b", "qwen", "go", "concurrency", "qwen-pilot-lang",
+            opener=_FakeOpener(200, {"response": VALID_DEFECT_JSON}))
+        self.assertEqual(record["status"], "rejected-language-mismatch")
+        self.assertIsNone(record["proposal"])
+        self.assertTrue(any("python" in e.lower()
+                            for e in record["validation_errors"]))
+        # The raw output is still preserved — a rejected attempt is
+        # evidence, not garbage.
+        self.assertIn("cache key", record["raw_output"])
+
+    def test_language_echoed_back_unchanged_is_still_ready(self):
+        record = authorpilot.run_pilot(
+            "qwen3.6:27b", "qwen", "python", "resource-leak", "qwen-pilot-lang-ok",
+            opener=_FakeOpener(200, {"response": VALID_DEFECT_JSON}))
+        self.assertEqual(record["status"], "ready")
+
+    def test_language_omitted_by_the_model_falls_back_to_the_request(self):
+        # Nothing to disagree with: the requested language is the only
+        # signal there is, and this is the one case where using it is not
+        # overriding the model.
+        obj = json.loads(VALID_DEFECT_JSON)
+        del obj["language"]
+        record = authorpilot.run_pilot(
+            "qwen3.6:27b", "qwen", "python", "resource-leak", "qwen-pilot-lang-none",
+            opener=_FakeOpener(200, {"response": json.dumps(obj)}))
+        self.assertEqual(record["status"], "ready")
+        self.assertEqual(record["proposal"]["case"]["language"], "python")
+
+    def test_language_case_and_whitespace_do_not_cause_a_false_mismatch(self):
+        obj = json.loads(VALID_DEFECT_JSON)
+        obj["language"] = "  Python  "
+        record = authorpilot.run_pilot(
+            "qwen3.6:27b", "qwen", "python", "resource-leak", "qwen-pilot-lang-ws",
+            opener=_FakeOpener(200, {"response": json.dumps(obj)}))
+        self.assertEqual(record["status"], "ready")
+
     def test_daemon_unreachable_propagates_not_recorded_as_rejected(self):
         # Infrastructure failure (can't reach the model at all) is
         # distinct from a pilot outcome (model replied, output was bad) —
