@@ -407,6 +407,52 @@ def _normalized_diff_key(diff_text):
     return hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
 
+def cross_corpus_conflicts(corpora):
+    """Find case ids and diffs that collide ACROSS separate corpora.
+
+    `load_corpus` already refuses duplicate ids and near-duplicate diffs
+    *within* one directory, but every corpus this project ships lives in
+    its own directory (`eval/cases`, `eval/cases-v3/cases`, and any
+    provenance tranche), so nothing stopped a new tranche from
+    re-admitting a case that already exists in a frozen corpus. That
+    matters for M4 specifically: a "real historical bug" case that is
+    secretly a duplicate of a seeded-synthetic v2 case would inflate the
+    provenance claim while adding no new evidence.
+
+    `corpora` maps a display name to a list of validated cases. Returns
+    a list of conflict dicts, each naming both sides — never raises, and
+    never mutates a corpus. Diff comparison reuses the same whitespace-
+    and case-insensitive key `load_corpus` uses, so the two checks agree
+    about what "the same diff" means.
+    """
+    conflicts = []
+    seen_ids, seen_diffs = {}, {}
+    for name in sorted(corpora):
+        for case in sorted(corpora[name], key=lambda c: c["id"]):
+            case_id = case["id"]
+            if case_id in seen_ids:
+                other_corpus, _ = seen_ids[case_id]
+                conflicts.append({
+                    "kind": "duplicate-id", "id": case_id,
+                    "corpus": name, "other_corpus": other_corpus,
+                    "other_id": case_id})
+            else:
+                seen_ids[case_id] = (name, case_id)
+            diff = case["diff"]
+            if isinstance(diff, list):
+                diff = "\n".join(diff) + "\n"
+            key = _normalized_diff_key(diff)
+            if key in seen_diffs:
+                other_corpus, other_id = seen_diffs[key]
+                conflicts.append({
+                    "kind": "duplicate-diff", "id": case_id,
+                    "corpus": name, "other_corpus": other_corpus,
+                    "other_id": other_id})
+            else:
+                seen_diffs[key] = (name, case_id)
+    return conflicts
+
+
 def load_corpus(cases_dir, collect=False):
     """Load and validate a corpus directory.
 
@@ -528,6 +574,12 @@ def main(argv=None):
                         help="corpus directory (default: eval/cases)")
     parser.add_argument("--json", action="store_true",
                         help="emit the summary as JSON")
+    parser.add_argument("--cross-check", action="append", default=[],
+                        metavar="DIR",
+                        help="also load DIR and report case ids or diffs "
+                             "that collide with --cases (repeatable). Use "
+                             "when admitting a new tranche alongside a "
+                             "frozen corpus.")
     args = parser.parse_args(argv)
 
     cases, errors, warnings = load_corpus(args.cases, collect=True)
@@ -539,12 +591,34 @@ def main(argv=None):
         print(f"corpus INVALID: {len(errors)} error(s), "
               f"{len(warnings)} warning(s)", file=sys.stderr)
         return 2
+    conflicts = []
+    if args.cross_check:
+        corpora = {args.cases: cases}
+        for other in args.cross_check:
+            try:
+                corpora[other] = load_corpus(other)
+            except ConfigError as exc:
+                print(f"error: cross-check corpus {other}: {exc}",
+                      file=sys.stderr)
+                return 2
+        conflicts = cross_corpus_conflicts(corpora)
+
     summary = summarize(cases)
     if args.json:
+        if args.cross_check:
+            summary["cross_corpus_conflicts"] = conflicts
         print(json.dumps(summary, indent=2))
     else:
         print(render_summary(summary))
         print(f"corpus valid ({len(warnings)} warning(s))")
+        if args.cross_check:
+            print(f"cross-check against {len(args.cross_check)} other "
+                  f"corpus/corpora: {len(conflicts)} conflict(s)")
+    if conflicts:
+        for c in conflicts:
+            print(f"error: {c['kind']}: {c['corpus']}:{c['id']} collides "
+                  f"with {c['other_corpus']}:{c['other_id']}", file=sys.stderr)
+        return 2
     return 0
 
 

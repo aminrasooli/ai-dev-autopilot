@@ -195,6 +195,17 @@ class ValidateCaseTests(unittest.TestCase):
         self.assert_rejected(make_case(provenance=prov),
                              "requires a known-permissive source_license")
 
+    def test_copyleft_transformed_rejected_on_the_real_admission_path(self):
+        # The advisory queue (reviewer.realbug) already refuses this, but
+        # the queue is not what admits a case — validate_case is. The
+        # queue's own GPL reject-demo candidate must therefore also fail
+        # here, or a copyleft case could reach a scored corpus by
+        # skipping the queue entirely (docs/M4_DESIGN_BRIEF.md §A rule 1).
+        prov = self._mined_provenance(source_license="GPL-2.0-only",
+                                      transformation="transformed")
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires a known-permissive source_license")
+
     def test_synthetic_reconstruction_is_exempt_from_the_license_gate(self):
         # No code is derived, so a copyleft source is not a problem —
         # the attribution is still recorded (docs/M4_DESIGN_BRIEF.md §A).
@@ -425,6 +436,42 @@ class LoadCorpusTests(unittest.TestCase):
             with self.assertRaisesRegex(ConfigError, "near-duplicate"):
                 corpus.load_corpus(tmp)
 
+    def test_cross_corpus_duplicate_id_detected(self):
+        # Every corpus lives in its own directory, so load_corpus's
+        # within-directory dedup cannot see a tranche re-admitting a case
+        # that already exists in a frozen corpus.
+        a = make_case("shared-id")
+        b = copy.deepcopy(a)
+        b["diff"] = ["--- a/src/app.py", "+++ b/src/app.py",
+                     "@@ -1,2 +1,2 @@", "-wholly", "+different"]
+        conflicts = corpus.cross_corpus_conflicts({"v2": [a], "tranche": [b]})
+        kinds = {c["kind"] for c in conflicts}
+        self.assertIn("duplicate-id", kinds)
+
+    def test_cross_corpus_duplicate_diff_detected(self):
+        a = make_case("case-one")
+        b = make_case("case-two")
+        b["diff"] = a["diff"]
+        conflicts = corpus.cross_corpus_conflicts({"v2": [a], "tranche": [b]})
+        self.assertEqual([c["kind"] for c in conflicts], ["duplicate-diff"])
+
+    def test_cross_corpus_distinct_corpora_have_no_conflicts(self):
+        # The check must not fire on genuinely different corpora, or it
+        # would be noise the moment a real tranche lands.
+        conflicts = corpus.cross_corpus_conflicts(
+            {"v2": [make_case("alpha"), make_case("beta")],
+             "tranche": [make_case("gamma")]})
+        self.assertEqual(conflicts, [])
+
+    def test_cross_corpus_check_runs_over_the_shipped_corpora(self):
+        # The real invariant this protects: the corpora actually shipped
+        # in this repository do not collide with each other.
+        v2 = corpus.load_corpus(corpus.DEFAULT_CASES_DIR)
+        v3_dir = os.path.join(os.path.dirname(corpus.DEFAULT_CASES_DIR),
+                              "cases-v3", "cases")
+        v3 = corpus.load_corpus(v3_dir)
+        self.assertEqual(corpus.cross_corpus_conflicts({"v2": v2, "v3": v3}), [])
+
     def test_empty_directory_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ConfigError):
@@ -486,6 +533,29 @@ class RealCorpusTests(unittest.TestCase):
         # Self-authorship is a documented limitation and must stay
         # machine-readable, not implicit.
         self.assertIn("claude", summary["author_families"])
+
+    def test_frozen_corpus_fingerprints_are_exact(self):
+        # v2 and v3 are declared immutable after freeze
+        # (eval/cases-v3/README.md, CURRENT-MILESTONE.md): every
+        # authoritative M1/M2/M3 result names one of these two hashes, so
+        # a single edited byte in either corpus silently invalidates
+        # published evidence. Pin them here so that edit fails a test
+        # instead of being discovered at citation time. These values are
+        # never "updated to match" — a genuine corpus change requires a
+        # new fingerprint and new experiments, not a new assertion.
+        eval_dir = os.path.dirname(corpus.DEFAULT_CASES_DIR)
+        frozen = {
+            corpus.DEFAULT_CASES_DIR:
+                "f31d46310988f61c4534344ad05a52a4385fd151"
+                "59126a0be85aad532f045690",
+            os.path.join(eval_dir, "cases-v3", "cases"):
+                "81daa0b7a48259184a91c48ab1dcf17c9d3ed490"
+                "2fa891b5895db0f29fd79790",
+        }
+        for path, expected in frozen.items():
+            actual = corpus.corpus_fingerprint(corpus.load_corpus(path))
+            self.assertEqual(actual, expected,
+                             f"frozen corpus {path} changed fingerprint")
 
     def test_cli_validates_shipped_corpus(self):
         self.assertEqual(corpus.main(["--cases", corpus.DEFAULT_CASES_DIR]), 0)
