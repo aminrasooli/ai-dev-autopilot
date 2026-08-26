@@ -2,7 +2,7 @@
   "proposal_id": "flask-ipv6-partition-host-port",
   "author_family": "claude",
   "generator": "claude-sonnet-5",
-  "status": "proposed",
+  "status": "accepted",
   "rationale": "Real bug from eval/realbug-queue/flask-ipv6-partition-host-port.json (pallets/flask, BSD-3-Clause, bugfix_confidence 0.85). Neither v2 nor v3 has an IPv6-specific case; this fills that gap with a real historical mechanism instead of an invented one.",
   "case": {
     "benchmark_version": 2,
@@ -13,6 +13,7 @@
     "provenance": {
       "type": "mined-real-fix",
       "author_family": "claude",
+      "author_model": "claude-sonnet-5",
       "reference": "https://github.com/pallets/flask/commit/05e9c6bd630ecf4ec0ec884b1fc7901663737bc7",
       "source_repository": "pallets/flask",
       "source_commit": "05e9c6bd630ecf4ec0ec884b1fc7901663737bc7",
@@ -38,10 +39,18 @@
     "ground_truth": {
       "defect": true,
       "category": "logic-error",
-      "severity": ["medium", "high"],
+      "severity": [
+        "medium",
+        "high"
+      ],
       "explanation": "Removing the bracket-aware branch makes every address parsed with a naive partition on the first colon. An IPv6 literal like '[::1]:5000' contains colons inside the address itself, so the naive split returns host='[' and a garbled port/host remainder instead of host='::1', port='5000' -- breaking any caller that binds, displays, or routes by host for IPv6 listeners."
     },
     "difficulty": "moderate",
-    "tags": ["real-bug", "ipv6", "parsing"]
-  }
+    "tags": [
+      "real-bug",
+      "ipv6",
+      "parsing"
+    ]
+  },
+  "reviewer_notes": "ADMITTED 2026-08-25 to eval/cases-provenance/cases/. Independently adjudicated against pallets/flask@05e9c6bd: source facts, license (BSD-3-Clause), bug-fix status, mechanism fidelity, ground truth, leakage and diff validity all re-verified from the upstream commit, including executing both parse states. Admitted unchanged except provenance.author_model, added so the generator fact survives graduation."
 }

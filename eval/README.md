@@ -15,6 +15,13 @@ M3 hard-benchmark work (`docs/ROADMAP.md` §4) lives separately in
 [`cases-v3/cases/`](cases-v3/cases/) — never mixed into `cases/`, so
 the frozen v2 fingerprint above never moves.
 
+M4 provenance evidence (`docs/ROADMAP.md` §4) lives in
+[`cases-provenance/`](cases-provenance/) — cases whose origin is the
+point, currently four transformed reconstructions of real historical
+bug fixes. Also a separate directory, so neither frozen fingerprint
+moves. Four cases is a process demonstration, not a measurement; read
+that corpus's README before citing anything from it.
+
 ## Run it
 
 ```sh

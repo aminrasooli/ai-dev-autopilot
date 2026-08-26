@@ -180,15 +180,60 @@ lines — "larger realistic diffs" is a fully open gap. Full detail,
 including which decisions are methodology calls versus implementation
 work, in the design brief.
 
+### M4 — IN PROGRESS: credibility and provenance
+
+Four pillars (`docs/ROADMAP.md` §4): real historical bugs, non-Claude
+authorship, human-written cases, private holdout live and rotating.
+**One of the four has admitted evidence. M4 is not complete, and none
+of B/C/D should be described as under way.**
+
+**M4-A real historical bugs — ADMITTED EVIDENCE (smallest pillar
+genuinely closed).** Four transformed reconstructions of real
+bug-fix commits are admitted at `eval/cases-provenance/cases/`
+(fingerprint `125cf57223f16b0269981dbe13c9c46e78dd396009719212128f74820c1828c6`,
+4 cases, all `provenance.type: mined-real-fix`,
+`transformation: transformed`, all BSD-3-Clause sources):
+`flask-ipv6-partition-host-port`, `werkzeug-external-url-boolean-logic`,
+`click-pager-windows-error-reporting`, `apistar-staticfiles-resource-leak`.
+Path: candidate queue (`eval/realbug-queue/`) → proposal
+(`eval/proposals/cases/`, PR #24) → independent adjudication against the
+live upstream commits → admission. Three of the four required a
+correction before admission and one earlier reconstruction was rejected
+outright and rewritten; `reviewer_notes` on each proposal records what
+was found. **Admission is not measurement** — no model has been run
+against this corpus and no experiment is registered for its fingerprint.
+Four cases cannot move an aggregate metric and must not be cited as if
+they could (`eval/cases-provenance/README.md` states the limits).
+
+**M4-B non-Claude authorship — TOOLING ONLY, zero authored content.**
+`reviewer/authorpilot.py` + `bin/review-authorpilot` exist and are
+tested; `eval/proposals/` has never received a model-authored proposal.
+Blocked on host access to a running local Ollama daemon with
+`qwen3.6:27b` and `deepseek-r1:14b` already pulled.
+
+**M4-C human-written cases — PACKET ONLY, zero human content.**
+`docs/M4_HUMAN_AUTHOR_PACKET.md` exists; no case with
+`provenance.human_authored: true` exists anywhere in this repository.
+Requires JP to supply case material himself; a case built from a
+concept JP supplies while tooling writes the diff is `human_authored:
+false` (human-reviewed), not human-written.
+
+**M4-D private holdout — TOOLING VERIFIED, no holdout exists.**
+`bin/review-holdout check` and external-`--cases` support are exercised
+end to end; `eval/results/HOLDOUT-RESULTS.md` is an empty
+aggregate-only scaffold. No holdout directory exists anywhere this
+repository can see, so nothing is live and nothing rotates. Handoff:
+`docs/M4_PRIVATE_HOLDOUT_HANDOFF.md`.
+
 ## Canonical branch
 
-**`main`**. PR #12, #14, #16, #18, #19, #20 and #21 merged; there is no
-separate feature branch to work from. Any future session or scheduler
-starts from a fresh clone or worktree of `origin/main`.
+**`main`**. PR #12, #14, #16, #18, #19, #20, #21, #22 and #24 merged;
+there is no separate feature branch to work from. Any future session or
+scheduler starts from a fresh clone or worktree of `origin/main`.
 
 ## Stable base
 
-**`origin/main`** @ `aca26bdb57fec22a0d81722001d45a3052d5c695` (PR #21
+**`origin/main`** @ `1c4d44a9776c18d884bdf7ebabfb60f11ad11170` (PR #24
 merge commit, the current tip of `origin/main` as of this file). Verify
 with `git fetch origin main` before trusting this line — reality wins
 if it has moved.
@@ -222,7 +267,11 @@ M2 (see above), and the Human Operator Touches operating model
 - M4 scope creep: no real-bug case is admitted into a scored corpus
   merely because it exists on a public host and has a permissive
   license (see `docs/M4_DESIGN_BRIEF.md`) — every candidate goes
-  through the candidate queue, never straight into `eval/cases*`
+  through the candidate queue, then a proposal, then a human decision,
+  never straight into `eval/cases*`
+- Treating the four admitted M4-A cases as a measurement, a per-category
+  claim, or evidence about real-world bugs in general — they are a
+  process demonstration and the corpus README says so
 - Mining/scraping infrastructure beyond a bounded candidate queue
 - Execution-based oracles / sandboxed test running for M3-lineage cases
   unless a human has explicitly decided that fork (see
