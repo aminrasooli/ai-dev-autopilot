@@ -2,7 +2,7 @@
   "proposal_id": "click-pager-windows-error-reporting",
   "author_family": "claude",
   "generator": "claude-sonnet-5",
-  "status": "proposed",
+  "status": "accepted",
   "rationale": "Real bug from eval/realbug-queue/click-pager-windows-error-reporting.json (pallets/click, BSD-3-Clause, bugfix_confidence 0.75). v2 has 4 error-handling cases, none about a cleanup path masking the original exception -- this is a distinct sub-pattern within an existing category.",
   "case": {
     "benchmark_version": 2,
@@ -13,6 +13,7 @@
     "provenance": {
       "type": "mined-real-fix",
       "author_family": "claude",
+      "author_model": "claude-sonnet-5",
       "reference": "https://github.com/pallets/click/commit/fc5c7f45da0a4443f60ba2d322fe4bf829977739",
       "source_repository": "pallets/click",
       "source_commit": "fc5c7f45da0a4443f60ba2d322fe4bf829977739",
@@ -40,10 +41,21 @@
     "ground_truth": {
       "defect": true,
       "category": "error-handling",
-      "severity": ["medium", "high"],
-      "explanation": "The finally block no longer closes the handle before unlinking it. If f.write(data) raises before the explicit f.close() on the happy path runs, the handle is still open when the finally block reaches os.unlink(f.name); on Windows this raises PermissionError (a file can't be deleted while a handle to it is open), and that PermissionError propagates instead of the original exception from f.write -- the real failure is masked by an unrelated cleanup error."
+      "severity": [
+        "medium",
+        "high"
+      ],
+      "explanation": "The finally block no longer closes the handle before unlinking it. If f.write(data) raises before the explicit f.close() on the happy path runs, the handle is still open when the finally block reaches os.unlink(f.name); on Windows this raises PermissionError (a file can't be deleted while a handle to it is open), and that PermissionError propagates instead of the original exception from f.write -- the real failure is masked by an unrelated cleanup error.",
+      "accepted_categories": [
+        "resource-leak"
+      ]
     },
     "difficulty": "subtle",
-    "tags": ["real-bug", "cross-platform", "exception-masking"]
-  }
+    "tags": [
+      "real-bug",
+      "cross-platform",
+      "exception-masking"
+    ]
+  },
+  "reviewer_notes": "ADMITTED 2026-08-25 to eval/cases-provenance/cases/, with one correction made here first: accepted_categories ['resource-leak'] added. Adjudication found that a reviewer seeing only the diff (the harness sends nothing else) has no platform signal, so reading an unclosed handle at cleanup as resource-leak is at least as defensible as error-handling; without the alternative the case would penalise a correct read. Precedent: eval/cases/47-py-mktemp-race.json."
 }

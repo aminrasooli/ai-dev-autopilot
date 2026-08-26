@@ -2,7 +2,7 @@
   "proposal_id": "apistar-staticfiles-resource-leak",
   "author_family": "claude",
   "generator": "claude-sonnet-5",
-  "status": "proposed",
+  "status": "accepted",
   "rationale": "Real bug from eval/realbug-queue/apistar-staticfiles-resource-leak.json (encode/apistar, BSD-3-Clause, bugfix_confidence 0.70, archived repository). resource-leak is thinly represented in v2 (2 cases); this adds a real async-specific instance of the pattern.",
   "case": {
     "benchmark_version": 2,
@@ -13,12 +13,13 @@
     "provenance": {
       "type": "mined-real-fix",
       "author_family": "claude",
+      "author_model": "claude-sonnet-5",
       "reference": "https://github.com/encode/apistar/commit/a6a95a5eec833c512d08f962b22c4c177d6021b0",
       "source_repository": "encode/apistar",
       "source_commit": "a6a95a5eec833c512d08f962b22c4c177d6021b0",
       "source_license": "BSD-3-Clause",
       "transformation": "transformed",
-      "provenance_notes": "Reconstructed from a real apistar bug fix: an async static-file handler opened a file handle without guaranteeing it was closed on every code path. No apistar static-file serving code is reproduced -- function name, file path, and surrounding code are invented. The diff below is the reverse of the historical fix: it replaces the context-manager-guarded open with a manual open/close pair that has an await in between, reintroducing the leak."
+      "provenance_notes": "Reconstructed from a real apistar bug fix: an async static-file handler opened a file handle in one function and its consumer never closed it on any code path -- the leak was unconditional, one descriptor per served request, not merely an exception-path leak. The upstream fix wrapped the send loop in try/finally with an explicit close. No apistar static-file serving code is reproduced -- function names, file path, and surrounding code are invented. The diff below reverses that fix's effect: it removes the try/finally that guaranteed the close, leaving the handle opened by open_static_file() unclosed on every path."
     },
     "affected_files": [
       "src/http/staticfiles.py"
@@ -26,22 +27,39 @@
     "diff": [
       "--- a/src/http/staticfiles.py",
       "+++ b/src/http/staticfiles.py",
-      "@@ -1,4 +1,5 @@",
-      " async def serve_static_file(path):",
-      "-    with open(path, \"rb\") as handle:",
-      "-        data = await run_in_threadpool(handle.read)",
-      "+    handle = open(path, \"rb\")",
-      "+    data = await run_in_threadpool(handle.read)",
-      "+    handle.close()",
-      "     return Response(content=data, media_type=guess_type(path))"
+      "@@ -1,12 +1,9 @@",
+      " async def open_static_file(path):",
+      "     return await async_open(path, \"rb\")",
+      "",
+      " async def stream_static_file(path, send):",
+      "     handle = await open_static_file(path)",
+      "-    try:",
+      "-        chunk = await handle.read(65536)",
+      "-        while chunk:",
+      "-            await send(chunk)",
+      "-            chunk = await handle.read(65536)",
+      "-    finally:",
+      "-        await handle.close()",
+      "+    chunk = await handle.read(65536)",
+      "+    while chunk:",
+      "+        await send(chunk)",
+      "+        chunk = await handle.read(65536)"
     ],
     "ground_truth": {
       "defect": true,
       "category": "resource-leak",
-      "severity": ["medium", "high"],
-      "explanation": "The file handle is now opened and closed manually instead of via a context manager, with an await between open and close. If run_in_threadpool(handle.read) raises or the coroutine is cancelled while awaiting, handle.close() on the next line never executes, leaking the file descriptor. Under sustained traffic to a static-file endpoint this accumulates open file descriptors until the process hits its limit."
+      "severity": [
+        "medium",
+        "high"
+      ],
+      "explanation": "The handle returned by open_static_file() is never closed once the try/finally is removed: the streaming loop runs to completion and returns, and on the success path as well as any error or cancellation path the descriptor is simply abandoned. Because the open and the missing close live in different functions, nothing local to the loop looks wrong. Every served request leaks one descriptor, so a static-file endpoint under sustained traffic climbs to the process file-descriptor limit."
     },
     "difficulty": "moderate",
-    "tags": ["real-bug", "async", "file-handle"]
-  }
+    "tags": [
+      "real-bug",
+      "async",
+      "file-handle"
+    ]
+  },
+  "reviewer_notes": "ADMITTED 2026-08-25 to eval/cases-provenance/cases/, after the diff and ground truth were corrected here first. Adjudication against encode/apistar@a6a95a5e found the reconstruction had narrowed the real defect: upstream the handle was opened in one function and never closed by its consumer on ANY path (one leaked descriptor per served request), whereas the reconstruction leaked only on an exception path, and provenance_notes' 'reverse of the historical fix' claim was false because upstream never used a context manager. The diff now removes a try/finally guaranteeing the close, matching the real unconditional leak, and the explanation and notes were rewritten to match."
 }

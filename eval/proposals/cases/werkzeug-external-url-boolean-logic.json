@@ -2,8 +2,8 @@
   "proposal_id": "werkzeug-external-url-boolean-logic",
   "author_family": "claude",
   "generator": "claude-sonnet-5",
-  "status": "proposed",
-  "rationale": "Real bug from eval/realbug-queue/werkzeug-external-url-boolean-logic.json (pallets/werkzeug, BSD-3-Clause, bugfix_confidence 0.80). logic-error is well represented in v2, but this instance is a real inverted-boolean bug rather than an invented one -- a same-category real-vs-synthetic comparison point.",
+  "status": "accepted",
+  "rationale": "Real bug from eval/realbug-queue/werkzeug-external-url-boolean-logic.json (pallets/werkzeug, BSD-3-Clause, bugfix_confidence 0.80). logic-error is well represented in v2, but this instance is a real missing-OR-branch compound-boolean bug rather than an invented one -- a same-category real-vs-synthetic comparison point.",
   "case": {
     "benchmark_version": 2,
     "id": "werkzeug-external-url-boolean-logic",
@@ -13,12 +13,13 @@
     "provenance": {
       "type": "mined-real-fix",
       "author_family": "claude",
+      "author_model": "claude-sonnet-5",
       "reference": "https://github.com/pallets/werkzeug/commit/884437aef93e543ebaff3b9cdbe857ee47e7e00c",
       "source_repository": "pallets/werkzeug",
       "source_commit": "884437aef93e543ebaff3b9cdbe857ee47e7e00c",
       "source_license": "BSD-3-Clause",
       "transformation": "transformed",
-      "provenance_notes": "Reconstructed from a real werkzeug bug fix in MapAdapter.build(): the pre-fix condition was `not force_external and (subdomain_matching or host_matching) and ((subdomain_matching and domain_part==subdomain) or (host_matching and host==server_name))` -- a compound AND-chain with no branch for 'neither subdomain nor host matching is configured'. The fix rewrote it to `not force_external and (not (subdomain_matching or host_matching) or (subdomain_matching and domain_part==subdomain) or (host_matching and host==server_name))`, adding the missing OR-branch so an unscoped rule still matches. No werkzeug identifiers, file paths, or code are reproduced -- variable names and surrounding code are invented, but the three-term compound-condition structure and the specific missing-OR-branch mechanism are preserved. The diff below is the reverse of the historical fix: it removes the added OR-branch and restores the AND-chain, reintroducing the original defect."
+      "provenance_notes": "Reconstructed from a real werkzeug bug fix in MapAdapter.build(): the pre-fix condition was `not force_external and (subdomain_matching or host_matching) and ((subdomain_matching and domain_part==subdomain) or (host_matching and host==server_name))` -- a compound AND-chain with no branch for 'neither subdomain nor host matching is configured'. The fix rewrote it to `not force_external and (not (subdomain_matching or host_matching) or (subdomain_matching and domain_part==subdomain) or (host_matching and host==server_name))`, adding the missing OR-branch so an unscoped rule still matches. No werkzeug identifiers, file paths, or code are reproduced in the case diff -- variable names and surrounding code there are invented, but the three-term compound-condition structure and the specific missing-OR-branch mechanism are preserved. (This note quotes the upstream condition, using upstream identifier names, so the reconstruction can be audited against the real commit; the note is provenance metadata and is never shown to a reviewer under test -- reviewer/prompt.py sends only the diff.) The diff below is the reverse of the historical fix: it removes the added OR-branch and restores the AND-chain, reintroducing the original defect."
     },
     "affected_files": [
       "src/routing/host_match.py"
@@ -39,10 +40,18 @@
     "ground_truth": {
       "defect": true,
       "category": "logic-error",
-      "severity": ["medium", "high"],
+      "severity": [
+        "medium",
+        "high"
+      ],
       "explanation": "The fixed form is 'not force_external and (not (domain_locked or host_locked) or (domain_locked and domain_ok) or (host_locked and host_ok))': when neither domain_locked nor host_locked is set, the middle term is True, so an unscoped rule still matches. The defect replaces that OR-structure with 'not force_external and (domain_locked or host_locked) and (...)': now, when neither lock is set, '(domain_locked or host_locked)' is False and the whole expression is False -- an unscoped rule silently stops matching, even though nothing about it was ever supposed to require host/subdomain scoping. This is a missing-branch/De Morgan-style compound-boolean bug, not a single inverted flag."
     },
     "difficulty": "subtle",
-    "tags": ["real-bug", "routing", "compound-boolean"]
-  }
+    "tags": [
+      "real-bug",
+      "routing",
+      "compound-boolean"
+    ]
+  },
+  "reviewer_notes": "ADMITTED 2026-08-25 to eval/cases-provenance/cases/, after two corrections made here first. (1) rationale called this an 'inverted-boolean bug', contradicting the case's own explanation; the real defect is a missing OR-branch in a three-term compound condition in MapAdapter.build(). (2) provenance_notes claimed no werkzeug identifiers were reproduced while itself quoting them; that claim is now scoped to the case diff, with the reason the note quotes upstream stated explicitly. An earlier version of this proposal was rejected in adjudication for reconstructing a simple flag inversion instead of the real mechanism; the queue record's notes were corrected too, so the misleading commit-subject framing cannot mislead a future reader."
 }
