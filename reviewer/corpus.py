@@ -407,6 +407,40 @@ def _normalized_diff_key(diff_text):
     return hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
 
+def shipped_corpus_dirs(repo_root=None):
+    """Every public corpus directory this repository ships, mapped
+    name -> path, **discovered** rather than listed.
+
+    Two separate checks need this enumeration — the cross-corpus conflict
+    guard and the holdout contamination check — and a hardcoded list in
+    either goes stale silently the moment a tranche lands. It already
+    did: both knew about `eval/cases` and `eval/cases-v3/cases` and
+    neither noticed `eval/cases-provenance/cases`.
+
+    The convention every corpus here follows: a top-level `eval/cases*`
+    directory that either holds the `.json` cases itself (v2) or holds
+    them one level down in `cases/` (v3, provenance). A directory with no
+    cases in it yet is skipped, so scaffolding a tranche does not break
+    callers before it has content.
+    """
+    if repo_root is None:
+        repo_root = os.path.dirname(os.path.dirname(DEFAULT_CASES_DIR))
+    out = {}
+    eval_dir = os.path.join(repo_root, "eval")
+    if not os.path.isdir(eval_dir):
+        return out
+    for entry in sorted(os.listdir(eval_dir)):
+        if not entry.startswith("cases"):
+            continue
+        base = os.path.join(eval_dir, entry)
+        for path in (base, os.path.join(base, "cases")):
+            if os.path.isdir(path) and any(f.endswith(".json")
+                                           for f in os.listdir(path)):
+                out[entry] = path
+                break
+    return out
+
+
 def cross_corpus_conflicts(corpora):
     """Find case ids and diffs that collide ACROSS separate corpora.
 

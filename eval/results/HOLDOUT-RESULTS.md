@@ -24,7 +24,7 @@ party).
 - A result computed against a holdout whose fingerprint has not passed
   `bin/review-holdout check` (docs/M4_DESIGN_BRIEF.md §D) — i.e. one
   that collides with a public corpus fingerprint or is already named in
-  `eval/EXPERIMENTS.md`.
+  `eval/EXPERIMENTS.md` or in this file.
 
 ## Row format, once a real run exists
 

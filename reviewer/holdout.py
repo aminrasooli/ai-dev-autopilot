@@ -9,11 +9,13 @@ fingerprint the same way `reviewer.corpus` does, and check that
 fingerprint against two cheap, real contamination signals:
 
 1. **Collision with a public corpus.** If a "private" directory's
-   fingerprint matches `eval/cases/` or `eval/cases-v3/cases/` exactly,
-   it isn't holding anything the public corpus doesn't already have.
+   fingerprint matches any corpus this repository ships (`eval/cases*`,
+   discovered rather than listed) exactly, it isn't holding anything the
+   public corpus doesn't already have.
 2. **Already referenced publicly.** If that exact fingerprint string
-   already appears anywhere in `eval/EXPERIMENTS.md` (or any other
-   tracked file, optionally), it may have already been run and recorded
+   already appears in a public record that names corpus fingerprints
+   (`eval/EXPERIMENTS.md`, `eval/results/HOLDOUT-RESULTS.md`, or any
+   other tracked file given), it may have already been run and recorded
    as if it were a public corpus — the one thing a holdout must never be.
 
 This is a real but partial check (docs/BENCHMARK_METHODOLOGY.md §11's own
@@ -31,24 +33,22 @@ import os
 import re
 import sys
 
-from .corpus import corpus_fingerprint, load_corpus
+from .corpus import corpus_fingerprint, load_corpus, shipped_corpus_dirs
 
 _FINGERPRINT_RE = re.compile(r"\b[0-9a-f]{64}\b")
 
 
 def _public_corpus_fingerprints(repo_root):
     """Fingerprints of every public corpus this repo currently ships,
-    computed live (never hardcoded) so this never silently goes stale
-    if a corpus changes."""
-    out = {}
-    for name, rel in (("v2", os.path.join("eval", "cases")),
-                      ("v3", os.path.join("eval", "cases-v3", "cases"))):
-        path = os.path.join(repo_root, rel)
-        if os.path.isdir(path) and any(f.endswith(".json")
-                                       for f in os.listdir(path)):
-            cases = load_corpus(path)
-            out[name] = corpus_fingerprint(cases)
-    return out
+    computed live (never hardcoded) so this never silently goes stale if
+    a corpus changes or a new one is added.
+
+    The enumeration itself lives in `reviewer.corpus` because the
+    cross-corpus conflict guard needs exactly the same list; keeping a
+    second copy here is what let this check miss a shipped corpus in the
+    first place."""
+    return {name: corpus_fingerprint(load_corpus(path))
+            for name, path in shipped_corpus_dirs(repo_root).items()}
 
 
 # Public records where a corpus fingerprint can legitimately appear, and
@@ -139,8 +139,9 @@ def main(argv=None):
         print("CONTAMINATION: fingerprint matches public corpus "
               f"{report['collides_with_public_corpus']}", file=sys.stderr)
     if report["already_referenced_publicly"]:
-        print("CONTAMINATION: this fingerprint already appears in "
-              "eval/EXPERIMENTS.md — it may already be public", file=sys.stderr)
+        print("CONTAMINATION: this fingerprint already appears in a public "
+              "record (eval/EXPERIMENTS.md or eval/results/HOLDOUT-RESULTS.md)"
+              " — it may already be public", file=sys.stderr)
     return 2
 
 

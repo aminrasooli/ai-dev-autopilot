@@ -41,8 +41,8 @@ exact handoff so that step doesn't require re-deriving the design.
    ```
    A non-zero exit means stop — either the holdout is byte-identical to
    a public corpus (not actually holding anything back) or its
-   fingerprint is already named in `eval/EXPERIMENTS.md` (may have
-   already been run and treated as public).
+   fingerprint is already named in a public record (may have already
+   been run and treated as public).
 5. **Back it up separately.** Per methodology §11: "the holdout is the
    one corpus that cannot be regenerated from git history; it needs its
    own backup, and that backup must not be a public remote." M0 already
@@ -110,9 +110,11 @@ bin/review-eval    --cases <dir> --backend claude --runs 3   # first run
 ```
 
 `bin/review-holdout check` must exit 0 before any model ever sees the
-corpus. It refuses any path inside this repository, flags a fingerprint
-identical to a public corpus, and flags a fingerprint already named in
-`eval/EXPERIMENTS.md`.
+corpus. It refuses any path inside this repository; flags a fingerprint
+identical to **any** corpus this repository ships (`eval/cases*`, found
+by discovery, so a future tranche becomes a collision target without
+anyone remembering to add it); and flags a fingerprint already named in
+`eval/EXPERIMENTS.md` or `eval/results/HOLDOUT-RESULTS.md`.
 
 **What may return to public git**, as one row in
 `eval/results/HOLDOUT-RESULTS.md` and nothing more: date, corpus name,
