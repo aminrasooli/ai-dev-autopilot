@@ -10,10 +10,11 @@ Every attempt is recorded, whether or not it produces something usable:
 exact model, exact prompt, a timestamp, the raw output, and — only when
 the raw output parses as JSON and validates against the real case
 schema without modification — a ready-to-review case proposal in the
-shape `eval/proposals/` expects. A malformed or schema-invalid attempt
-is recorded as REJECTED, never silently repaired: fixing a model's
-output and still labeling it that model's authorship is exactly the
-failure mode this pipeline exists to prevent
+shape `eval/proposals/` expects. A malformed attempt, a schema-invalid
+attempt, or one authored in a different language than was asked for is
+recorded as REJECTED, never silently repaired or relabeled: fixing a
+model's output and still labeling it that model's authorship is exactly
+the failure mode this pipeline exists to prevent
 (docs/ROADMAP.md §9 failure mode 3).
 
 Nothing here writes into `eval/proposals/` or `eval/cases*` — it writes
@@ -116,6 +117,16 @@ def parse_pilot_output(raw_text):
     return json.loads(match.group(0))
 
 
+class LanguageMismatch(ValueError):
+    """The model authored in a language other than the one requested.
+
+    Its own outcome rather than a generic malformed-output error: the
+    reply parsed fine and may be a perfectly good case, it just isn't a
+    case in the language this attempt asked for. A human decides whether
+    to keep it under the language the model actually used or re-ask.
+    """
+
+
 def _case_from_pilot_json(obj, case_id, language):
     """Map the pilot's authoring-prompt JSON shape onto the real case
     schema. Structural translation only (wrapping fields into the
@@ -123,6 +134,21 @@ def _case_from_pilot_json(obj, case_id, language):
     didn't provide."""
     if not isinstance(obj, dict):
         raise ValueError("model output is not a JSON object")
+
+    # The authoring prompt states the language and the reply echoes it
+    # back. Stamping the *requested* language onto the case regardless
+    # would be exactly the "correcting content the model didn't provide"
+    # this function promises not to do — and it is not cosmetic: a case
+    # recorded as `go` whose diff is Python is a wrong label in a scored
+    # corpus, and it would skew any per-language slice computed from it.
+    stated = obj.get("language")
+    if isinstance(stated, str) and stated.strip() \
+            and stated.strip().lower() != language:
+        raise LanguageMismatch(
+            f"model authored in {stated.strip()!r} but {language!r} was "
+            "requested — not relabeling it, since which one is right "
+            "depends on the diff a human has to read")
+
     defect = obj.get("defect")
     if not isinstance(defect, bool):
         raise ValueError("model output missing boolean 'defect'")
@@ -219,6 +245,10 @@ def run_pilot(model, author_family, language, category_hint, case_id,
         else:
             record["status"] = "ready"
             record["proposal"] = proposal
+    except LanguageMismatch as exc:
+        # Before ValueError, which this subclasses.
+        record["status"] = "rejected-language-mismatch"
+        record["validation_errors"] = [f"{type(exc).__name__}: {exc}"]
     except (ValueError, KeyError) as exc:
         record["status"] = "rejected-malformed"
         record["validation_errors"] = [f"{type(exc).__name__}: {exc}"]
