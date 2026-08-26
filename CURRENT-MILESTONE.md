@@ -205,11 +205,20 @@ against this corpus and no experiment is registered for its fingerprint.
 Four cases cannot move an aggregate metric and must not be cited as if
 they could (`eval/cases-provenance/README.md` states the limits).
 
-**M4-B non-Claude authorship — TOOLING ONLY, zero authored content.**
-`reviewer/authorpilot.py` + `bin/review-authorpilot` exist and are
-tested; `eval/proposals/` has never received a model-authored proposal.
-Blocked on host access to a running local Ollama daemon with
-`qwen3.6:27b` and `deepseek-r1:14b` already pulled.
+**M4-B non-Claude authorship — PILOT RAN LIVE, zero authored content.**
+No longer blocked: both `qwen3.6:27b` and `deepseek-r1:14b` were reached
+and **5 real attempts** are recorded in
+`eval/authorship-pilot/attempts/` (4 planned + the 1 permitted re-ask).
+**0 survived adjudication**, so `eval/proposals/` still has never
+received a model-authored proposal and no non-Claude case exists
+anywhere in this repository. Two attempts were schema-`ready` and both
+were still rejected on reading — their post-diff files do not parse
+(Python `IndentationError`, unclosed JavaScript arrow function); the
+other three failed schema validation, three of those on `severity`
+alone. Nothing was repaired: fixing a model's output and keeping its
+authorship label is the failure mode the pipeline exists to prevent.
+Per-attempt reasoning: `eval/authorship-pilot/ADJUDICATION.md`.
+**A live pilot is not authored content** — B is still unmet.
 
 **M4-C human-written cases — PACKET ONLY, zero human content.**
 `docs/M4_HUMAN_AUTHOR_PACKET.md` exists; no case with

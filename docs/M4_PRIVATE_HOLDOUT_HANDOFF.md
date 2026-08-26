@@ -25,8 +25,11 @@ exact handoff so that step doesn't require re-deriving the design.
    holdout's whole purpose is catching what the public, Claude-authored
    corpus can't. The human-author packet
    (`docs/M4_HUMAN_AUTHOR_PACKET.md`) and the non-Claude authorship
-   pilot (`docs/M4_DESIGN_BRIEF.md` §B, currently blocked on host GPU
-   access) are the two natural sources — a holdout case never needs to
+   pilot (`docs/M4_DESIGN_BRIEF.md` §B) are the two natural sources —
+   note that the pilot has now run live and produced **zero** usable
+   cases across 5 attempts (`eval/authorship-pilot/ADJUDICATION.md`), so
+   as of today neither source has yet yielded holdout-ready material.
+   A holdout case never needs to
    go through `eval/proposals/` first, since it never enters this repo
    at all, but running it through the same authoring discipline keeps
    the provenance honest.

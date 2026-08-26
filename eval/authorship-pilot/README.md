@@ -7,36 +7,49 @@ directory is a **pilot log, not intake**: a `ready` attempt's `proposal`
 field is something a human copies into `eval/proposals/cases/`
 deliberately, never something a script moves there automatically.
 
-## Status as of this session: blocked, zero attempts run
+## Status: the pilot has now run live — 5 attempts, 0 usable cases
 
-`reviewer.authorpilot` and its test suite
-(`reviewer/tests/test_authorpilot.py`, 14 tests, all passing against a
-mocked transport) were built and verified this session. A live attempt
-was tried and failed exactly as it should when infrastructure is
-missing:
+An earlier session recorded this pilot as blocked, because `ollama serve`
+could not start in that session's environment. That is no longer the
+situation and this section supersedes it: both models were reached, and
+`attempts/` now holds real records.
 
-```
-$ python3 -m reviewer.authorpilot run --model qwen3.6:27b --author-family qwen \
-    --language python --category resource-leak --out-dir eval/authorship-pilot/attempts
-error: could not reach model 'qwen3.6:27b' at http://127.0.0.1:11434:
-cannot reach http://127.0.0.1:11434/api/generate: <urlopen error [Errno 111] Connection refused>
-```
+| model | requested | tool status | adjudication |
+|---|---|---|---|
+| qwen3.6:27b | python / resource-leak | ready | rejected |
+| qwen3.6:27b | go / logic-error | rejected-invalid-schema | rejected |
+| deepseek-r1:14b | python / concurrency | rejected-invalid-schema | rejected |
+| deepseek-r1:14b | javascript / contract-mismatch | ready | rejected |
+| qwen3.6:27b | go / logic-error (re-ask) | see `attempts/` | see [`ADJUDICATION.md`](ADJUDICATION.md) |
 
-Root cause, checked directly: `ollama serve` cannot even start in this
-session's environment (`mkdir ~/.ollama/models: read-only file
-system`), and no models are pulled (`~/.ollama/models` does not exist).
-This is the same host-GPU dependency M2 and M3's Qwen/DeepSeek legs
-already had (`eval/EXPERIMENTS.md` X15/X16/X18/X19 all ran "local via
-Ollama on the host GPU") — it is a real environment boundary in this
-particular execution session, not a bug in the pilot tool.
+**Proposals produced: 0.** Nothing was copied into `eval/proposals/cases/`,
+so M4-B still has no admitted content — the pilot is live, the pillar is
+not. Per-attempt reasoning is in [`ADJUDICATION.md`](ADJUDICATION.md).
 
-**No attempt files exist in `attempts/` because no model was ever
-reached.** Fabricating a plausible-looking Qwen/DeepSeek-authored case
-to fill this directory would be exactly the failure this whole pipeline
-exists to prevent (docs/ROADMAP.md §9 failure mode 3: Claude may not
-silently author ground truth and relabel it as another author's) — so
-nothing was fabricated, and this directory ships empty except for this
-README.
+Two of these attempts carry tool status `ready`. That means only that the
+model's JSON validated against the case schema; both were still rejected
+on reading, because their post-diff files do not parse (a Python
+`IndentationError` and an unclosed JavaScript arrow function). **A `ready`
+attempt is not a usable case**, and the gap between those two statements is
+why `ADJUDICATION.md` exists alongside the raw records.
+
+Nothing here was repaired. One attempt failed on a two-character schema
+detail (severity emitted as `["critical","high"]` instead of
+`[min, max]`) and was still rejected rather than fixed: editing a model's
+output while keeping its authorship label is precisely the failure mode
+this pipeline exists to prevent (`docs/ROADMAP.md` §9 failure mode 3). The
+honest response to a failed attempt is to re-ask the model, which is what
+the fifth row is.
+
+### Execution environment for these attempts
+
+Local, via Ollama, `qwen3.6:27b` (Q4_K_M) and `deepseek-r1:14b` (Q4_K_M),
+both already present on the host — this tool never downloads a model.
+Unlike the M2/M3 reviewer legs (`eval/EXPERIMENTS.md` X15/X16/X18/X19,
+"local via Ollama on the host GPU"), **these attempts ran CPU-only**;
+Ollama reported `total_vram="0 B"` and scheduled to CPU. That affects
+latency only, not output, and no timing number from this pilot should be
+compared against the X15–X19 GPU figures.
 
 ## Exact handoff to run the pilot for real
 

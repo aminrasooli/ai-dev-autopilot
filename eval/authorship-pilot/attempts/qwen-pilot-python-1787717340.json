@@ -1,0 +1,65 @@
+{
+  "attempt_id": "qwen-pilot-python-1787717340",
+  "model": "qwen3.6:27b",
+  "author_family": "qwen",
+  "language": "python",
+  "category_hint": "resource-leak",
+  "prompt": "You are authoring ONE new test case for an independent code-review benchmark. Invent a small, realistic, self-contained diff in python \u2014 either one with exactly one seeded defect, or a clean diff with no defect at all. If you author a defective case, prefer a defect in the \"resource-leak\" category if you can do so naturally; do not force it if it doesn't fit your scenario.\n\nReply with ONLY a single JSON object, no prose before or after, matching exactly this shape:\n{\n  \"title\": \"one short human-readable line\",\n  \"language\": \"python\",\n  \"affected_files\": [\"path/to/file.ext\"],\n  \"diff\": [\"--- a/path/to/file.ext\", \"+++ b/path/to/file.ext\", \"@@ ... @@\", \"-old line\", \"+new line\"],\n  \"defect\": true or false,\n  \"category\": \"one of: logic-error, missing-validation, shell-quoting, command-injection, path-traversal, sensitive-logging, insecure-network, dependency-risk, test-gap, misleading-test, destructive-operation, permission-widening, secret-exposure, sql-injection, auth-bypass, concurrency, resource-leak, api-misuse, error-handling, unsafe-default, data-corruption, contract-mismatch, other\" ,\n  \"severity\": [\"low\"|\"medium\"|\"high\"|\"critical\", \"low\"|\"medium\"|\"high\"|\"critical\"],\n  \"explanation\": \"one sentence: what the defect is and why it matters, or why the diff is clean\"\n}\n\nIf defect is false, omit \"category\" and \"severity\" entirely. The diff array must be actual unified-diff lines (paths, hunk header, +/- lines) \u2014 not a prose description of a diff.\n",
+  "generated_at": 1787717340.4050984,
+  "raw_output": "{\n  \"title\": \"File handle not closed in write_log function\",\n  \"language\": \"python\",\n  \"affected_files\": [\"utils/logger.py\"],\n  \"diff\": [\n    \"--- a/utils/logger.py\",\n    \"+++ b/utils/logger.py\",\n    \"@@ -12,7 +12,7 @@ def write_log(filename, message):\",\n    \"    \\\"\\\"\\\"Append a message to a log file.\\\"\\\"\\\"\",\n    \"    try:\",\n    \"-        with open(filename, 'a') as f:\",\n    \"+        f = open(filename, 'a')\",\n    \"            f.write(message + '\\\\n')\",\n    \"    except IOError as e:\",\n    \"        print(f\\\"Failed to write log: {e}\\\")\",\n    \"\",\n    \"@@ -20,6 +20,7 @@ def write_log(filename, message):\",\n    \"def process_data(data):\",\n    \"    result = transform(data)\",\n    \"    write_log('app.log', f\\\"Processed {len(data)} items\\\")\",\n    \"+    return result\",\n    \"    \"\n  ],\n  \"defect\": true,\n  \"category\": \"resource-leak\",\n  \"severity\": [\n    \"medium\",\n    \"medium\"\n  ],\n  \"explanation\": \"The file handle opened with open() is never closed because the 'with' statement was removed, leading to a file descriptor leak that can eventually exhaust system resources.\"\n}",
+  "claude_touched": false,
+  "status": "ready",
+  "validation_errors": [],
+  "proposal": {
+    "proposal_id": "qwen-pilot-python-1787717340",
+    "author_family": "qwen",
+    "generator": "qwen3.6:27b",
+    "status": "proposed",
+    "case": {
+      "benchmark_version": 2,
+      "id": "qwen-pilot-python-1787717340",
+      "title": "File handle not closed in write_log function",
+      "language": "python",
+      "status": "pilot",
+      "diff": [
+        "--- a/utils/logger.py",
+        "+++ b/utils/logger.py",
+        "@@ -12,7 +12,7 @@ def write_log(filename, message):",
+        "    \"\"\"Append a message to a log file.\"\"\"",
+        "    try:",
+        "-        with open(filename, 'a') as f:",
+        "+        f = open(filename, 'a')",
+        "            f.write(message + '\\n')",
+        "    except IOError as e:",
+        "        print(f\"Failed to write log: {e}\")",
+        "",
+        "@@ -20,6 +20,7 @@ def write_log(filename, message):",
+        "def process_data(data):",
+        "    result = transform(data)",
+        "    write_log('app.log', f\"Processed {len(data)} items\")",
+        "+    return result",
+        "    "
+      ],
+      "affected_files": [
+        "utils/logger.py"
+      ],
+      "ground_truth": {
+        "defect": true,
+        "explanation": "The file handle opened with open() is never closed because the 'with' statement was removed, leading to a file descriptor leak that can eventually exhaust system resources.",
+        "category": "resource-leak",
+        "severity": [
+          "medium",
+          "medium"
+        ]
+      },
+      "difficulty": "moderate",
+      "provenance": {
+        "type": "seeded-synthetic",
+        "author_family": "qwen",
+        "author_model": "qwen3.6:27b",
+        "provenance_notes": "Authored by qwen3.6:27b via reviewer.authorpilot. Defect content, category, severity and explanation are the model's own, unmodified. `difficulty` was not requested in the authoring prompt and was defaulted by the pilot harness, not judged by the model; a human must set it before this case is ever admitted."
+      }
+    },
+    "rationale": "M4 non-Claude authorship pilot: qwen3.6:27b authoring a python case, category hint 'resource-leak'"
+  }
+}
