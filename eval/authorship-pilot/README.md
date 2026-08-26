@@ -7,7 +7,70 @@ directory is a **pilot log, not intake**: a `ready` attempt's `proposal`
 field is something a human copies into `eval/proposals/cases/`
 deliberately, never something a script moves there automatically.
 
-## Status: the pilot has now run live — 5 attempts, 0 usable cases
+## Status: two pilots run, 9 attempts, 1 surviving proposal
+
+| | attempts | schema valid | syntax valid | survived | records |
+|---|---|---|---|---|---|
+| pilot 1 (hand-written diff) | 5 | 2 | 0 | 0 | [`attempts/`](attempts/), [`ADJUDICATION.md`](ADJUDICATION.md) |
+| pilot 2 (before/after source) | 4 | 3 | 3 | **1** | [`attempts-pilot2/`](attempts-pilot2/), [`ADJUDICATION-PILOT-2.md`](ADJUDICATION-PILOT-2.md) |
+
+The one survivor is
+`eval/proposals/cases/qwen-pilot-python-1787723479.json` — a **proposal**,
+not an admitted case. Nothing has entered `eval/cases*`, and M4-B is not
+met by one unadmitted proposal.
+
+Pilot 2 was preregistered in
+[`PREREGISTRATION-PILOT-2.md`](PREREGISTRATION-PILOT-2.md) — attempt count,
+model/task pairs and success criteria frozen before the interface was
+changed and before any output was seen.
+
+### What changed between the pilots, and why
+
+Pilot 1 asked the model to hand-write unified-diff lines. Auditing its five
+failures showed they were overwhelmingly **mechanical**: three rejections on
+the single `severity` field, two byte-identical `-`/`+` pairs, one wrong
+indentation, miscounted hunk headers. The models were mostly failing to
+serialize our transport format, not failing to conceive a defect.
+
+So pilot 2 moved exactly one responsibility from the model to the harness:
+**the model writes complete BEFORE and AFTER source; the harness computes
+the unified diff from them with `difflib`.** Everything substantive stays
+model-authored — the code, the defect or its absence, the category, the
+severity, the explanation. `difflib` can only re-express two texts it is
+given; it cannot introduce, remove or alter a line of code. Each attempt
+record now states this explicitly in `harness_generated_fields` and
+`model_authored_fields`, so no reader has to infer it.
+
+This is the same distinction `docs/BENCHMARK_METHODOLOGY.md` §4 already
+draws for human cases, where "mechanical formatting by tooling" is
+explicitly *not* authorship.
+
+The change also added three rejections the old interface could not make:
+`rejected-noop` (before == after), `rejected-syntax` (authored source does
+not parse, checked with `ast.parse` for Python and `node --check` for
+JavaScript), and a `syntax_checked` flag so an unchecked language never
+reads as a passing check.
+
+### It worked mechanically, and exposed a semantic failure instead
+
+Every pilot-1 failure mode the change targeted stopped appearing. But two
+of pilot 2's three mechanically-valid attempts — both DeepSeek's — have
+**inverted ground truth**: they author "before = buggy, after = fixed" and
+then label the change `defect: true`, when the contract is that
+`defect: true` means the change *introduces* a defect. Both were rejected,
+neither was repaired; swapping before/after is a one-line edit that would
+invert the model's own stated judgment while keeping its authorship label.
+
+Removing the mechanical burden did not make the models better at the
+semantic contract. It made the semantic errors visible, because they were
+no longer hidden behind a malformed diff.
+
+**No third iteration was run.** The obvious next levers (a blunter prompt,
+a larger `num_ctx` — one Qwen attempt was silently truncated by the 4096
+default) were deliberately not pulled, because choosing them after seeing
+these results is the post-hoc tuning the preregistration exists to prevent.
+
+## Pilot 1 detail: 5 attempts, 0 usable cases
 
 An earlier session recorded this pilot as blocked, because `ollama serve`
 could not start in that session's environment. That is no longer the

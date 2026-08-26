@@ -205,7 +205,21 @@ against this corpus and no experiment is registered for its fingerprint.
 Four cases cannot move an aggregate metric and must not be cited as if
 they could (`eval/cases-provenance/README.md` states the limits).
 
-**M4-B non-Claude authorship — PILOT RAN LIVE, zero authored content.**
+**M4-B non-Claude authorship — ONE PROPOSAL, zero admitted cases.**
+Two pilots have now run live: 9 attempts total, 1 survivor. Pilot 2
+(preregistered, `eval/authorship-pilot/PREREGISTRATION-PILOT-2.md`) moved
+unified-diff construction from the model to the harness — the model now
+writes complete before/after source and `difflib` serializes it — and
+produced `eval/proposals/cases/qwen-pilot-python-1787723479.json`, a
+genuine qwen3.6:27b-authored resource-leak case. **It is a proposal, not
+an admitted case**; admission remains a human gate and nothing has
+entered `eval/cases*`. One unadmitted proposal does not meet Pillar B.
+Pilot 2's other three attempts: one truncated output, and two DeepSeek
+attempts with inverted ground truth (authored "before = buggy, after =
+fixed" then labelled the change defective) — rejected, not repaired.
+Detail: `eval/authorship-pilot/ADJUDICATION-PILOT-2.md`.
+
+**Pilot 1 (superseded interface, records kept):**
 No longer blocked: both `qwen3.6:27b` and `deepseek-r1:14b` were reached
 and **5 real attempts** are recorded in
 `eval/authorship-pilot/attempts/` (4 planned + the 1 permitted re-ask).

@@ -111,11 +111,23 @@ Independently worthless even had the field been present:
 
 Tool status `ready`; the JSON validated. Rejected on adjudication.
 
-1. **The post-diff file is not valid JavaScript.** The added arrow
-   function `const sanitizeInput = (input) => {` is never closed; the
+1. **The diff is structurally wrong.** The added arrow function
+   `const sanitizeInput = (input) => {` is never closed, and the
    pre-existing `function processUserInput(input) {` is a *context* line
-   sitting inside that unterminated body. `node --check` on the
-   reconstructed result: `SyntaxError: Unexpected end of input`.
+   sitting inside that unterminated body. Applying the hunk as emitted
+   yields `SyntaxError: Unexpected end of input`.
+
+   **Correction, from the pilot-2 audit:** this was first recorded here as
+   a syntax failure, i.e. "the model cannot write valid JavaScript". That
+   overstates it. The emitted text is a *hunk*, and a hunk is truncated by
+   construction — supply the two closing braces the hunk cuts off and
+   `node --check` exits 0. The real fault is that the diff nests
+   `processUserInput` inside `sanitizeInput`, after a `return`, making it
+   dead and unreachable. That is **diff construction, not code
+   generation**, and the distinction is the one that motivated the
+   pilot-2 interface change
+   (`PREREGISTRATION-PILOT-2.md`). The attempt is still rejected; only the
+   reason is now stated accurately.
 2. **The hunk header is wrong.** `@@ -1,4 +1,6 @@` against an actual 2 old
    / 4 new lines.
 3. **Title and ground truth contradict each other.** The title claims
