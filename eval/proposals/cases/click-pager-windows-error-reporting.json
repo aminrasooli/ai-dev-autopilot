@@ -1,0 +1,49 @@
+{
+  "proposal_id": "click-pager-windows-error-reporting",
+  "author_family": "claude",
+  "generator": "claude-sonnet-5",
+  "status": "proposed",
+  "rationale": "Real bug from eval/realbug-queue/click-pager-windows-error-reporting.json (pallets/click, BSD-3-Clause, bugfix_confidence 0.75). v2 has 4 error-handling cases, none about a cleanup path masking the original exception -- this is a distinct sub-pattern within an existing category.",
+  "case": {
+    "benchmark_version": 2,
+    "id": "click-pager-windows-error-reporting",
+    "title": "Temp file handoff to an external tool",
+    "language": "python",
+    "status": "pilot",
+    "provenance": {
+      "type": "mined-real-fix",
+      "author_family": "claude",
+      "reference": "https://github.com/pallets/click/commit/fc5c7f45da0a4443f60ba2d322fe4bf829977739",
+      "source_repository": "pallets/click",
+      "source_commit": "fc5c7f45da0a4443f60ba2d322fe4bf829977739",
+      "source_license": "BSD-3-Clause",
+      "transformation": "transformed",
+      "provenance_notes": "Reconstructed from a real click bug fix: a write-temp-file-then-hand-off-to-an-external-process helper closed the file explicitly on the happy path, then unlinked it in a finally block. If an exception occurred before the explicit close, the finally block unlinked a still-open handle, and on Windows that raised PermissionError which replaced the original exception. No click pager implementation is reproduced -- function name, file path, and surrounding code are invented. The diff below is the reverse of the historical fix: it removes the idempotent close() the finally block needs, reintroducing the exception-masking defect."
+    },
+    "affected_files": [
+      "src/tools/tempreport.py"
+    ],
+    "diff": [
+      "--- a/src/tools/tempreport.py",
+      "+++ b/src/tools/tempreport.py",
+      "@@ -1,9 +1,8 @@",
+      " def render_via_external_tool(data, tool_cmd):",
+      "     f = tempfile.NamedTemporaryFile(delete=False)",
+      "     try:",
+      "         f.write(data)",
+      "         f.close()",
+      "         subprocess.run([tool_cmd, f.name], check=True)",
+      "     finally:",
+      "-        f.close()",
+      "         os.unlink(f.name)"
+    ],
+    "ground_truth": {
+      "defect": true,
+      "category": "error-handling",
+      "severity": ["medium", "high"],
+      "explanation": "The finally block no longer closes the handle before unlinking it. If f.write(data) raises before the explicit f.close() on the happy path runs, the handle is still open when the finally block reaches os.unlink(f.name); on Windows this raises PermissionError (a file can't be deleted while a handle to it is open), and that PermissionError propagates instead of the original exception from f.write -- the real failure is masked by an unrelated cleanup error."
+    },
+    "difficulty": "subtle",
+    "tags": ["real-bug", "cross-platform", "exception-masking"]
+  }
+}
