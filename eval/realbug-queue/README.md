@@ -34,9 +34,9 @@ query used, so the process is auditable.
 
 | id | repo | license | recommended treatment | why |
 |---|---|---|---|---|
-| `flask-ipv6-partition-2025` | pallets/flask | BSD-3-Clause | transformed | logic-error, IPv6 host parsing |
+| `flask-ipv6-partition-host-port` | pallets/flask | BSD-3-Clause | transformed | logic-error, IPv6 host parsing |
 | `werkzeug-external-url-boolean-logic` | pallets/werkzeug | BSD-3-Clause | transformed | logic-error, inverted boolean condition |
-| `click-pager-windows-error-reporting` | pallets/click | BSD-3-Clause | transformed | error-handling, platform-specific |
+| `click-pager-windows-error-reporting` | pallets/click | BSD-3-Clause | transformed | error-handling, cleanup path masking the original error |
 | `apistar-staticfiles-resource-leak` | encode/apistar | BSD-3-Clause | transformed | resource-leak, fills a real gap (v2 has only 2 resource-leak cases) |
 | `git-dir-off-by-one-reject-demo` | git/git | GPL-2.0-only | reject | **deliberately rejected** — demonstrates the license gate actually blocks a candidate, not just accepts everything found |
 
