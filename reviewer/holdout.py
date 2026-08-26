@@ -51,12 +51,28 @@ def _public_corpus_fingerprints(repo_root):
     return out
 
 
+# Public records where a corpus fingerprint can legitimately appear, and
+# therefore where finding a *holdout's* fingerprint means it is not
+# private any more. EXPERIMENTS.md records public runs;
+# HOLDOUT-RESULTS.md is where a holdout's own aggregate row gets
+# published, which makes it the file a rotation is most likely to
+# collide with — reusing a fingerprint that already has a published row
+# would silently re-run a corpus whose identity is already public.
+_PUBLIC_FINGERPRINT_RECORDS = (
+    ("eval", "EXPERIMENTS.md"),
+    ("eval", "results", "HOLDOUT-RESULTS.md"),
+)
+
+
 def _fingerprints_referenced_in_tree(repo_root, extra_paths=()):
-    """Every 64-hex-char string appearing in eval/EXPERIMENTS.md and any
-    extra tracked files given — a crude but real "has this exact corpus
-    already been named in a public record" signal."""
+    """Every 64-hex-char string appearing in this repository's public
+    fingerprint records, plus any extra tracked files given — a crude but
+    real "has this exact corpus already been named in a public record"
+    signal."""
     found = set()
-    paths = [os.path.join(repo_root, "eval", "EXPERIMENTS.md"), *extra_paths]
+    paths = [os.path.join(repo_root, *parts)
+             for parts in _PUBLIC_FINGERPRINT_RECORDS]
+    paths.extend(extra_paths)
     for path in paths:
         if not os.path.isfile(path):
             continue
