@@ -50,15 +50,15 @@ Legend: **VERIFIED** (directly confirmed in a case file, doc, or PR) ·
 | dimension | status | detail |
 |---|---|---|
 | Mechanism exists | VERIFIED | `reviewer/propose.py` + `eval/proposals/README.md`, validated by `reviewer.propose validate-cases` / `validate-audits`; requires `author_family`, `generator` (exact model/person string), `rationale`; enforces the embedded case's `provenance.author_family` matches the proposal's |
-| Content | MISSING | the directory is empty — mechanism built, never used. This session's non-Claude authorship pilot (`docs/M4_DESIGN_BRIEF.md` §B) is the first attempt to populate it, blocked in this session by lack of local-model execution access (see the decision packet) |
+| Content | PARTIAL | 4 proposals exist (`eval/proposals/cases/`), all `author_family: claude` real-bug reconstructions, all now `status: accepted` and admitted. The mechanism is therefore proven end to end — but **zero non-Claude-authored proposals exist**, which is the gap this intake was built for. M4-B remains blocked on local-model execution access |
 
 ## Real historical bugs (`mined-real-fix`)
 
 | dimension | status | detail |
 |---|---|---|
-| Any case of this type | MISSING | zero `mined-real-fix` cases exist anywhere in this repository as of this audit — `grep '"mined-real-fix"' eval/cases*/**.json` returns nothing |
+| Any case of this type | **RESOLVED 2026-08-25** | 4 `mined-real-fix` cases admitted at `eval/cases-provenance/cases/` (corpus fingerprint `125cf57223f16b0269981dbe13c9c46e78dd396009719212128f74820c1828c6`), all `transformation: transformed`, all BSD-3-Clause sources. Was MISSING at the time of this audit; the row is updated rather than the audit rewritten. Admitted, not measured — no experiment exists for that fingerprint |
 | Schema readiness | VERIFIED (as of this session) | `reviewer/corpus.py` now requires `source_repository`, `source_commit`, `source_license`, `transformation` whenever `provenance.type: mined-real-fix` — see `docs/BENCHMARK_METHODOLOGY.md` §4. Before this session, only `provenance.reference` was required, which is not enough to answer a license question on its own |
-| Candidate queue | MISSING before this session; VERIFIED (bounded, unadmitted) after | `eval/realbug-queue/` — see `docs/M4_DESIGN_BRIEF.md` §A. Nothing in it has been promoted to a proposal or a case |
+| Candidate queue | VERIFIED (bounded) | `eval/realbug-queue/` — see `docs/M4_DESIGN_BRIEF.md` §A. 5 candidates: 4 promoted to proposals (PR #24) and then admitted 2026-08-25, 1 deliberately rejected on licence (GPL-2.0-only) to prove the gate says no |
 | Previously referenced admission packet | MISSING | `CURRENT-MILESTONE.md` (pre-M4) referenced a file `REAL-BUG-ADMISSION-PACKET.md` that does not exist anywhere in this repository or its git history under that name. That reference has been corrected as part of this session's status sync; whatever it was meant to point to was never committed |
 
 ## Human-written cases
@@ -86,12 +86,17 @@ In priority order, grounded only in the rows above:
 1. **Zero non-Claude-authored cases exist anywhere**, including in the
    intake mechanism that has existed since before this session. This is
    the single largest credibility gap M4 names, and it is currently
-   MISSING content, not missing mechanism.
+   MISSING content, not missing mechanism. Unchanged by the 2026-08-25
+   real-bug admission: those four cases diversify *provenance* (the
+   defect mechanisms are historical), not *authorship* — Claude wrote
+   every reconstruction, and each case's `author_model` says so.
 2. **Zero human-written cases exist.** Same shape as #1: the schema and
    packet exist as of this session, the content does not.
-3. **Zero real-bug (`mined-real-fix`) cases exist**, and the schema
-   fields needed to make one license-defensible did not exist before
-   this session.
+3. ~~**Zero real-bug (`mined-real-fix`) cases exist**~~ — **closed
+   2026-08-25**: 4 admitted at `eval/cases-provenance/cases/`. The
+   remaining honest caveat is size, not existence: four cases is a
+   process demonstration, not a measurement, and no model has been run
+   against them.
 4. **No private holdout exists.** Design has been complete since v2;
    nothing has been built or populated.
 5. **v3's ground-truth human review is UNKNOWN, not VERIFIED**, unlike
@@ -100,8 +105,9 @@ In priority order, grounded only in the rows above:
    M5 launch gate will need closed, and it costs nothing to name now
    rather than discover at M5.
 
-None of these are close to done. M4 "complete" requires at minimum one
-real populated case in each of the three missing content categories
-(real-bug, non-Claude-authored, human-written) plus a live rotating
-private holdout — this audit's job was to establish that baseline
-honestly, not to shorten the distance to it.
+M4 "complete" requires at minimum one real populated case in each of the
+three content categories (real-bug, non-Claude-authored, human-written)
+plus a live rotating private holdout — this audit's job was to establish
+that baseline honestly, not to shorten the distance to it. As of
+2026-08-25 exactly one of those four is satisfied (real-bug, 4 cases
+admitted). The other three remain at zero content.

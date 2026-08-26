@@ -60,22 +60,26 @@ gates in section 3 are preserved forever.
 
 ## 2. Current status (update this section at every milestone)
 
-- Date: 2026-08-24
+- Date: 2026-08-25
 - Current milestone: M4 Credibility and provenance (M0, M1, M2 and M3
   are complete)
-- Done recently: M3 closed by PR #21 (merge commit
-  `aca26bdb57fec22a0d81722001d45a3052d5c695`), which revised the M3
-  detection-saturation criterion under a disclosed same-day procedural
-  waiver — full reasoning in the note under this table's M3 row. The
-  frozen v3 corpus, its fingerprint, and the authoritative X17-X19
-  evidence (PR #20, `eval/results/M3-HARD-SCORECARD.md`) are unchanged
-  by that PR; nothing about the underlying measurement was touched,
-  only the gate's wording and its human disposition.
-- Single next action: work M4 exactly as scoped in
-  `docs/M4_DESIGN_BRIEF.md` — real historical bugs (license-checked),
-  non-Claude-authored cases, human-written cases, and a private
-  holdout — none of which are pulled forward into the frozen v2/v3
-  corpora.
+- Done recently: the first M4 pillar reached admitted evidence. Four
+  transformed reconstructions of real historical bug fixes
+  (license-checked, BSD-3-Clause sources) were adjudicated and admitted
+  into a new, separate provenance corpus,
+  `eval/cases-provenance/cases/` — fingerprint
+  `125cf57223f16b0269981dbe13c9c46e78dd396009719212128f74820c1828c6`.
+  Neither frozen corpus moved (v2 `f31d4631…`, v3 `81daa0b7…`), no
+  authoritative M2/M3 result changed, and no model has been evaluated
+  against the new corpus — admission is not measurement.
+- Single next action: M4-B, the non-Claude authorship pilot — the one
+  remaining pillar whose blocker is purely host access (a running local
+  Ollama daemon with `qwen3.6:27b` and `deepseek-r1:14b` already
+  pulled), not a design question.
+- Blockers: M4-B needs the host GPU machine (see below). M4-C needs
+  case material from JP himself, since a case whose diff is written by
+  tooling from JP's concept is `human_authored: false` by definition.
+  M4-D needs a private holdout directory that does not yet exist.
 - Blockers: local open-weight model execution (Ollama/Qwen/DeepSeek)
   requires the host GPU machine; it is not available inside every
   execution environment this project runs sessions from, which can
