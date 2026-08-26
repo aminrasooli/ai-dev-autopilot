@@ -386,6 +386,14 @@ Mitigations, in order of value:
 4. Plain labeling: **this benchmark is not independent.** We built it, we
    run it, and we say so. Results are reproducible evidence, not an
    impartial ranking.
+5. Naming the alternatives: `docs/RELATED_WORK.md` surveys the other AI
+   code-review benchmarks that exist, with their scale, clean-control
+   treatment and licensing. Several are larger, several are older, and
+   one occupies very nearly this position — running a reader into that
+   fact here is cheaper than letting them discover it and conclude the
+   omission was deliberate. That document also records which
+   this-benchmark-is-first-style claims were checked and found false, so
+   they cannot be reintroduced later by accident.
 
 ## 11. Private holdout design
 
