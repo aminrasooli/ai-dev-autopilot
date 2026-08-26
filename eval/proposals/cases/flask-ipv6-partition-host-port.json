@@ -1,0 +1,47 @@
+{
+  "proposal_id": "flask-ipv6-partition-host-port",
+  "author_family": "claude",
+  "generator": "claude-sonnet-5",
+  "status": "proposed",
+  "rationale": "Real bug from eval/realbug-queue/flask-ipv6-partition-host-port.json (pallets/flask, BSD-3-Clause, bugfix_confidence 0.85). Neither v2 nor v3 has an IPv6-specific case; this fills that gap with a real historical mechanism instead of an invented one.",
+  "case": {
+    "benchmark_version": 2,
+    "id": "flask-ipv6-partition-host-port",
+    "title": "Host/port split for a bound address",
+    "language": "python",
+    "status": "pilot",
+    "provenance": {
+      "type": "mined-real-fix",
+      "author_family": "claude",
+      "reference": "https://github.com/pallets/flask/commit/05e9c6bd630ecf4ec0ec884b1fc7901663737bc7",
+      "source_repository": "pallets/flask",
+      "source_commit": "05e9c6bd630ecf4ec0ec884b1fc7901663737bc7",
+      "source_license": "BSD-3-Clause",
+      "transformation": "transformed",
+      "provenance_notes": "Reconstructed from a real Flask bug fix: SERVER_NAME/host handling broke on IPv6 literal addresses like '[::1]:5000' because a naive str.partition(':') splits on the first colon, which also occurs inside the address itself. No Flask source or test text is reproduced -- function name, file path, and surrounding code are invented. The diff below is the reverse of the historical fix: it removes the bracket-aware branch to reintroduce the original defect mechanism."
+    },
+    "affected_files": [
+      "src/netutil/authority.py"
+    ],
+    "diff": [
+      "--- a/src/netutil/authority.py",
+      "+++ b/src/netutil/authority.py",
+      "@@ -1,7 +1,3 @@",
+      " def parse_authority(netloc):",
+      "-    if netloc.startswith(\"[\"):",
+      "-        host, _, rest = netloc[1:].partition(\"]\")",
+      "-        port = rest[1:] if rest.startswith(\":\") else None",
+      "-        return host, port",
+      "     host, sep, port = netloc.partition(\":\")",
+      "     return host, (port if sep else None)"
+    ],
+    "ground_truth": {
+      "defect": true,
+      "category": "logic-error",
+      "severity": ["medium", "high"],
+      "explanation": "Removing the bracket-aware branch makes every address parsed with a naive partition on the first colon. An IPv6 literal like '[::1]:5000' contains colons inside the address itself, so the naive split returns host='[' and a garbled port/host remainder instead of host='::1', port='5000' -- breaking any caller that binds, displays, or routes by host for IPv6 listeners."
+    },
+    "difficulty": "moderate",
+    "tags": ["real-bug", "ipv6", "parsing"]
+  }
+}

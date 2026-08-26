@@ -1,0 +1,47 @@
+{
+  "proposal_id": "apistar-staticfiles-resource-leak",
+  "author_family": "claude",
+  "generator": "claude-sonnet-5",
+  "status": "proposed",
+  "rationale": "Real bug from eval/realbug-queue/apistar-staticfiles-resource-leak.json (encode/apistar, BSD-3-Clause, bugfix_confidence 0.70, archived repository). resource-leak is thinly represented in v2 (2 cases); this adds a real async-specific instance of the pattern.",
+  "case": {
+    "benchmark_version": 2,
+    "id": "apistar-staticfiles-resource-leak",
+    "title": "Static file handle lifecycle",
+    "language": "python",
+    "status": "pilot",
+    "provenance": {
+      "type": "mined-real-fix",
+      "author_family": "claude",
+      "reference": "https://github.com/encode/apistar/commit/a6a95a5eec833c512d08f962b22c4c177d6021b0",
+      "source_repository": "encode/apistar",
+      "source_commit": "a6a95a5eec833c512d08f962b22c4c177d6021b0",
+      "source_license": "BSD-3-Clause",
+      "transformation": "transformed",
+      "provenance_notes": "Reconstructed from a real apistar bug fix: an async static-file handler opened a file handle without guaranteeing it was closed on every code path. No apistar static-file serving code is reproduced -- function name, file path, and surrounding code are invented. The diff below is the reverse of the historical fix: it replaces the context-manager-guarded open with a manual open/close pair that has an await in between, reintroducing the leak."
+    },
+    "affected_files": [
+      "src/http/staticfiles.py"
+    ],
+    "diff": [
+      "--- a/src/http/staticfiles.py",
+      "+++ b/src/http/staticfiles.py",
+      "@@ -1,4 +1,5 @@",
+      " async def serve_static_file(path):",
+      "-    with open(path, \"rb\") as handle:",
+      "-        data = await run_in_threadpool(handle.read)",
+      "+    handle = open(path, \"rb\")",
+      "+    data = await run_in_threadpool(handle.read)",
+      "+    handle.close()",
+      "     return Response(content=data, media_type=guess_type(path))"
+    ],
+    "ground_truth": {
+      "defect": true,
+      "category": "resource-leak",
+      "severity": ["medium", "high"],
+      "explanation": "The file handle is now opened and closed manually instead of via a context manager, with an await between open and close. If run_in_threadpool(handle.read) raises or the coroutine is cancelled while awaiting, handle.close() on the next line never executes, leaking the file descriptor. Under sustained traffic to a static-file endpoint this accumulates open file descriptors until the process hits its limit."
+    },
+    "difficulty": "moderate",
+    "tags": ["real-bug", "async", "file-handle"]
+  }
+}
