@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# AI-DEV — private holdout contamination check (M4-D,
+# docs/M4_DESIGN_BRIEF.md §D). Never reads holdout content into this
+# repository; only fingerprints and compares.
+#
+#   review-holdout check --cases /path/outside/this/repo
+#
+# Exit codes: 0 no contamination signal · 2 signal found · 1 usage/IO error.
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-holdout: python3 is required\n' >&2; exit 2; }
+PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+  exec python3 -m reviewer.holdout "$@" --repo-root "$AI_DEV_HOME"

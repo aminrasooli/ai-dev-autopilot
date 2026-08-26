@@ -159,11 +159,53 @@ One JSON file per case in `eval/cases/`. Machine-validated by
 | `ground_truth` | object | yes | see below |
 | `tags` | list | no | free-form, e.g. `["cross-file"]` |
 
-`provenance.author_family` ∈ `claude`, `qwen`, `human`, `mixed`, `other` —
-who/what authored the case, machine-readable so self-authorship bias
-(§10) can be sliced in analysis. `provenance.reference` is required for
-`mined-real-fix` (commit URL or equivalent) and must never point at
-private infrastructure.
+`provenance.author_family` ∈ `claude`, `qwen`, `deepseek`, `human`,
+`mixed`, `other` — who/what authored the case, machine-readable so
+self-authorship bias (§10) can be sliced in analysis. `provenance.reference`
+is required for `mined-real-fix` (commit URL or equivalent) and must
+never point at private infrastructure.
+
+**M4 provenance fields (`docs/M4_DESIGN_BRIEF.md`, docs/ROADMAP.md §4),
+all optional and fingerprint-only per §11a** — existing v2/v3 cases carry
+none of them and remain valid unchanged:
+
+| field | type | required when | meaning |
+|---|---|---|---|
+| `source_repository` | string | `provenance.type = mined-real-fix` | the repository the fix was mined from |
+| `source_commit` | string | `provenance.type = mined-real-fix` | the specific bug-fix commit |
+| `source_license` | string | `provenance.type = mined-real-fix` | the source repository's license at the commit used |
+| `transformation` | enum: `verbatim`, `transformed`, `synthetic-reconstruction` | `provenance.type = mined-real-fix`; rejected otherwise | how much of the original code survives into the case |
+| `author_model` | string | never required | exact model identifier (e.g. `qwen3.6:27b`), refining the coarse `author_family` bucket; must agree with `author_family` when that family names a model lineage |
+| `human_authored` | bool | `author_family = human` (must be explicit) | `true` only when a human wrote the case content itself; `false` marks a human-*reviewed* case (concept/decision by a human, mechanical formatting by tooling) — never inferred, always stated |
+| `provenance_notes` | string | never required | free-form provenance context that doesn't fit another field |
+
+`human_authored` is the schema's answer to "human-written vs.
+human-reviewed" (M4-C): a case can only claim to be human-written if this
+field is explicitly `true`, and the validator refuses to leave it
+unstated for any `author_family: human` case — silence is not allowed to
+read as a claim.
+
+**Contradictions the validator rejects outright**, because each would
+let a published claim be false while the corpus validated clean:
+
+- `human_authored: true` together with an `author_model`. A case a model
+  wrote is human-*reviewed* at best; the two claims cannot both hold.
+- `author_family` disagreeing with `author_model` — e.g. family `qwen`
+  naming `claude-sonnet-5`. Families that name a model lineage
+  (`claude`, `qwen`, `deepseek`) must match the model string. `mixed`
+  and `other` carry no such rule, because ambiguity is what they mean:
+  `mixed` plus a `provenance_notes` line saying who changed what is the
+  correct label when a case passed through more than one author.
+- `transformation: verbatim` or `transformed` under a `source_license`
+  outside the permissive allowlist (MIT, BSD-2/3-Clause, Apache-2.0,
+  ISC, 0BSD, Unlicense — `reviewer.corpus.PERMISSIVE_LICENSES`, shared
+  with the real-bug queue so the two cannot drift). An unrecognized
+  license string is treated as non-permissive, not assumed benign.
+  `synthetic-reconstruction` is exempt: it derives no code.
+- A `source_commit` that isn't a 7-40 character hex sha. A commit nobody
+  can look up is not provenance.
+- `source_repository` or `source_commit` with no `source_license` — a
+  source attribution the project cannot stand behind.
 
 `ground_truth` for defective cases:
 `{defect: true, category, severity: [min, max], explanation}` — category

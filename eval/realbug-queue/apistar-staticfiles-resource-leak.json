@@ -1,0 +1,20 @@
+{
+  "candidate_id": "apistar-staticfiles-resource-leak",
+  "repository": "encode/apistar",
+  "repository_url": "https://github.com/encode/apistar",
+  "commit": "a6a95a5eec833c512d08f962b22c4c177d6021b0",
+  "parent_commit": "bcd3fff3a0fe6431cb1c7bc566e98d1a2b81a515",
+  "language": "python",
+  "changed_files": [
+    "apistar/server/staticfiles.py"
+  ],
+  "diff_size_lines": 30,
+  "issue_or_pr_reference": "https://github.com/encode/apistar/pull/588",
+  "license": "BSD-3-Clause",
+  "bugfix_confidence": 0.7,
+  "incorporation_safe": true,
+  "recommended_treatment": "transformed",
+  "status": "candidate",
+  "found_by": "gh search commits \"fix resource leak\" --owner pallets --owner psf --owner httpie --owner encode, hand-reviewed via gh api repos/encode/apistar/commits/<sha>",
+  "notes": "Real bug: an async static-file handler opened a file handle without guaranteeing it was closed on every code path (the commit message names it explicitly as a resource leak). Confidence set to 0.7, lower than the pallets candidates, for two honest reasons: (1) the repository is archived (encode/apistar), so there is less ecosystem cross-validation that this was truly treated as a bug versus a style change; (2) the fix commit touches only the source file, no dedicated regression test was added alongside it, which is weaker bugfix evidence than the other three candidates in this batch. Still above the 'not a bug fix' line: the commit message and PR title are unambiguous, and resource-leak is a real, thinly-represented category in v2 (2 cases). Recommend 'transformed': rebuild a minimal async-file-handler-with-a-leaked-handle scenario, not apistar's actual static-file serving code."
+}

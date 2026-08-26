@@ -60,25 +60,27 @@ gates in section 3 are preserved forever.
 
 ## 2. Current status (update this section at every milestone)
 
-- Date: 2026-08-22
-- Current milestone: M3 Hard benchmark v3 (M0, M1 and M2 are complete)
-- Done recently: M2 cross-model pilot closed (PR #16, merge commit
-  85a265706f478a7b0d3c5e40e7b17c293dd66b4e) — Sonnet, Qwen3.6:27b and
-  DeepSeek-R1:14b run 3x each against the frozen 54-case corpus,
-  pre-registered before execution. Sonnet 1.00 defect recall, Qwen 0.99
-  with no external model API charge, DeepSeek 0.82; Sonnet materially
-  stronger than Qwen on category/severity classification, DeepSeek
-  materially weaker on classification. Detection is now saturated for
-  the top two models across every difficulty tier — the open question
-  is no longer "can it find the bug" but "can it classify it," plus
-  whether the corpus itself is hard enough, which is M3's job.
-- Single next action: resolve the one open M3 methodology fork
-  (diff-only vs. execution-based oracle for state/cache and concurrency
-  cases — see `docs/M3_DESIGN_BRIEF.md`), then begin authoring the M3
-  hard-case taxonomy as a new benchmark version; the frozen v2 corpus
-  is not touched.
-- Blockers: none identified; the methodology fork above is a deliberate
-  pause point, not a blocker.
+- Date: 2026-08-24
+- Current milestone: M4 Credibility and provenance (M0, M1, M2 and M3
+  are complete)
+- Done recently: M3 closed by PR #21 (merge commit
+  `aca26bdb57fec22a0d81722001d45a3052d5c695`), which revised the M3
+  detection-saturation criterion under a disclosed same-day procedural
+  waiver — full reasoning in the note under this table's M3 row. The
+  frozen v3 corpus, its fingerprint, and the authoritative X17-X19
+  evidence (PR #20, `eval/results/M3-HARD-SCORECARD.md`) are unchanged
+  by that PR; nothing about the underlying measurement was touched,
+  only the gate's wording and its human disposition.
+- Single next action: work M4 exactly as scoped in
+  `docs/M4_DESIGN_BRIEF.md` — real historical bugs (license-checked),
+  non-Claude-authored cases, human-written cases, and a private
+  holdout — none of which are pulled forward into the frozen v2/v3
+  corpora.
+- Blockers: local open-weight model execution (Ollama/Qwen/DeepSeek)
+  requires the host GPU machine; it is not available inside every
+  execution environment this project runs sessions from, which can
+  stall M4-B (non-Claude authorship) until run from a session with
+  that access. See `docs/M4_DESIGN_BRIEF.md` for the exact handoff.
 
 ---
 

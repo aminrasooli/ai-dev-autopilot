@@ -37,7 +37,36 @@ PROVENANCE_TYPES = (
     "seeded-synthetic", "authored-realistic", "mined-real-fix", "mutation",
 )
 
-AUTHOR_FAMILIES = ("claude", "qwen", "human", "mixed", "other")
+AUTHOR_FAMILIES = ("claude", "qwen", "deepseek", "human", "mixed", "other")
+
+# M4 (docs/ROADMAP.md §4, docs/M4_DESIGN_BRIEF.md): how source material for
+# a mined-real-fix case was incorporated. Required exactly when
+# provenance.type == "mined-real-fix" — that is the one class where "how
+# much of the original code survives" is a real licensing/credibility
+# question, not a stylistic detail.
+TRANSFORMATIONS = ("verbatim", "transformed", "synthetic-reconstruction")
+
+# Licenses under which this project is willing to carry code derived from
+# someone else's repository (docs/M4_DESIGN_BRIEF.md §A rule 1). Defined
+# here, in the schema module, because this is the gate that decides what
+# may enter a *scored corpus* — `reviewer.realbug` imports it so the
+# advisory queue and the actual admission path cannot drift apart. Not
+# legal advice, a practical allowlist for this project's risk tolerance:
+# anything outside it may only be reached by
+# `transformation: synthetic-reconstruction`, which derives no code.
+PERMISSIVE_LICENSES = (
+    "MIT", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "ISC", "0BSD",
+    "Unlicense",
+)
+
+# Author families that name a specific model lineage. For these,
+# `author_model` must actually be a model of that family — otherwise a
+# case could read `author_family: qwen` while naming a Claude model as
+# its author, which is exactly docs/ROADMAP.md §9 failure mode 3 written
+# into the schema instead of caught by it.
+_MODEL_AUTHOR_FAMILIES = ("claude", "qwen", "deepseek")
+
+_SOURCE_COMMIT_RE = re.compile(r"^[0-9a-f]{7,40}$")
 
 STATUSES = ("pilot", "stable")
 
@@ -152,10 +181,119 @@ def validate_case(obj, origin="case"):
             errors.append(f"{origin}: provenance.author_family "
                           f"{prov.get('author_family')!r} not in {AUTHOR_FAMILIES}")
         ref = prov.get("reference")
-        if prov.get("type") == "mined-real-fix" and not (
-                isinstance(ref, str) and ref.strip()):
+        is_mined = prov.get("type") == "mined-real-fix"
+        if is_mined and not (isinstance(ref, str) and ref.strip()):
             errors.append(f"{origin}: mined-real-fix requires provenance.reference")
-        unknown_prov = set(prov) - {"type", "author_family", "reference"}
+
+        # M4 provenance fields (docs/M4_DESIGN_BRIEF.md). All optional,
+        # non-scoring, fingerprint-only additions per
+        # docs/BENCHMARK_METHODOLOGY.md §11a — existing v2/v3 cases carry
+        # none of them and remain valid. mined-real-fix is the one type
+        # where they become required: that is the class this project
+        # incorporates someone else's code into, so the licensing and
+        # transformation record is not optional for it.
+        for field in ("source_repository", "source_commit", "source_license",
+                      "provenance_notes"):
+            if field in prov and not (
+                    isinstance(prov[field], str) and prov[field].strip()):
+                errors.append(f"{origin}: provenance.{field} must be a "
+                              "non-empty string")
+        if is_mined:
+            for field in ("source_repository", "source_commit", "source_license"):
+                if not (isinstance(prov.get(field), str) and prov[field].strip()):
+                    errors.append(f"{origin}: mined-real-fix requires "
+                                  f"provenance.{field}")
+        transformation = prov.get("transformation")
+        if transformation is not None and transformation not in TRANSFORMATIONS:
+            errors.append(f"{origin}: provenance.transformation "
+                          f"{transformation!r} not in {TRANSFORMATIONS}")
+        if is_mined and transformation is None:
+            errors.append(f"{origin}: mined-real-fix requires "
+                          "provenance.transformation")
+        if not is_mined and transformation is not None:
+            errors.append(f"{origin}: provenance.transformation only applies "
+                          "to provenance.type mined-real-fix")
+
+        # A source attribution without a license record is a claim this
+        # project cannot stand behind — it reads as "derived from that
+        # repository" while recording nothing about whether that was
+        # allowed. Either say where it came from *and* under what, or
+        # say neither.
+        source_license = prov.get("source_license")
+        attributes_a_source = any(
+            prov.get(f) for f in ("source_repository", "source_commit",
+                                  "transformation"))
+        if attributes_a_source and not (
+                isinstance(source_license, str) and source_license.strip()):
+            errors.append(f"{origin}: provenance names a source "
+                          "(source_repository/source_commit/transformation) "
+                          "without provenance.source_license")
+
+        # The licensing gate itself, mirroring the advisory queue's rule
+        # (docs/M4_DESIGN_BRIEF.md §A rules 1 and 4) at the point that
+        # actually matters: what may enter a scored corpus.
+        # `synthetic-reconstruction` is exempt by construction — it
+        # derives no code from the source, only the observed mechanism.
+        if transformation in ("verbatim", "transformed") \
+                and isinstance(source_license, str) \
+                and source_license.strip() not in PERMISSIVE_LICENSES:
+            errors.append(
+                f"{origin}: provenance.transformation {transformation!r} "
+                f"requires a known-permissive source_license "
+                f"{PERMISSIVE_LICENSES}, got {source_license!r} — use "
+                "'synthetic-reconstruction' (no code derived) or do not "
+                "admit the case")
+
+        # A commit that cannot be looked up is not provenance. Same shape
+        # the queue already enforces (reviewer.realbug), applied here so a
+        # case cannot carry a source_commit the queue would have rejected.
+        source_commit = prov.get("source_commit")
+        if isinstance(source_commit, str) and source_commit.strip() \
+                and not _SOURCE_COMMIT_RE.match(source_commit.strip()):
+            errors.append(f"{origin}: provenance.source_commit must be a "
+                          f"7-40 char hex commit sha, got {source_commit!r}")
+
+        author_model = prov.get("author_model")
+        if author_model is not None and not (
+                isinstance(author_model, str) and author_model.strip()):
+            errors.append(f"{origin}: provenance.author_model must be a "
+                          "non-empty string")
+        elif isinstance(author_model, str) and author_model.strip():
+            family = prov.get("author_family")
+            if family in _MODEL_AUTHOR_FAMILIES \
+                    and family not in author_model.lower():
+                errors.append(
+                    f"{origin}: provenance.author_model {author_model!r} does "
+                    f"not name a {family!r} model — author_family and "
+                    "author_model must agree, or the family is 'mixed'/'other'")
+
+        human_authored = prov.get("human_authored")
+        if "human_authored" in prov and not isinstance(human_authored, bool):
+            errors.append(f"{origin}: provenance.human_authored must be a "
+                          "boolean")
+        elif prov.get("author_family") == "human" and human_authored is None:
+            errors.append(f"{origin}: author_family 'human' requires an "
+                          "explicit provenance.human_authored (true only "
+                          "when a human wrote the case content itself, "
+                          "false for human-reviewed/tool-formatted cases)")
+        if human_authored is True and prov.get("author_family") != "human":
+            errors.append(f"{origin}: provenance.human_authored=true requires "
+                          "author_family 'human'")
+        # "A human wrote this" and "this model wrote this" cannot both be
+        # true of the same case content. A human-*reviewed* case (concept
+        # by a person, formatting by tooling) is human_authored=false and
+        # may name the model that formatted it.
+        if human_authored is True and prov.get("author_model") is not None:
+            errors.append(f"{origin}: provenance.human_authored=true cannot "
+                          "carry provenance.author_model — a case a model "
+                          "authored is human-reviewed at best "
+                          "(human_authored=false)")
+
+        unknown_prov = set(prov) - {
+            "type", "author_family", "reference", "source_repository",
+            "source_commit", "source_license", "transformation",
+            "author_model", "human_authored", "provenance_notes",
+        }
         if unknown_prov:
             errors.append(f"{origin}: unknown provenance fields {sorted(unknown_prov)}")
 
@@ -350,6 +488,12 @@ def summarize(cases):
         # (docs/M3_METHODOLOGY_DECISION.md).
         "execution_validated_cases": sum(
             1 for c in cases if c["ground_truth"].get("execution_validated")),
+        # M4 provenance visibility (docs/M4_DESIGN_BRIEF.md), same
+        # non-scoring spirit as execution_validated_cases above.
+        "human_authored_cases": sum(
+            1 for c in cases if c["provenance"].get("human_authored") is True),
+        "mined_real_fix_cases": sum(
+            1 for c in cases if c["provenance"]["type"] == "mined-real-fix"),
         # A stable fingerprint of the exact corpus content, so a result
         # report can name precisely what it ran against without carrying
         # any filesystem path.

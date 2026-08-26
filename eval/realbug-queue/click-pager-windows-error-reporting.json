@@ -1,0 +1,22 @@
+{
+  "candidate_id": "click-pager-windows-error-reporting",
+  "repository": "pallets/click",
+  "repository_url": "https://github.com/pallets/click",
+  "commit": "fc5c7f45da0a4443f60ba2d322fe4bf829977739",
+  "parent_commit": "150d1071d69c5cdad7de78590013ffe56cf9e3bb",
+  "language": "python",
+  "changed_files": [
+    "CHANGES.md",
+    "src/click/_termui_impl.py",
+    "tests/test_termui.py"
+  ],
+  "diff_size_lines": 72,
+  "issue_or_pr_reference": "https://github.com/pallets/click/pull/3764",
+  "license": "BSD-3-Clause",
+  "bugfix_confidence": 0.75,
+  "incorporation_safe": true,
+  "recommended_treatment": "transformed",
+  "status": "candidate",
+  "found_by": "gh search commits \"fix\" --owner pallets --owner psf --owner httpie --owner fastapi, hand-reviewed via gh api repos/pallets/click/commits/<sha>",
+  "notes": "Real bug, exact mechanism (read from the diff, not the PR title): _tempfilepager writes a temp file, closes it, then runs the pager, with `os.unlink(f.name)` in a finally. If anything raises before that explicit close(), the finally unlinks a still-open handle; on Windows that raises PermissionError, which REPLACES the original exception rather than letting it surface. The fix adds an idempotent f.close() in the finally before the unlink. So the defect is a cleanup path masking the real error, with an unclosed handle as the root cause -- not simply 'an error was swallowed'. Getting this description right matters because a reconstruction is built from it. Confidence 0.75 rather than 0.8+: 72 lines across a changelog file plus source+test, and a platform-conditional failure is harder to isolate cleanly than a pure logic bug. NOTE: this is a merge commit; parent_commit above is its first parent, which is the diff GitHub and `git diff <parent> <commit>` both show. Recommend 'transformed', not 'verbatim': rebuild a minimal write-temp-file-then-hand-off-then-unlink wrapper with the same masking behaviour rather than copying click's pager implementation. Category fit: error-handling (an exception in cleanup masking the original) -- v2 has 4 error-handling cases, none about cleanup-path masking."
+}
