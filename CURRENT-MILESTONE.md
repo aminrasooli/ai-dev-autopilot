@@ -252,8 +252,9 @@ real-bug candidate intake (queue only, never automatic admission),
 non-Claude-authored case proposals via `eval/proposals/` (blocked in any
 session without local Ollama/GPU access — see the design brief's
 handoff), the human-author packet, and private-holdout scaffolding that
-stops at the `~/ops` boundary. Nothing outside M4 scope (no M5 launch
-prep, no routing, no agent teams).
+stops at this repository's boundary — the holdout itself is created
+outside it. Nothing outside M4 scope (no M5 launch prep, no routing, no
+agent teams).
 
 ## Instructions for a future session with zero chat history
 

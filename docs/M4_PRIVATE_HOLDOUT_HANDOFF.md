@@ -6,19 +6,18 @@ this repository-scoped session could safely build is built:
 `bin/review-holdout` checks a holdout directory for contamination
 signals, and `eval/results/HOLDOUT-RESULTS.md` is ready to receive an
 aggregate-only row. **Creating the actual holdout directory, or touching
-anything under `~/ops`, is out of scope for this session** (task
-instructions §8) and was not attempted. This document is the exact
-handoff so that step doesn't require re-deriving the design.
+the maintainer's private machine-operations documentation, is out of
+scope for this session** and was not attempted. This document is the
+exact handoff so that step doesn't require re-deriving the design.
 
-## What JP (or a session with `~/ops` access) needs to do
+## What the maintainer needs to do
 
 1. **Create the directory**, outside this repository, per
    `docs/BENCHMARK_METHODOLOGY.md` §11's storage-class rule: a private
    repository or a private project directory, never a subdirectory of
-   `ai-team-runtime-v0`. The methodology doc's own suggestion:
-   `~/projects/reviewer-benchmark-holdout/`, registered per this
-   machine's project registry conventions (`~/ops/PROJECTS.md` — see
-   this machine's own `CLAUDE.md` rule 2 about the project registry).
+   this one. The methodology doc's own suggestion:
+   `~/projects/reviewer-benchmark-holdout/`, registered wherever that
+   machine tracks its projects.
 2. **Populate it** with schema-v2 case JSON files, same layout as
    `eval/cases/` — one file per case, filename stem equals `id`.
    Authorship should skew *away* from Claude (methodology §11:
@@ -46,10 +45,9 @@ handoff so that step doesn't require re-deriving the design.
    already been run and treated as public).
 5. **Back it up separately.** Per methodology §11: "the holdout is the
    one corpus that cannot be regenerated from git history; it needs its
-   own backup, and that backup must not be a public remote." This
-   machine's `CLAUDE.md` already names a backup discipline (B0 encrypted
-   Restic backup, per `docs/CURRENT-MILESTONE.md`'s M0 section) — extend
-   that, don't invent a new one.
+   own backup, and that backup must not be a public remote." M0 already
+   established an encrypted, restore-verified backup for this project
+   (`CURRENT-MILESTONE.md`) — extend it, don't invent a new one.
 6. **Run it** with the existing harness, no new plumbing:
    ```sh
    bin/review-eval --cases /path/to/reviewer-benchmark-holdout --backend claude --runs 3
@@ -71,7 +69,8 @@ private discipline — this repo has no visibility into it and shouldn't).
 
 - Did not create `~/projects/reviewer-benchmark-holdout/` or any
   directory outside this repository.
-- Did not touch `~/ops` or any file it governs.
+- Did not touch the maintainer's private machine-operations
+  documentation or any file it governs.
 - Did not author any holdout case content (that would itself need to
   come from the non-Claude/human sources listed above, not from this
   session acting as "Claude, invent some holdout cases").

@@ -67,11 +67,24 @@ treatment — `verbatim`, `transformed`, `synthetic-reconstruction`, or
    with the same defect mechanism, different surrounding code/names) is
    preferred over `verbatim`. `verbatim` is reserved for short, clearly
    fair-use-scale excerpts under an explicitly permissive license, with
-   `source_license` recorded. `synthetic-reconstruction` (the mechanism
-   observed, the code rewritten from scratch) is preferred whenever the
-   license is ambiguous but the *pattern* is still worth capturing as a
-   `authored-realistic` case instead of `mined-real-fix` — in that case
-   it is **not** a real-bug case at all and carries no source fields.
+   `source_license` recorded. Both are gated on a known-permissive
+   license by `reviewer.corpus.validate_case`, not just by this
+   paragraph. `synthetic-reconstruction` (the mechanism observed, the
+   code rewritten from scratch, nothing derived) is preferred whenever
+   the license is ambiguous or copyleft but the *pattern* is still worth
+   capturing, and is the one treatment that gate exempts.
+
+   Two honest ways to record a synthetic reconstruction, and the
+   difference is a real one:
+   - **`mined-real-fix` + `transformation: synthetic-reconstruction`** —
+     the defect came from an identified commit and the case says so.
+     The source fields are required and the attribution stands even
+     though no code was copied. Prefer this when you know the source;
+     crediting it is more truthful than not.
+   - **`authored-realistic`, no source fields** — the case was written
+     from a *category* of bug rather than one identified commit. This is
+     not a real-bug case, must not be counted as one, and carries no
+     `transformation`.
 5. **No mass scraping.** Each candidate is hand-entered into the queue
    (or entered by a bounded, human-reviewed script run against a named,
    chosen repository — never an open-ended crawl). The queue tool has no
@@ -213,9 +226,9 @@ honesty). M4's job is the minimum safe scaffold, not a redesign.
   `docs/M4_PRIVATE_HOLDOUT_HANDOFF.md`.
 
 **Hard stop at this session's boundary:** creating the actual private
-directory, populating it with cases, or touching anything under `~/ops`
-is explicitly out of scope for this session (task instructions §8) and
-is not attempted. The exact handoff — what JP needs to create, where, and
+directory, populating it with cases, or touching the maintainer's
+private machine-operations documentation is explicitly out of scope for
+this session and is not attempted. The exact handoff — what JP needs to create, where, and
 how to point the harness at it — is `docs/M4_PRIVATE_HOLDOUT_HANDOFF.md`.
 
 ## What M4 explicitly does not build

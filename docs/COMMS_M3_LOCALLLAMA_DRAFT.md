@@ -57,7 +57,10 @@ the loop: claude-sonnet-5 (hosted), qwen3.6:27b and deepseek-r1:14b
 defective observations it completed (the 2 it didn't complete were
 malformed responses, not misses). Qwen caught 82 of 82 it completed.
 DeepSeek collapsed to 12 of 87, mostly by returning an empty "approve"
-with no findings at all.
+with no findings at all. (All three had a few calls fail outright — 2, 6 and 2 of 111
+respectively — which I count as errors rather than misses, the same way
+for every model. DeepSeek's 12 is out of all 87; out of the 85 it
+actually completed it's 12 of 85. Neither framing rescues it.)
 
 **Then I looked at the clean controls, and the story flipped.** Sonnet
 flagged 21 of 24 clean observations as if they had a defect. Qwen
@@ -117,7 +120,9 @@ there's something real to show, not vaporware-teasing it here.
 | Corpus size | eval/cases-v3/README.md | 37 cases, 29 defective / 8 clean |
 | Diff size range | same | 80-219 lines, median 102 |
 | Corpus fingerprint | same | `81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790` |
-| Hardware | M3-HARD-SCORECARD.md | one RTX 6000, 24GB |
+| Error counts (2 / 6 / 2 of 111) | M3-HARD-SCORECARD.md headline table | Sonnet 2 (both defective); Qwen 5 defective + 1 clean = 6; DeepSeek 2 |
+| DeepSeek 12 of 85 completed | same | 12/87 raw, 2 errors -> 85 completed |
+| Hardware | M3-HARD-SCORECARD.md names the RTX 6000; the 24GB figure is from docs/BENCHMARK_METHODOLOGY.md §"local execution" and eval/SUBMIT.md | one RTX 6000, 24GB |
 
 ## Open decision for JP
 
