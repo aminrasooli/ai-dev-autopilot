@@ -41,7 +41,10 @@ class CheckHoldoutTests(unittest.TestCase):
                         make_case("public-2", defect=False))
             report = holdout.check_holdout(holdout_dir, self.repo_root.name)
         self.assertFalse(report["ok"])
-        self.assertIn("v2", report["collides_with_public_corpus"])
+        # Corpora are named by their directory, not by a curated label:
+        # discovery has no friendly name for a tranche it has never seen,
+        # and the directory is what the operator has to go look at.
+        self.assertIn("cases", report["collides_with_public_corpus"])
 
     def test_fingerprint_already_named_in_experiments_is_flagged(self):
         with tempfile.TemporaryDirectory() as holdout_dir:
@@ -54,6 +57,40 @@ class CheckHoldoutTests(unittest.TestCase):
             report = holdout.check_holdout(holdout_dir, self.repo_root.name)
         self.assertFalse(report["ok"])
         self.assertTrue(report["already_referenced_publicly"])
+
+    def test_fingerprint_already_published_in_holdout_results_is_flagged(self):
+        # The file where a holdout's own aggregate row gets published is
+        # the one a *rotation* is most likely to collide with: reusing a
+        # fingerprint that already has a published row would re-run a
+        # corpus whose identity is already public.
+        with tempfile.TemporaryDirectory() as holdout_dir:
+            write_corpus(holdout_dir, make_case("private-4"))
+            from reviewer.corpus import corpus_fingerprint, load_corpus
+            fp = corpus_fingerprint(load_corpus(holdout_dir))
+            results_dir = os.path.join(self.repo_root.name, "eval", "results")
+            os.makedirs(results_dir, exist_ok=True)
+            with open(os.path.join(results_dir, "HOLDOUT-RESULTS.md"),
+                      "w", encoding="utf-8") as fh:
+                fh.write(f"| 2026-01-01 | holdout-a | {fp} | 1 | 3 | m |\n")
+            report = holdout.check_holdout(holdout_dir, self.repo_root.name)
+        self.assertFalse(report["ok"])
+        self.assertTrue(report["already_referenced_publicly"])
+
+    def test_a_newly_added_public_corpus_is_a_collision_target(self):
+        # The list of public corpora used to be hardcoded, so when a new
+        # tranche landed in its own directory nothing added it and an
+        # exact copy of it passed as "private". Corpora are discovered
+        # now; this pins that, using the nested `<dir>/cases` layout
+        # every tranche after v2 uses.
+        tranche = os.path.join(self.repo_root.name, "eval",
+                               "cases-newtranche", "cases")
+        os.makedirs(tranche)
+        write_corpus(tranche, make_case("tranche-1"))
+        with tempfile.TemporaryDirectory() as holdout_dir:
+            write_corpus(holdout_dir, make_case("tranche-1"))
+            report = holdout.check_holdout(holdout_dir, self.repo_root.name)
+        self.assertFalse(report["ok"])
+        self.assertIn("cases-newtranche", report["collides_with_public_corpus"])
 
 
 class MainCliTests(unittest.TestCase):

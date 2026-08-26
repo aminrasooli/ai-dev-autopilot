@@ -41,8 +41,8 @@ exact handoff so that step doesn't require re-deriving the design.
    ```
    A non-zero exit means stop — either the holdout is byte-identical to
    a public corpus (not actually holding anything back) or its
-   fingerprint is already named in `eval/EXPERIMENTS.md` (may have
-   already been run and treated as public).
+   fingerprint is already named in a public record (may have already
+   been run and treated as public).
 5. **Back it up separately.** Per methodology §11: "the holdout is the
    one corpus that cannot be regenerated from git history; it needs its
    own backup, and that backup must not be a public remote." M0 already
@@ -54,6 +54,78 @@ exact handoff so that step doesn't require re-deriving the design.
    ```
 7. **Publish only the aggregate row** in `eval/results/HOLDOUT-RESULTS.md`
    per that file's own header — never a case id, diff, or explanation.
+
+## Minimum credible first holdout
+
+Sizing is a credibility question, not an impressiveness one. A holdout
+too small to survive one case flipping is not evidence; a holdout large
+enough to look impressive but authored carelessly is worse than none.
+The floor below is deliberately small enough to author honestly in one
+sitting.
+
+- **Case count: 8–12.** Below ~8, a single case changing a verdict moves
+  a rate by more than 12 points and the number cannot carry an argument.
+  Above ~12 the authoring effort starts inviting shortcuts (bulk
+  generation, thin variations of one idea) that defeat the purpose. Start
+  at the bottom of that band and grow it by rotation, not by a launch
+  push.
+- **Mix: roughly 2/3 defective, 1/3 clean.** Clean controls are not
+  padding — the M3 evidence showed the leading reviewers detect
+  essentially every defect while false-positiving on most hard clean
+  diffs, so clean controls are where the discrimination actually lives.
+  A holdout with no clean controls measures almost nothing the public
+  corpora do not already measure.
+- **Authorship: skew away from Claude, deliberately.** Per methodology
+  §11, human-written and other-model-written cases first. This is the
+  single most valuable property of the holdout: the public corpora are
+  100% Claude-authored, so a Claude-authored private holdout reproduces
+  the same self-authorship blind spot in a place nobody can audit. If
+  the first tranche has to be Claude-authored to exist at all, record
+  that honestly in the private directory's own notes and treat
+  diversifying it as the first rotation.
+- **Languages and categories: mirror the public corpora's spread, not
+  their exact proportions.** At n≈10 no per-category rate is meaningful,
+  so breadth exists to avoid a monoculture, not to support subgroup
+  claims. Do not report per-category holdout numbers at this size.
+- **Sourcing.** The two honest sources are the human-author packet
+  (`docs/M4_HUMAN_AUTHOR_PACKET.md`) and the non-Claude authorship pilot
+  (`docs/M4_DESIGN_BRIEF.md` §B). A holdout case never passes through
+  `eval/proposals/` — it never enters this repository at all — but it
+  should meet the same authoring bar. **External benchmark datasets are
+  not automatically holdout material**: their licensing, their upstream
+  source licensing, and whether a model provider has already ingested
+  them are all separate questions, and a public dataset used privately
+  is not a holdout in any meaningful sense.
+- **Schema: identical schema-v2 JSON**, one file per case, filename stem
+  equals `id`, no holdout-only fields — a holdout case must be
+  promotable into a public corpus unchanged.
+
+Commands, in order (all already exist; nothing new is needed):
+
+```sh
+bin/review-corpus  --cases <dir>                 # validate
+bin/review-corpus  --cases <dir> --json          # fingerprint -> .sha256
+bin/review-holdout check --cases <dir>           # contamination; must exit 0
+bin/review-eval    --cases <dir> --backend claude --runs 3   # first run
+```
+
+`bin/review-holdout check` must exit 0 before any model ever sees the
+corpus. It refuses any path inside this repository; flags a fingerprint
+identical to **any** corpus this repository ships (`eval/cases*`, found
+by discovery, so a future tranche becomes a collision target without
+anyone remembering to add it); and flags a fingerprint already named in
+`eval/EXPERIMENTS.md` or `eval/results/HOLDOUT-RESULTS.md`.
+
+**What may return to public git**, as one row in
+`eval/results/HOLDOUT-RESULTS.md` and nothing more: date, corpus name,
+fingerprint, case count, run count, model, detected, clean false
+positives, category correctness, severity correctness, errors, trust
+level (L3), harness commit.
+
+**What must NEVER return, in any form**: a case id, diff, title, tag or
+ground-truth explanation; any absolute path, directory name, hostname or
+machine detail; per-case results; any per-category or per-difficulty
+split at this corpus size; and any number from a single run.
 
 ## Rotation
 

@@ -465,12 +465,35 @@ class LoadCorpusTests(unittest.TestCase):
 
     def test_cross_corpus_check_runs_over_the_shipped_corpora(self):
         # The real invariant this protects: the corpora actually shipped
-        # in this repository do not collide with each other.
-        v2 = corpus.load_corpus(corpus.DEFAULT_CASES_DIR)
-        v3_dir = os.path.join(os.path.dirname(corpus.DEFAULT_CASES_DIR),
-                              "cases-v3", "cases")
-        v3 = corpus.load_corpus(v3_dir)
-        self.assertEqual(corpus.cross_corpus_conflicts({"v2": v2, "v3": v3}), [])
+        # in this repository do not collide with each other. Enumerated by
+        # discovery, not by name — when eval/cases-provenance landed, the
+        # hand-written v2/v3 version of this test kept passing while
+        # covering two of the three corpora it claimed to cover.
+        corpora = {name: corpus.load_corpus(path) for name, path
+                   in corpus.shipped_corpus_dirs().items()}
+        self.assertGreaterEqual(len(corpora), 3)
+        self.assertEqual(corpus.cross_corpus_conflicts(corpora), [])
+
+    def test_shipped_corpus_discovery_finds_every_corpus(self):
+        # Guards the convention discovery relies on. If a future tranche
+        # is laid out differently, this fails loudly here rather than
+        # silently shrinking the cross-corpus and contamination checks.
+        found = corpus.shipped_corpus_dirs()
+        self.assertEqual(sorted(found),
+                         ["cases", "cases-provenance", "cases-v3"])
+        for path in found.values():
+            self.assertTrue(os.path.isdir(path))
+            self.assertTrue(corpus.load_corpus(path))
+
+    def test_shipped_corpus_discovery_skips_a_contentless_directory(self):
+        # Scaffolding a tranche must not break callers before it has
+        # cases in it.
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "eval", "cases-empty", "cases"))
+            real = os.path.join(root, "eval", "cases")
+            os.makedirs(real)
+            write_corpus(real, make_case("only-one"))
+            self.assertEqual(sorted(corpus.shipped_corpus_dirs(root)), ["cases"])
 
     def test_empty_directory_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
