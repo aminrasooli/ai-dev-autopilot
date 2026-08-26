@@ -58,11 +58,18 @@ attempts per model (docs/M4_DESIGN_BRIEF.md §B calls for "a small pilot
 candidate set," not volume). Then, for each `ready` attempt: read the
 `proposal` field, decide whether it's worth pursuing, and if so copy
 just that object into a new file under `eval/proposals/cases/` (its
-`proposal_id` becomes the filename stem) and validate with
-`bin/review-propose validate-cases eval/proposals/cases` — no such
-`bin/review-propose` wrapper exists yet; use
-`python3 -m reviewer.propose validate-cases eval/proposals/cases` until
-one is added, which is a trivial follow-up in the same style as
-`bin/review-corpus`/`bin/review-realbug`, not done in this session to
-keep this session's file count proportionate to what it could actually
-exercise.
+`proposal_id` becomes the filename stem) and validate with:
+
+```sh
+bin/review-propose validate-cases eval/proposals/cases
+```
+
+**Copying is the whole point of that step.** A `ready` attempt is a
+model's proposal, not an admission: it reaches `eval/proposals/cases/`
+only because a human decided it was worth reviewing, and it reaches
+`eval/cases*` only after a second, separate human decision. If the
+attempt needs material rewriting to be usable, the honest outcomes are
+to reject it, ask the same model again, or relabel it
+`author_family: mixed` with a `provenance_notes` line saying what
+changed — never to fix it quietly and keep the original authorship
+label.
