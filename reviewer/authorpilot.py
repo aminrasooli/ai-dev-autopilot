@@ -183,6 +183,20 @@ def run_pilot(model, author_family, language, category_hint, case_id,
             "type": "seeded-synthetic",
             "author_family": author_family,
             "author_model": model,
+            # The authoring prompt never asks for `difficulty`, but the
+            # schema requires one on defective cases, so the harness
+            # supplies a neutral default. That is a judgment the model
+            # did not make, inside a case attributed to it — say so in
+            # the record rather than let it pass as the model's
+            # (docs/M4_DESIGN_BRIEF.md §B).
+            "provenance_notes": (
+                f"Authored by {model} via reviewer.authorpilot. Defect "
+                "content, category, severity and explanation are the "
+                "model's own, unmodified. `difficulty` was not requested "
+                "in the authoring prompt and was defaulted by the pilot "
+                "harness, not judged by the model; a human must set it "
+                "before this case is ever admitted."
+            ),
         }
         if isinstance(case.get("diff"), list):
             case["diff"] = [str(line) for line in case["diff"]]

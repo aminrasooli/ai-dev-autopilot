@@ -81,8 +81,8 @@ class ValidateCaseTests(unittest.TestCase):
     def _mined_provenance(self, **overrides):
         prov = {
             "type": "mined-real-fix", "author_family": "human",
-            "human_authored": False, "reference": "https://example.com/c/abc123",
-            "source_repository": "example/widget", "source_commit": "abc123",
+            "human_authored": False, "reference": "https://example.com/c/abc123f",
+            "source_repository": "example/widget", "source_commit": "abc123f",
             "source_license": "MIT", "transformation": "transformed",
         }
         prov.update(overrides)
@@ -168,6 +168,87 @@ class ValidateCaseTests(unittest.TestCase):
         case = make_case(provenance={
             "type": "seeded-synthetic", "author_family": "deepseek",
             "author_model": "deepseek-r1:14b"})
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    # --- adversarial provenance: claims the schema must refuse -------
+    # Each of these validated before the M4 review pass. They are the
+    # shapes that would let a published claim ("human-written",
+    # "Qwen-authored", "license-checked real bug") be false while the
+    # corpus validated clean.
+
+    def test_verbatim_incorporation_requires_permissive_license(self):
+        prov = self._mined_provenance(source_license="GPL-3.0",
+                                      transformation="verbatim")
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires a known-permissive source_license")
+
+    def test_transformed_incorporation_requires_permissive_license(self):
+        prov = self._mined_provenance(source_license="proprietary",
+                                      transformation="transformed")
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires a known-permissive source_license")
+
+    def test_unrecognized_license_string_is_not_treated_as_permissive(self):
+        prov = self._mined_provenance(source_license="looks fine to me",
+                                      transformation="verbatim")
+        self.assert_rejected(make_case(provenance=prov),
+                             "requires a known-permissive source_license")
+
+    def test_synthetic_reconstruction_is_exempt_from_the_license_gate(self):
+        # No code is derived, so a copyleft source is not a problem —
+        # the attribution is still recorded (docs/M4_DESIGN_BRIEF.md §A).
+        prov = self._mined_provenance(source_license="GPL-2.0-only",
+                                      transformation="synthetic-reconstruction")
+        errors, _ = corpus.validate_case(make_case(provenance=prov))
+        self.assertEqual(errors, [])
+
+    def test_source_commit_must_be_a_real_looking_sha(self):
+        prov = self._mined_provenance(source_commit="trust me")
+        self.assert_rejected(make_case(provenance=prov),
+                             "7-40 char hex commit sha")
+
+    def test_source_attribution_without_a_license_rejected(self):
+        case = make_case(provenance={
+            "type": "authored-realistic", "author_family": "claude",
+            "source_repository": "pallets/flask",
+            "source_commit": "05e9c6bd630ecf4ec0ec884b1fc7901663737bc7"})
+        self.assert_rejected(case, "without provenance.source_license")
+
+    def test_human_authored_true_cannot_name_an_author_model(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "human",
+            "human_authored": True, "author_model": "qwen3.6:27b"})
+        self.assert_rejected(case, "cannot carry provenance.author_model")
+
+    def test_author_family_and_author_model_must_agree(self):
+        # ROADMAP §9 failure mode 3: a case Claude actually wrote must
+        # not be able to sit behind a Qwen label.
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "qwen",
+            "author_model": "claude-sonnet-5"})
+        self.assert_rejected(case, "does not name a 'qwen' model")
+
+    def test_claude_family_cannot_name_a_local_model(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "claude",
+            "author_model": "deepseek-r1:14b"})
+        self.assert_rejected(case, "does not name a 'claude' model")
+
+    def test_mixed_family_may_name_any_model(self):
+        # 'mixed' is the honest label when more than one author touched
+        # the content, so it carries no family/model agreement rule.
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "mixed",
+            "author_model": "claude-opus-5",
+            "provenance_notes": "qwen drafted, claude repaired the diff"})
+        errors, _ = corpus.validate_case(case)
+        self.assertEqual(errors, [])
+
+    def test_human_reviewed_case_may_name_the_formatting_model(self):
+        case = make_case(provenance={
+            "type": "seeded-synthetic", "author_family": "human",
+            "human_authored": False, "author_model": "claude-opus-5"})
         errors, _ = corpus.validate_case(case)
         self.assertEqual(errors, [])
 

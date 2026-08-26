@@ -26,19 +26,18 @@ import os
 import re
 import sys
 
+# Licenses that permit redistribution of excerpts without triggering
+# copyleft or all-rights-reserved exposure — anything outside the list
+# needs `reject` or `synthetic-reconstruction`, never
+# `verbatim`/`transformed` (docs/M4_DESIGN_BRIEF.md §A rule 1). Imported
+# from the schema module rather than redefined, so this advisory queue
+# and the corpus admission gate can never disagree about what
+# "permissive" means.
+from .corpus import PERMISSIVE_LICENSES
+
 CANDIDATE_STATUSES = ("candidate", "queued", "rejected", "promoted")
 
 TREATMENTS = ("verbatim", "transformed", "synthetic-reconstruction", "reject")
-
-# Licenses that permit redistribution of excerpts without triggering
-# copyleft or all-rights-reserved exposure. Not exhaustive law, a
-# practical allowlist for this project's risk tolerance
-# (docs/M4_DESIGN_BRIEF.md §A rule 1) — anything outside it needs
-# `reject` or `synthetic-reconstruction`, never `verbatim`/`transformed`.
-PERMISSIVE_LICENSES = (
-    "MIT", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "ISC", "0BSD",
-    "Unlicense",
-)
 
 # Known-incompatible-with-verbatim-incorporation licenses, named so the
 # validator's error message is specific instead of "not in a list".
