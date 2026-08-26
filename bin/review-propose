@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# AI-DEV — validate case proposals and independent audit opinions
+# (eval/proposals/README.md, docs/M4_DESIGN_BRIEF.md §B).
+#
+#   review-propose validate-cases  eval/proposals/cases
+#   review-propose validate-audits eval/proposals/audits/<file>.json
+#
+# A proposal is not a case: nothing here writes into eval/cases*, and a
+# model may propose but never admit. Admission stays a human act.
+# Exit codes: 0 valid · 2 validation errors or usage error.
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-propose: python3 is required\n' >&2; exit 2; }
+PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+  exec python3 -m reviewer.propose "$@"

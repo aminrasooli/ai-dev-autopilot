@@ -45,8 +45,8 @@ key, as `{"audits": [...]}`:
 ## Validate
 
 ```sh
-python3 -m reviewer.propose validate-cases  eval/proposals/cases
-python3 -m reviewer.propose validate-audits eval/proposals/audits/<file>.json
+bin/review-propose validate-cases  eval/proposals/cases
+bin/review-propose validate-audits eval/proposals/audits/<file>.json
 ```
 
 ## Rules
