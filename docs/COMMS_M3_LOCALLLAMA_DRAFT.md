@@ -27,9 +27,16 @@ called free.
 
 ## Post title (draft)
 
-Local models basically tied a top hosted model on defect detection in
-my code-review benchmark. Then I checked how often they cried wolf, and
-the numbers looked completely different.
+Qwen3.6:27b matched Claude Sonnet on defect detection in my code-review
+benchmark. Then both of them flagged ~80-90% of my clean control diffs
+as buggy.
+
+(Earlier draft title framed the clean-control twist as something "local
+models" did. The measurement doesn't support that framing: on clean
+controls Qwen was marginally *better* than the hosted model, 19/24
+versus 21/24. The finding is that both leading reviewers cry wolf, which
+is the more interesting result anyway — a title should not quietly pick
+a side the data didn't.)
 
 ## Post body (draft)
 
