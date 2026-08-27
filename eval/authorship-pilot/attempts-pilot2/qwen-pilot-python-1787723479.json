@@ -1,0 +1,77 @@
+{
+  "attempt_id": "qwen-pilot-python-1787723479",
+  "model": "qwen3.6:27b",
+  "author_family": "qwen",
+  "language": "python",
+  "category_hint": "resource-leak",
+  "prompt": "You are authoring ONE new test case for an independent code-review benchmark. Invent a small, realistic, self-contained piece of python code, then give it to us twice: BEFORE and AFTER a change. Either the change introduces exactly one defect, or it is a clean change with no defect at all. If you author a defective case, prefer a defect in the \"resource-leak\" category if you can do so naturally; do not force it if it doesn't fit your scenario.\n\nDo NOT write a diff. Write the two complete versions of the file and we will compute the diff for you.\n\nReply with ONLY a single JSON object, no prose before or after, matching exactly this shape:\n{\n  \"title\": \"one short human-readable line\",\n  \"language\": \"python\",\n  \"file_path\": \"path/to/file.ext\",\n  \"before\": [\"complete file contents BEFORE the change,\", \"one array element per line,\", \"no line numbers, no +/- markers\"],\n  \"after\": [\"complete file contents AFTER the change,\", \"same file, one array element per line\"],\n  \"defect\": true or false,\n  \"category\": \"one of: logic-error, missing-validation, shell-quoting, command-injection, path-traversal, sensitive-logging, insecure-network, dependency-risk, test-gap, misleading-test, destructive-operation, permission-widening, secret-exposure, sql-injection, auth-bypass, concurrency, resource-leak, api-misuse, error-handling, unsafe-default, data-corruption, contract-mismatch, other\" ,\n  \"severity\": [\"low\", \"high\"],\n  \"explanation\": \"one sentence: what the defect is and why it matters, or why the change is clean\"\n}\n\nRules that will cause your case to be REJECTED if broken:\n- \"before\" and \"after\" must each be COMPLETE, syntactically valid python that would parse on its own. Not a fragment, not a hunk.\n- \"before\" and \"after\" must actually differ. Identical versions are rejected.\n- \"severity\" must be exactly two values [minimum, maximum] in that order, lowest first, each one of: low, medium, high, critical.\n- If defect is false, omit \"category\" and \"severity\" entirely.\n",
+  "generated_at": 1787723479.1835487,
+  "raw_output": "{\n  \"title\": \"Resource leak in temporary file cleanup on exception\",\n  \"language\": \"python\",\n  \"file_path\": \"temp_processor.py\",\n  \"before\": [\n    \"import os\",\n    \"import tempfile\",\n    \"\",\n    \"def process_data(data: bytes) -> dict:\",\n    \"    \\\"\\\"\\\"Process data by writing to a temporary file and reading it back.\\\"\\\"\\\"\",\n    \"    try:\",\n    \"        fd, path = tempfile.mkstemp(suffix='.tmp')\",\n    \"        with os.fdopen(fd, 'wb') as f:\",\n    \"            f.write(data)\",\n    \"        with open(path, 'rb') as f:\",\n    \"            content = f.read()\",\n    \"        result = {'size': len(content), 'checksum': sum(content) % 256}\",\n    \"        return result\",\n    \"    finally:\",\n    \"        if os.path.exists(path):\",\n    \"            os.unlink(path)\",\n    \"\"\n  ],\n  \"after\": [\n    \"import os\",\n    \"import tempfile\",\n    \"\",\n    \"def process_data(data: bytes) -> dict:\",\n    \"    \\\"\\\"\\\"Process data by writing to a temporary file and reading it back.\\\"\\\"\\\"\",\n    \"    try:\",\n    \"        fd, path = tempfile.mkstemp(suffix='.tmp')\",\n    \"        with os.fdopen(fd, 'wb') as f:\",\n    \"            f.write(data)\",\n    \"        with open(path, 'rb') as f:\",\n    \"            content = f.read()\",\n    \"        result = {'size': len(content), 'checksum': sum(content) % 256}\",\n    \"        return result\",\n    \"    finally:\",\n    \"        if os.path.exists(path):\",\n    \"            pass # TODO: remove this file\",\n    \"\"\n  ],\n  \"defect\": true,\n  \"category\": \"resource-leak\",\n  \"severity\": [\n    \"low\",\n    \"medium\"\n  ],\n  \"explanation\": \"The finalizer block now does nothing when an exception occurs, leaving temporary files on disk because the os.unlink call was replaced with a pass statement.\"\n}",
+  "claude_touched": false,
+  "status": "ready",
+  "validation_errors": [],
+  "proposal": {
+    "proposal_id": "qwen-pilot-python-1787723479",
+    "author_family": "qwen",
+    "generator": "qwen3.6:27b",
+    "status": "proposed",
+    "case": {
+      "benchmark_version": 2,
+      "id": "qwen-pilot-python-1787723479",
+      "title": "Resource leak in temporary file cleanup on exception",
+      "language": "python",
+      "status": "pilot",
+      "diff": [
+        "--- a/temp_processor.py",
+        "+++ b/temp_processor.py",
+        "@@ -13,4 +13,4 @@",
+        "         return result",
+        "     finally:",
+        "         if os.path.exists(path):",
+        "-            os.unlink(path)",
+        "+            pass # TODO: remove this file"
+      ],
+      "affected_files": [
+        "temp_processor.py"
+      ],
+      "ground_truth": {
+        "defect": true,
+        "explanation": "The finalizer block now does nothing when an exception occurs, leaving temporary files on disk because the os.unlink call was replaced with a pass statement.",
+        "category": "resource-leak",
+        "severity": [
+          "low",
+          "medium"
+        ]
+      },
+      "difficulty": "moderate",
+      "provenance": {
+        "type": "seeded-synthetic",
+        "author_family": "qwen",
+        "author_model": "qwen3.6:27b",
+        "provenance_notes": "Authored by qwen3.6:27b via reviewer.authorpilot. The model wrote the complete before/after source, the defect (or its absence), the category, the severity and the explanation; all are its own and unmodified. The unified diff was generated deterministically by the harness from that before/after pair (difflib), and `affected_files` restates the model's own `file_path` \u2014 serialization only, incapable of adding or altering a line of code. `difficulty` was not requested in the authoring prompt and was defaulted by the pilot harness, not judged by the model; a human must set it before this case is ever admitted."
+      }
+    },
+    "rationale": "M4 non-Claude authorship pilot: qwen3.6:27b authoring a python case, category hint 'resource-leak'"
+  },
+  "harness_generated_fields": [
+    "diff",
+    "affected_files",
+    "benchmark_version",
+    "id",
+    "status",
+    "difficulty",
+    "provenance"
+  ],
+  "model_authored_fields": [
+    "title",
+    "language",
+    "file_path",
+    "before",
+    "after",
+    "defect",
+    "category",
+    "severity",
+    "explanation"
+  ],
+  "syntax_checked": true
+}

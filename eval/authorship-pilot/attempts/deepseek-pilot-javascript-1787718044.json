@@ -1,0 +1,57 @@
+{
+  "attempt_id": "deepseek-pilot-javascript-1787718044",
+  "model": "deepseek-r1:14b",
+  "author_family": "deepseek",
+  "language": "javascript",
+  "category_hint": "contract-mismatch",
+  "prompt": "You are authoring ONE new test case for an independent code-review benchmark. Invent a small, realistic, self-contained diff in javascript \u2014 either one with exactly one seeded defect, or a clean diff with no defect at all. If you author a defective case, prefer a defect in the \"contract-mismatch\" category if you can do so naturally; do not force it if it doesn't fit your scenario.\n\nReply with ONLY a single JSON object, no prose before or after, matching exactly this shape:\n{\n  \"title\": \"one short human-readable line\",\n  \"language\": \"javascript\",\n  \"affected_files\": [\"path/to/file.ext\"],\n  \"diff\": [\"--- a/path/to/file.ext\", \"+++ b/path/to/file.ext\", \"@@ ... @@\", \"-old line\", \"+new line\"],\n  \"defect\": true or false,\n  \"category\": \"one of: logic-error, missing-validation, shell-quoting, command-injection, path-traversal, sensitive-logging, insecure-network, dependency-risk, test-gap, misleading-test, destructive-operation, permission-widening, secret-exposure, sql-injection, auth-bypass, concurrency, resource-leak, api-misuse, error-handling, unsafe-default, data-corruption, contract-mismatch, other\" ,\n  \"severity\": [\"low\"|\"medium\"|\"high\"|\"critical\", \"low\"|\"medium\"|\"high\"|\"critical\"],\n  \"explanation\": \"one sentence: what the defect is and why it matters, or why the diff is clean\"\n}\n\nIf defect is false, omit \"category\" and \"severity\" entirely. The diff array must be actual unified-diff lines (paths, hunk header, +/- lines) \u2014 not a prose description of a diff.\n",
+  "generated_at": 1787718044.0051038,
+  "raw_output": "{\n  \"title\": \"Incorrect handling of user input leading to potential security vulnerabilities\",\n  \"language\": \"javascript\",\n  \"affected_files\": [\"src/userInputHandler.js\"],\n  \"diff\": [\n    \"--- a/src/userInputHandler.js\",\n    \"+++ b/src/userInputHandler.js\",\n    \"@@ -1,4 +1,6 @@\",\n    \"+const sanitizeInput = (input) => {\",\n    \"+  return input.replace(/[^a-zA-Z0-9]/g, '');\",\n    \" function processUserInput(input) {\",\n    \"-  return input;\",\n    \"+  const sanitized = sanitizeInput(input);\",\n    \"+  return sanitized;\"\n  ],\n  \"defect\": true,\n  \"category\": \"contract-mismatch\",\n  \"severity\": [\"medium\", \"high\"],\n  \"explanation\": \"The diff introduces a sanitization function that incorrectly assumes all non-alphanumeric characters are harmful, potentially causing data loss or validation issues.\"\n}",
+  "claude_touched": false,
+  "status": "ready",
+  "validation_errors": [],
+  "proposal": {
+    "proposal_id": "deepseek-pilot-javascript-1787718044",
+    "author_family": "deepseek",
+    "generator": "deepseek-r1:14b",
+    "status": "proposed",
+    "case": {
+      "benchmark_version": 2,
+      "id": "deepseek-pilot-javascript-1787718044",
+      "title": "Incorrect handling of user input leading to potential security vulnerabilities",
+      "language": "javascript",
+      "status": "pilot",
+      "diff": [
+        "--- a/src/userInputHandler.js",
+        "+++ b/src/userInputHandler.js",
+        "@@ -1,4 +1,6 @@",
+        "+const sanitizeInput = (input) => {",
+        "+  return input.replace(/[^a-zA-Z0-9]/g, '');",
+        " function processUserInput(input) {",
+        "-  return input;",
+        "+  const sanitized = sanitizeInput(input);",
+        "+  return sanitized;"
+      ],
+      "affected_files": [
+        "src/userInputHandler.js"
+      ],
+      "ground_truth": {
+        "defect": true,
+        "explanation": "The diff introduces a sanitization function that incorrectly assumes all non-alphanumeric characters are harmful, potentially causing data loss or validation issues.",
+        "category": "contract-mismatch",
+        "severity": [
+          "medium",
+          "high"
+        ]
+      },
+      "difficulty": "moderate",
+      "provenance": {
+        "type": "seeded-synthetic",
+        "author_family": "deepseek",
+        "author_model": "deepseek-r1:14b",
+        "provenance_notes": "Authored by deepseek-r1:14b via reviewer.authorpilot. Defect content, category, severity and explanation are the model's own, unmodified. `difficulty` was not requested in the authoring prompt and was defaulted by the pilot harness, not judged by the model; a human must set it before this case is ever admitted."
+      }
+    },
+    "rationale": "M4 non-Claude authorship pilot: deepseek-r1:14b authoring a javascript case, category hint 'contract-mismatch'"
+  }
+}

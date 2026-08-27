@@ -1,0 +1,16 @@
+{
+  "attempt_id": "qwen-pilot-go-1787718214",
+  "model": "qwen3.6:27b",
+  "author_family": "qwen",
+  "language": "go",
+  "category_hint": "logic-error",
+  "prompt": "You are authoring ONE new test case for an independent code-review benchmark. Invent a small, realistic, self-contained diff in go \u2014 either one with exactly one seeded defect, or a clean diff with no defect at all. If you author a defective case, prefer a defect in the \"logic-error\" category if you can do so naturally; do not force it if it doesn't fit your scenario.\n\nReply with ONLY a single JSON object, no prose before or after, matching exactly this shape:\n{\n  \"title\": \"one short human-readable line\",\n  \"language\": \"go\",\n  \"affected_files\": [\"path/to/file.ext\"],\n  \"diff\": [\"--- a/path/to/file.ext\", \"+++ b/path/to/file.ext\", \"@@ ... @@\", \"-old line\", \"+new line\"],\n  \"defect\": true or false,\n  \"category\": \"one of: logic-error, missing-validation, shell-quoting, command-injection, path-traversal, sensitive-logging, insecure-network, dependency-risk, test-gap, misleading-test, destructive-operation, permission-widening, secret-exposure, sql-injection, auth-bypass, concurrency, resource-leak, api-misuse, error-handling, unsafe-default, data-corruption, contract-mismatch, other\" ,\n  \"severity\": [\"low\"|\"medium\"|\"high\"|\"critical\", \"low\"|\"medium\"|\"high\"|\"critical\"],\n  \"explanation\": \"one sentence: what the defect is and why it matters, or why the diff is clean\"\n}\n\nIf defect is false, omit \"category\" and \"severity\" entirely. The diff array must be actual unified-diff lines (paths, hunk header, +/- lines) \u2014 not a prose description of a diff.\n",
+  "generated_at": 1787718214.4839609,
+  "raw_output": "{\n  \"title\": \"Off-by-one error in slice length calculation\",\n  \"language\": \"go\",\n  \"affected_files\": [\"utils/slice.go\"],\n  \"diff\": [\n    \"--- a/utils/slice.go\",\n    \"+++ b/utils/slice.go\",\n    \"@@ -10,7 +10,7 @@\",\n    \"func LastN(src []string, n int) []string {\",\n    \"\\tif n > len(src) {\",\n    \"\\t\\tn = len(src)\",\n    \"-\\t\\treturn src[len(src)-n:]\",\n    \"+\\t\\treturn src[len(src)-n:]\",\n    \"\\t}\",\n    \"-\\treturn src[:n]\",\n    \"+\\treturn src[len(src)-n:]\"\n  ],\n  \"defect\": true,\n  \"category\": \"logic-error\",\n  \"severity\": [\n    \"medium\"\n  ],\n  \"explanation\": \"The function incorrectly returns the last N elements for all cases instead of the first N elements in the else branch, causing data logic errors for callers expecting a prefix.\"\n}",
+  "claude_touched": false,
+  "status": "rejected-invalid-schema",
+  "validation_errors": [
+    "proposal.case: ground_truth.severity must be [min, max] from the scale"
+  ],
+  "proposal": null
+}
