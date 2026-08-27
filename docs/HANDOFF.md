@@ -41,6 +41,36 @@ someone merges, reruns, or edits outside the block. Reality wins,
 always. (This repository has already lived the counterexample: a PR
 reported as merged three times while the API said otherwise. Verify.)
 
+## Reading a PR's CI status
+
+`.github/workflows/contracts.yml` runs on `push` to `main`, on every
+`pull_request`, and on `workflow_dispatch`. Opening a PR triggers the
+first two jobs (`contracts`, `lint`) automatically — GitHub needs a
+short window to register them against the PR. Querying
+`statusCheckRollup` immediately after `gh pr create` and seeing `[]` is
+not a failure; it is asking too early. Give it a short registration
+window and re-check before drawing any conclusion.
+
+If, after that window, no `pull_request`-triggered run exists for the
+PR's head SHA (check with
+`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`), that is a
+CI-INFRA FAILURE, not a code failure: diagnose and fix it — or escalate
+with that exact evidence — instead of asking the human to run a string
+of diagnostic commands.
+
+`workflow_dispatch` is a manual/diagnostic path only. A green
+`workflow_dispatch` run on the PR's head SHA proves the code is good; it
+does **not** satisfy branch protection, because GitHub does not
+associate a manually dispatched run's check suite with the PR for
+merge-readiness purposes. The correct recovery is to re-trigger the
+`pull_request` event itself (push a new commit, or close/reopen the
+PR), not to fall back to `--admin`.
+
+`--admin` is exceptional recovery only: use it solely when the exact
+head SHA has independently passed every required check and the only
+thing blocking merge is stale check-linkage. It is never the normal
+path, and a healthy PR should not need it.
+
 ## Human-gate batching
 
 An agent that hits a human-only gate — merge, secrets, sudo/system
