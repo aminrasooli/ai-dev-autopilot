@@ -2,7 +2,7 @@
   "proposal_id": "qwen-pilot-python-1787723479",
   "author_family": "qwen",
   "generator": "qwen3.6:27b",
-  "status": "proposed",
+  "status": "accepted",
   "case": {
     "benchmark_version": 2,
     "id": "qwen-pilot-python-1787723479",
@@ -31,7 +31,7 @@
         "medium"
       ]
     },
-    "difficulty": "moderate",
+    "difficulty": "obvious-local",
     "provenance": {
       "type": "seeded-synthetic",
       "author_family": "qwen",
@@ -39,5 +39,6 @@
       "provenance_notes": "Authored by qwen3.6:27b via reviewer.authorpilot. The model wrote the complete before/after source, the defect (or its absence), the category, the severity and the explanation; all are its own and unmodified. The unified diff was generated deterministically by the harness from that before/after pair (difflib), and `affected_files` restates the model's own `file_path` \u2014 serialization only, incapable of adding or altering a line of code. `difficulty` was not requested in the authoring prompt and was defaulted by the pilot harness, not judged by the model; a human must set it before this case is ever admitted."
     }
   },
-  "rationale": "M4 non-Claude authorship pilot: qwen3.6:27b authoring a python case, category hint 'resource-leak'"
+  "rationale": "M4 non-Claude authorship pilot: qwen3.6:27b authoring a python case, category hint 'resource-leak'",
+  "reviewer_notes": "ADMITTED 2026-08-27 to eval/cases-provenance/cases/ as the first M4-B (non-Claude authorship) case. Checked against all nine PREREGISTRATION-PILOT-2 criteria in eval/authorship-pilot/ADJUDICATION-PILOT-2.md (READY-CANDIDATE): the harness diff applies with patch -p1 to the model's own before-source and reproduces its after-source byte for byte, and no material Claude repair occurred (claude_touched: false). Only one field was changed before admission: difficulty, from the harness-defaulted 'moderate' to 'obvious-local' -- the provenance notes already flagged that difficulty was never judged by the model and had to be set by a human, and adjudication's own caveat 1 called the defect (`pass # TODO: remove this file`) a self-announcing tell, closer to obvious-local than moderate. All qwen3.6:27b-authored content -- title, diff, affected_files, ground_truth (defect, category, severity, explanation), provenance_notes -- is unchanged, including the narrower-than-the-code explanation noted as adjudication caveat 2, left as-is because it is model-authored content."
 }

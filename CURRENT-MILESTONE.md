@@ -184,8 +184,9 @@ work, in the design brief.
 
 Four pillars (`docs/ROADMAP.md` §4): real historical bugs, non-Claude
 authorship, human-written cases, private holdout live and rotating.
-**One of the four has admitted evidence. M4 is not complete, and none
-of B/C/D should be described as under way.**
+**Two of the four pillars are closed — M4-A and M4-B — each on admitted
+evidence at very small scale. M4 is not complete: M4-C and M4-D remain,
+and neither should be described as under way.**
 
 **M4-A real historical bugs — ADMITTED EVIDENCE (smallest pillar
 genuinely closed).** Four transformed reconstructions of real
@@ -205,19 +206,28 @@ against this corpus and no experiment is registered for its fingerprint.
 Four cases cannot move an aggregate metric and must not be cited as if
 they could (`eval/cases-provenance/README.md` states the limits).
 
-**M4-B non-Claude authorship — ONE PROPOSAL, zero admitted cases.**
+**M4-B non-Claude authorship — ADMITTED EVIDENCE, PILLAR CLOSED.**
 Two pilots have now run live: 9 attempts total, 1 survivor. Pilot 2
 (preregistered, `eval/authorship-pilot/PREREGISTRATION-PILOT-2.md`) moved
 unified-diff construction from the model to the harness — the model now
 writes complete before/after source and `difflib` serializes it — and
 produced `eval/proposals/cases/qwen-pilot-python-1787723479.json`, a
-genuine qwen3.6:27b-authored resource-leak case. **It is a proposal, not
-an admitted case**; admission remains a human gate and nothing has
-entered `eval/cases*`. One unadmitted proposal does not meet Pillar B.
-Pilot 2's other three attempts: one truncated output, and two DeepSeek
-attempts with inverted ground truth (authored "before = buggy, after =
-fixed" then labelled the change defective) — rejected, not repaired.
-Detail: `eval/authorship-pilot/ADJUDICATION-PILOT-2.md`.
+genuine qwen3.6:27b-authored resource-leak case. Checked against all nine
+preregistered criteria (`eval/authorship-pilot/ADJUDICATION-PILOT-2.md`,
+READY-CANDIDATE) and admitted 2026-08-27 to
+`eval/cases-provenance/cases/` with one human correction — `difficulty`
+set to `obvious-local`, since the model was never asked to judge it and
+the seeded defect (`pass # TODO: remove this file`) is a self-announcing
+tell. All other qwen3.6:27b-authored content is unchanged. **This one
+case is a process/provenance demonstration, not a measurement, and
+supports no general claim about qwen3.6:27b's authoring quality** — but
+JP's human decision is that one genuinely non-Claude-authored admitted
+case is sufficient to close the literal M4-B provenance pillar. No
+further authorship pilot is planned. Pilot 2's other three attempts: one
+truncated output, and two DeepSeek attempts with inverted ground truth
+(authored "before = buggy, after = fixed" then labelled the change
+defective) — rejected, not repaired. Detail:
+`eval/authorship-pilot/ADJUDICATION-PILOT-2.md`.
 
 **Pilot 1 (superseded interface, records kept):**
 No longer blocked: both `qwen3.6:27b` and `deepseek-r1:14b` were reached
