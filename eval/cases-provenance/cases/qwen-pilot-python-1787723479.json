@@ -1,0 +1,36 @@
+{
+  "benchmark_version": 2,
+  "id": "qwen-pilot-python-1787723479",
+  "title": "Resource leak in temporary file cleanup on exception",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "seeded-synthetic",
+    "author_family": "qwen",
+    "author_model": "qwen3.6:27b",
+    "provenance_notes": "Authored by qwen3.6:27b via reviewer.authorpilot. The model wrote the complete before/after source, the defect (or its absence), the category, the severity and the explanation; all are its own and unmodified. The unified diff was generated deterministically by the harness from that before/after pair (difflib), and `affected_files` restates the model's own `file_path` — serialization only, incapable of adding or altering a line of code. `difficulty` was not requested in the authoring prompt and was defaulted by the pilot harness, not judged by the model; a human must set it before this case is ever admitted."
+  },
+  "affected_files": [
+    "temp_processor.py"
+  ],
+  "diff": [
+    "--- a/temp_processor.py",
+    "+++ b/temp_processor.py",
+    "@@ -13,4 +13,4 @@",
+    "         return result",
+    "     finally:",
+    "         if os.path.exists(path):",
+    "-            os.unlink(path)",
+    "+            pass # TODO: remove this file"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "explanation": "The finalizer block now does nothing when an exception occurs, leaving temporary files on disk because the os.unlink call was replaced with a pass statement.",
+    "category": "resource-leak",
+    "severity": [
+      "low",
+      "medium"
+    ]
+  },
+  "difficulty": "obvious-local"
+}

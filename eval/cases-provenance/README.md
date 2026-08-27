@@ -19,12 +19,11 @@ Claude-authored, seeded or authored-realistic, and say so
 largest credibility gap. This directory is where cases with a different
 origin land after human adjudication.
 
-Today it contains exactly one tranche — **real historical bugs (M4-A)** —
-because that is the only M4 pillar with admitted content so far. The
-non-Claude-authored (M4-B) and human-written (M4-C) tranches do not
-exist yet; when they do, they belong here alongside these, sliced apart
-by `provenance.author_family` / `provenance.type` rather than by
-directory.
+Today it contains two tranches — **real historical bugs (M4-A)** and
+**non-Claude authorship (M4-B)** — sliced apart by
+`provenance.author_family` / `provenance.type` rather than by directory,
+the way every future tranche will be. The human-written (M4-C) tranche
+does not exist yet.
 
 ## Relationship to the frozen corpora
 
@@ -35,7 +34,7 @@ re-open either frozen corpus:
 |---|---|---|---|
 | v2 | `../cases/` | `f31d46310988f61c4534344ad05a52a4385fd15159126a0be85aad532f045690` | frozen, unchanged |
 | v3 | `../cases-v3/cases/` | `81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790` | frozen, unchanged |
-| provenance | `cases/` | `125cf57223f16b0269981dbe13c9c46e78dd396009719212128f74820c1828c6` | this corpus, **not frozen** |
+| provenance | `cases/` | `0bd3328b82427ffa6b856550914b6b5937c67ce3987a50c7c4ae2aad563d245f` | this corpus, **not frozen** |
 
 Both frozen fingerprints are pinned by
 `reviewer/tests/test_corpus.py::test_frozen_corpus_fingerprints_are_exact`,
@@ -84,11 +83,30 @@ Distributions, as reported by `bin/review-corpus --json`:
 - **Authorship**: `claude` = 4 (`author_model: claude-sonnet-5`). The
   reconstructions were written by Claude; only their *defect mechanisms*
   are historical. This tranche diversifies **provenance**, not
-  authorship — M4-B is the pillar that diversifies authorship, and it is
-  not done.
+  authorship — M4-B is the pillar that diversifies authorship.
 - **Provenance type**: `mined-real-fix` = 4.
 - **Source license**: BSD-3-Clause = 4.
 - **Transformation**: `transformed` = 4.
+
+## Current contents — non-Claude authorship (M4-B)
+
+1 case, defective, `python`.
+
+| id | generator | category | difficulty |
+|---|---|---|---|
+| `qwen-pilot-python-1787723479` | qwen3.6:27b | resource-leak | obvious-local |
+
+`provenance.type: seeded-synthetic`, `provenance.author_family: qwen`.
+qwen3.6:27b wrote the complete before/after source, the defect, the
+category, the severity and the explanation; the harness contributed only
+the deterministic unified diff (`difflib`) and `affected_files`
+restating the model's own `file_path`. Full survival record against all
+nine preregistered criteria: `eval/authorship-pilot/ADJUDICATION-PILOT-2.md`
+(`qwen-pilot-python-1787723479` — READY-CANDIDATE). The only field
+changed before admission was `difficulty`, from the harness-defaulted
+`moderate` to `obvious-local` — the model was never asked to judge
+difficulty, and adjudication's own read of the defect (`pass # TODO:
+remove this file`) called it a self-announcing tell.
 
 ## Transformation and licensing policy
 
@@ -115,33 +133,55 @@ and license, so attribution survives even though no code was copied.
 
 ## How these were admitted
 
-`eval/realbug-queue/` (candidate) → `eval/proposals/cases/` (proposal,
-PR #24) → human decision → here. Both hops are human decisions by
-design; nothing is auto-admitted. The proposals are kept as historical
-intake evidence with `status: accepted` and `reviewer_notes` recording
-what adjudication found and what was corrected before admission — three
-of the four needed a correction, and one earlier reconstruction was
-rejected outright and rewritten. That trail is deliberately not deleted
-now that the cases exist.
+**M4-A:** `eval/realbug-queue/` (candidate) → `eval/proposals/cases/`
+(proposal, PR #24) → human decision → here. Both hops are human
+decisions by design; nothing is auto-admitted. The proposals are kept as
+historical intake evidence with `status: accepted` and `reviewer_notes`
+recording what adjudication found and what was corrected before
+admission — three of the four needed a correction, and one earlier
+reconstruction was rejected outright and rewritten. That trail is
+deliberately not deleted now that the cases exist.
+
+**M4-B:** `eval/authorship-pilot/` (live model attempt) →
+`eval/proposals/cases/` (proposal) → adjudication against nine
+preregistered criteria (`ADJUDICATION-PILOT-2.md`) → human decision →
+here. Same two human-decision hops, different intake: the candidate is a
+live model generation rather than a mined commit. The proposal is kept
+the same way, `status: accepted` with `reviewer_notes` recording the one
+correction made (`difficulty`) and confirming everything else is
+unchanged model output.
 
 ## Limitations — read before citing anything from here
 
-- **Four cases is a process demonstration, not a measurement.** This
-  tranche is far too small to move any aggregate metric, support a
-  per-category claim, or characterise "real bugs" in general. It proves
-  the pipeline produces admissible, license-clean, truthfully-labelled
-  real-bug cases. Nothing more should be claimed from it.
+- **Four cases (M4-A) and one case (M4-B) are a process demonstration,
+  not a measurement.** Neither tranche is large enough to move an
+  aggregate metric, support a per-category claim, or characterise "real
+  bugs" or "non-Claude authorship" in general. They prove the respective
+  pipelines produce admissible, truthfully-labelled cases. Nothing more
+  should be claimed from either.
 - **No model has been evaluated against this corpus.** No preregistered
   experiment exists for it; there are no results in `eval/results/` for
   this fingerprint, and admission is not measurement.
-- **All four are Python, all four are defective, all four are
+- **M4-A: all four are Python, all four are defective, all four are
   BSD-3-Clause Pallets-ecosystem or encode-ecosystem projects.** There
   are no clean controls here and no language diversity. Its category mix
   is a consequence of which commits were hand-picked, not a sample of
-  anything.
-- **Still Claude-authored reconstructions.** The self-authorship caveat
-  in `docs/BENCHMARK_METHODOLOGY.md` §10 applies to this tranche exactly
-  as it does to v2 and v3.
-- **M4 is not complete.** Real historical bugs (M4-A) now have admitted
-  evidence. Non-Claude authorship (M4-B), human-written cases (M4-C),
-  and the live rotating private holdout (M4-D) do not.
+  anything. **Still Claude-authored reconstructions** — the
+  self-authorship caveat in `docs/BENCHMARK_METHODOLOGY.md` §10 applies
+  to this tranche exactly as it does to v2 and v3.
+- **M4-B: one case, one author family, one language, obvious difficulty,
+  defective only.** It diversifies authorship on a single axis and says
+  nothing about qwen3.6:27b's authoring ability in general, nor about
+  any other open-weight model, nor about non-Claude authorship
+  reliability — of the pilot's 9 live attempts across two models, this
+  is the only one that survived. **JP's human decision is that this one
+  genuinely non-Claude-authored admitted case is nonetheless sufficient
+  to close the literal M4-B provenance pillar**, precisely because the
+  pillar's question is provenance ("does an admissible non-Claude-authored
+  case exist"), not a quality measurement of qwen3.6:27b. No further
+  authorship pilot is planned.
+- **M4 is not complete, but M4-A and M4-B are closed.** Both closed on
+  admitted evidence at very small scale, supporting no general or
+  quality claim. Human-written cases (M4-C) and the live rotating
+  private holdout (M4-D) remain, with no admitted evidence yet — they
+  are M4's only remaining literal blockers.

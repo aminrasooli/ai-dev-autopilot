@@ -60,31 +60,34 @@ gates in section 3 are preserved forever.
 
 ## 2. Current status (update this section at every milestone)
 
-- Date: 2026-08-25
+- Date: 2026-08-27
 - Current milestone: M4 Credibility and provenance (M0, M1, M2 and M3
   are complete)
-- Done recently: the first M4 pillar reached admitted evidence. Four
-  transformed reconstructions of real historical bug fixes
-  (license-checked, BSD-3-Clause sources) were adjudicated and admitted
-  into a new, separate provenance corpus,
-  `eval/cases-provenance/cases/` — fingerprint
-  `125cf57223f16b0269981dbe13c9c46e78dd396009719212128f74820c1828c6`.
+- Done recently: two of four M4 pillars are closed, each on admitted
+  evidence at very small scale. Four transformed reconstructions of real
+  historical bug fixes (license-checked, BSD-3-Clause sources) were
+  adjudicated and admitted (M4-A). Separately, two live non-Claude
+  authorship pilots ran (`qwen3.6:27b`, `deepseek-r1:14b`, CPU-only, 9
+  attempts total); one qwen3.6:27b-authored resource-leak case survived
+  adjudication against all nine preregistered criteria and was admitted
+  — JP's human decision is that this one genuinely non-Claude-authored
+  admitted case closes the literal M4-B provenance pillar. It is a
+  process/provenance demonstration only, not a measurement, and supports
+  no general claim about qwen3.6:27b's authoring quality; no further
+  authorship pilot is planned. Both tranches live in the same new,
+  separate provenance corpus, `eval/cases-provenance/cases/` —
+  fingerprint
+  `0bd3328b82427ffa6b856550914b6b5937c67ce3987a50c7c4ae2aad563d245f`.
   Neither frozen corpus moved (v2 `f31d4631…`, v3 `81daa0b7…`), no
   authoritative M2/M3 result changed, and no model has been evaluated
   against the new corpus — admission is not measurement.
-- Single next action: M4-B, the non-Claude authorship pilot — the one
-  remaining pillar whose blocker is purely host access (a running local
-  Ollama daemon with `qwen3.6:27b` and `deepseek-r1:14b` already
-  pulled), not a design question.
-- Blockers: M4-B needs the host GPU machine (see below). M4-C needs
-  case material from JP himself, since a case whose diff is written by
-  tooling from JP's concept is `human_authored: false` by definition.
-  M4-D needs a private holdout directory that does not yet exist.
-- Blockers: local open-weight model execution (Ollama/Qwen/DeepSeek)
-  requires the host GPU machine; it is not available inside every
-  execution environment this project runs sessions from, which can
-  stall M4-B (non-Claude authorship) until run from a session with
-  that access. See `docs/M4_DESIGN_BRIEF.md` for the exact handoff.
+- Remaining: M4-C (human-written cases) and M4-D (live rotating private
+  holdout) are M4's only remaining literal blockers; neither has
+  admitted evidence yet.
+- Blockers: M4-C needs case material from JP himself, since a case whose
+  diff is written by tooling from JP's concept is `human_authored: false`
+  by definition. M4-D needs a private holdout directory that does not
+  yet exist. M4-B has no open blocker — it is closed.
 
 ---
 
