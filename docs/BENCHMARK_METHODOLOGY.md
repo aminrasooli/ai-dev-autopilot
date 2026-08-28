@@ -152,7 +152,7 @@ One JSON file per case in `eval/cases/`. Machine-validated by
 | `id` | string | yes | unique, kebab-case, filename stem |
 | `title` | string | yes | one human-readable line |
 | `language` | string | yes | from the language enum (§5) |
-| `status` | string | yes | `pilot` or `stable` |
+| `status` | string | yes | `pilot` or `stable` — records what the case was *authored* as. **Not the corpus's current maturity**, which is declared at corpus level (§11a). It is inside the fingerprint, so it must not be edited after a freeze |
 | `diff` | string or list | yes | unified diff; list-of-lines joins with `\n` |
 | `affected_files` | list | yes | file paths appearing in the diff |
 | `provenance` | object | yes | `{type, author_family, reference?}` |
@@ -472,6 +472,57 @@ A major change increments `benchmark_version` and invalidates
 cross-version leaderboard rows; historical reports are never rewritten
 to match a new version — they keep the version and fingerprint they
 actually ran against, and stale rows are labelled, not deleted.
+
+### Corpus maturity is declared at corpus level, never edited into cases
+
+A corpus is `pilot` (evidence, not a public baseline) or `stable` (fit
+to anchor published comparisons). **That maturity is a property of the
+corpus, declared in the corpus's own `README.md`, and it is never
+recorded by editing the case files.**
+
+The reason is mechanical, and it is a trap worth naming explicitly. Each
+case carries a required `status` field, and `corpus_fingerprint()`
+hashes the full validated content of every case — `status` included. So
+"promoting" a frozen corpus by rewriting `status: pilot` to
+`status: stable` in its case files **changes that corpus's
+fingerprint**, which:
+
+- silently invalidates every published result that cites the old
+  fingerprint (for v2 that is M1 and the whole M2 pilot; for v3 it is
+  the M3 headline results), because a report names the fingerprint it
+  actually ran against and that corpus no longer exists;
+- fails the frozen-fingerprint test that exists to catch exactly this;
+- contradicts the freeze declarations, which state that no case may be
+  edited after freeze.
+
+Measured, not asserted: rewriting `status` across the 54 v2 cases moves
+the fingerprint from `f31d46310988f61c…` to `9adb85ab011f4a75f1…`. There
+is no version of that edit which preserves the evidence base.
+
+The per-case `status` field therefore records **what the case was
+authored as**, not the corpus's current maturity. For a frozen corpus it
+is immutable like every other field. Treat it as historical.
+
+**These criteria are proposed here for the first time.** Before this,
+`status` was a validated enum with no definition anywhere of what
+`stable` meant or what promotion required — which is how a precondition
+came to instruct an edit that would have broken the evidence base. They
+are written to match what the project already does in practice rather
+than to add ceremony, and they are open to revision by the maintainer.
+
+**A corpus may be declared `stable` when all of the following are true**,
+each checkable rather than felt:
+
+1. its fingerprint is frozen and published;
+2. its ground truth has been reviewed by a human, and the review is
+   *recorded* — who, when, and what they decided;
+3. at least one repeat-run result exists at `runs >= 3` against that
+   exact fingerprint;
+4. reproduction from a fresh clone has been demonstrated;
+5. no correction is outstanding against it.
+
+Declaring it is a human decision, made in the corpus README, not
+automated here.
 
 ## 11b. Result trust levels
 

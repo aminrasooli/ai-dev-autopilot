@@ -48,9 +48,25 @@ acknowledged.
 
 ## Preconditions for going live
 
-1. Benchmark v2 corpus reviewed and marked `stable` (currently `pilot`)
+1. Benchmark v2 corpus reviewed and **declared `stable` in
+   `eval/cases/README.md`** — **met** (JP, 2026-08-28; declared at
+   corpus level, frozen fingerprint unchanged)
 2. At least two models with `runs ≥ 3` full-corpus reports in
-   `eval/results/`
-3. At least one submission from outside the project
+   `eval/results/` — **met** (three models, three runs, both tiers)
+3. At least one submission from outside the project — *not met*
 4. The self-authorship limitation printed on the leaderboard itself, not
-   in a footnote
+   in a footnote — *not met; do this when the table first renders*
+
+**On precondition 1.** It previously read "marked `stable`", which is not
+executable. `status` lives in each case file and is inside the corpus
+fingerprint, so editing it would move v2's fingerprint from
+`f31d46310988f61c…` to `9adb85ab011f4a75f1…` and invalidate every M1 and
+M2 result citing the frozen value. Corpus maturity is **declared at
+corpus level, never edited into frozen cases** — see
+`docs/BENCHMARK_METHODOLOGY.md` §11a and the assessment in
+`eval/cases/README.md`.
+
+Note that precondition 3 cannot be satisfied before launch: outside
+submissions are what launching is *for*. The leaderboard is therefore
+expected to go live after M5, not as part of it — which is why M5's
+done-when asks for a leaderboard **page**, and this file is it.
