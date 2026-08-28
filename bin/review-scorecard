@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# AI-DEV — assemble the multi-dimensional scorecard from existing results.
+#
+#   review-scorecard                      # all reports in eval/results/
+#   review-scorecard a.json b.json        # only these reports
+#   review-scorecard --out eval/results/SCORECARD.md
+#
+# Every figure is recomputed from each report's per-case runs, never
+# copied from its summary block — a scorecard that restates numbers by
+# hand is exactly how a wrong denominator gets published. Reports that
+# fail `reviewer.verify` are skipped and named rather than quoted.
+#
+# Offline, no model calls, no cost.
+#
+# Exit codes: 0 scorecard written · 2 no usable reports or usage error
+
+set -uo pipefail
+AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
+export AI_DEV_HOME
+command -v python3 >/dev/null 2>&1 \
+  || { printf 'review-scorecard: python3 is required\n' >&2; exit 2; }
+PYTHONPATH="$AI_DEV_HOME${PYTHONPATH:+:$PYTHONPATH}" \
+  exec python3 -m reviewer.scorecard "$@"
