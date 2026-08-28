@@ -89,3 +89,24 @@ allow for a documented human-only boundary, makes the broker fail open, or lets
 a checked-out repository influence the session that inspects it belongs in
 [GitHub Private Vulnerability Reporting](SECURITY.md) — see
 [SECURITY.md](SECURITY.md) for scope and what to include.
+
+## Licensing of contributions
+
+**Inbound equals outbound.** Contributions are accepted under the license
+that already applies to the project and to the files they modify — today
+that is [MIT](LICENSE). By opening a pull request you offer your
+contribution under those terms; you keep your copyright.
+
+**There is no CLA and no DCO sign-off requirement.** Nothing to sign,
+no bot to satisfy.
+
+This covers result files submitted under [`eval/SUBMIT.md`](eval/SUBMIT.md)
+as well as code and documentation — a submitted report is a contribution
+like any other.
+
+The corpus and result data do not currently carry a data license separate
+from the project license; that question is deliberately deferred and is
+recorded in [`docs/M5_LICENSE_DECISION_BRIEF.md`](docs/M5_LICENSE_DECISION_BRIEF.md).
+It will be revisited **before any third-party corpus or data contribution
+is accepted**, so if you are proposing cases or datasets rather than code,
+open an issue first.

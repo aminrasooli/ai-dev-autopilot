@@ -68,3 +68,16 @@ Accepted reports stay in `eval/results/` as raw artifacts. Any summary
 table built from them names the corpus version and links back to each raw
 report; conflicting results for the same model/version are kept side by
 side, not averaged into agreement.
+
+## Licensing
+
+**Inbound equals outbound.** A submitted report is a contribution: you
+offer it under the license that already applies to this project — today
+[MIT](../LICENSE) — and you keep your copyright. There is no CLA and no
+sign-off requirement.
+
+If you are proposing **cases or datasets** rather than a result file,
+open an issue first: a separate data license for corpus and results is a
+deliberately deferred question
+(`docs/M5_LICENSE_DECISION_BRIEF.md`), and it will be settled before any
+third-party corpus contribution is accepted.
