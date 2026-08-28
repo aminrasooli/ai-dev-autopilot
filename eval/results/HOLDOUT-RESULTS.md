@@ -1,12 +1,14 @@
 # Private holdout results
 
-Status: **scaffold, empty.** No private holdout exists yet
-(`docs/M4_PROVENANCE_GAP_AUDIT.md` §"Private holdout"). This file's
-header is created now so a future holdout run has a place to go, under
-the publishing rules already fixed in
-`docs/BENCHMARK_METHODOLOGY.md` §11 — not decided here, only reserved.
+Status: **scaffold, still empty — deliberately.** A private holdout now
+exists outside this repository and has been run once
+(`docs/M4_PROVENANCE_GAP_AUDIT.md` §"Private holdout"). This file stays
+empty regardless: under `docs/BENCHMARK_METHODOLOGY.md` §11 a row is
+published only when one is explicitly approved for publication, and
+none has been. Its emptiness is now a publishing decision, not an
+absence of data.
 
-## What may go in this file, once a holdout exists and is run
+## What may go in this file, once a row is approved for publication
 
 Per `docs/BENCHMARK_METHODOLOGY.md` §11 ("Publishing holdout results"):
 **aggregate numbers only** — counts, rates, per-difficulty and

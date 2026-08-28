@@ -210,11 +210,13 @@ honesty). M4's job is the minimum safe scaffold, not a redesign.
   holdout exists, its `benchmark_version`, its human-readable name, its
   `sha256` fingerprint, and aggregate stats (case count,
   language/category distribution) once results are ever published — never
-  the cases, never an absolute path, never which machine holds it. No
-  such record exists yet because no holdout exists yet; the format is
-  specified so a future result has somewhere to go
-  (`eval/results/HOLDOUT-RESULTS.md`, created empty this session with the
-  publishing-rules header only, no content until a real run happens).
+  the cases, never an absolute path, never which machine holds it. A
+  holdout now exists outside this repository, but **no such record has
+  been published**: §11's aggregate-only rules keep
+  `eval/results/HOLDOUT-RESULTS.md` empty until a row is approved for
+  publication. It was created with the publishing-rules header only, in
+  the session that wrote this brief, so a future result has somewhere to
+  go.
 - A **contamination-check helper**: `reviewer/holdout.py` computes and
   compares a holdout directory's fingerprint against the public corpora's
   fingerprints and against each other, and can assert "this fingerprint
