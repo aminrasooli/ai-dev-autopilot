@@ -18,6 +18,12 @@ vs. execution-oracle methodology fork are decided in
 the taxonomy is in
 [`../../docs/M3_DESIGN_BRIEF.md`](../../docs/M3_DESIGN_BRIEF.md).
 
+> **Read [`ERRATA.md`](ERRATA.md) before citing this corpus or any M3
+> number.** Its answer key is human-reviewed *with documented errata*,
+> not error-free: one case has invalid ground truth and two more rest on
+> evidence the reviewer never sees. The cases are frozen, so the
+> corrections live in that file rather than in the case JSON.
+
 ## Freeze — M3 Hard Benchmark v3 (2026-08-23)
 
 This corpus is **frozen** exactly as merged to `main` by PR #19, merge

@@ -1,5 +1,11 @@
 # M3 hard benchmark — scorecard
 
+> **Answer-key errata.** Read [`../cases-v3/ERRATA.md`](../cases-v3/ERRATA.md) alongside every number below. The v3 answer key is human-reviewed *with documented errata*
+> (JP, 2026-08-28), not error-free: `t1-12` has **invalid** ground truth and `t2-06` rests on code the reviewer never sees.
+> **No figure in this file changes** — the cases are frozen and every result cites that fingerprint. Excluding the affected cases moves any
+> headline by **≤1.0 pp** and changes no ranking; the recomputed values are in the errata.
+
+
 **Status: authoritative evidence for the M3 hard benchmark (v3 corpus).**
 Not a leaderboard, not a ranking, not launch-grade: per `docs/ROADMAP.md`
 §4 (M3) and §6 message rules, this is registered-in-advance evidence
