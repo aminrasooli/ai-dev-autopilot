@@ -184,9 +184,10 @@ work, in the design brief.
 
 Four pillars (`docs/ROADMAP.md` §4): real historical bugs, non-Claude
 authorship, human-written cases, private holdout live and rotating.
-**Two of the four pillars are closed — M4-A and M4-B — each on admitted
-evidence at very small scale. M4 is not complete: M4-C and M4-D remain,
-and neither should be described as under way.**
+**Three of the four pillars are closed — M4-A, M4-B and M4-D — each on
+admitted evidence at very small scale. M4 is not complete: M4-C remains
+and has zero human-authored content, so M4 must not be described as
+closed.**
 
 **M4-A real historical bugs — ADMITTED EVIDENCE (smallest pillar
 genuinely closed).** Four transformed reconstructions of real
@@ -251,12 +252,26 @@ Requires JP to supply case material himself; a case built from a
 concept JP supplies while tooling writes the diff is `human_authored:
 false` (human-reviewed), not human-written.
 
-**M4-D private holdout — TOOLING VERIFIED, no holdout exists.**
-`bin/review-holdout check` and external-`--cases` support are exercised
-end to end; `eval/results/HOLDOUT-RESULTS.md` is an empty
-aggregate-only scaffold. No holdout directory exists anywhere this
-repository can see, so nothing is live and nothing rotates. Handoff:
-`docs/M4_PRIVATE_HOLDOUT_HANDOFF.md`.
+**M4-D private holdout — REAL: live, validated and rotating.**
+A private holdout now exists outside this repository, in the storage
+class §11 requires; its location, contents and fingerprint stay private
+and are deliberately not recorded here. Aggregate-safe state: 12 cases,
+two thirds defective with clean controls, validated by
+`bin/review-corpus` with no warnings, contamination-checked by
+`bin/review-holdout check` (clean), and a completed first run of 3 runs
+per case whose report fingerprint matches the corpus on disk. Rotation
+is initialised at generation 1 with checkable triggers and a logged
+baseline, not merely described.
+
+Two limitations are recorded rather than glossed. The first tranche is
+**Claude-authored reconstruction** of real, license-checked upstream
+defects — the defect mechanisms are upstream-human, the reconstruction
+prose is not — so it reproduces the same self-authorship caveat as the
+public corpora, and diversifying authorship is its first rotation
+trigger. And at 12 cases the result is directional only: it supports no
+rate, no per-category claim and no model comparison. `eval/results/HOLDOUT-RESULTS.md`
+stays empty until a row is published under §11's aggregate-only rules.
+Handoff: `docs/M4_PRIVATE_HOLDOUT_HANDOFF.md`.
 
 ## Canonical branch
 
