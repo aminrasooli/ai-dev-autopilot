@@ -523,6 +523,18 @@ required to check our arithmetic. **Results are evidence, not a ranking**
 [`eval/results/M3-HARD-SCORECARD.md`](eval/results/M3-HARD-SCORECARD.md),
 which is also where the headline numbers and their caveats live.
 
+Every model, both corpus tiers, and all six dimensions — repeatability,
+cost, latency, precision, classification and hard tier — are collected in
+[`eval/results/SCORECARD.md`](eval/results/SCORECARD.md). That file is
+**generated**, not written: `bin/review-scorecard` recomputes each figure
+from the raw per-case runs, so a stale or mistyped number cannot survive
+a regeneration.
+
+```bash
+bin/review-scorecard              # print it
+bin/review-scorecard --out eval/results/SCORECARD.md   # regenerate it
+```
+
 Claude Code, Qwen and other local models through Ollama, and
 Codex-compatible backends are participants behind the same interface —
 none is positioned as the permanent or exclusive reviewer. That is the
