@@ -33,7 +33,7 @@ re-open either frozen corpus:
 |---|---|---|---|
 | v2 | `../cases/` | `f31d46310988f61c4534344ad05a52a4385fd15159126a0be85aad532f045690` | frozen, unchanged |
 | v3 | `../cases-v3/cases/` | `81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790` | frozen, unchanged |
-| provenance | `cases/` | `991ed01a6cea12195b0b8515e0c4f66bef5bc630def3ba41b9d9c5ee2422b5fc` | this corpus, **not frozen** |
+| provenance | `cases/` | `ec3a4d7cb5095299982c6a61ad4b1b51b20dc1b0ed6f30f8f2cfc7420e61246c` | this corpus, **not frozen** |
 
 Both frozen fingerprints are pinned by
 `reviewer/tests/test_corpus.py::test_frozen_corpus_fingerprints_are_exact`,
@@ -41,9 +41,15 @@ so a single edited byte in either fails the suite rather than being
 discovered when a published result is cited. No authoritative M1, M2 or
 M3 result is affected by anything here.
 
-This corpus is **not** frozen: it is expected to grow as the remaining
-M4 pillars land, and its fingerprint above describes its current
-contents only. It is deliberately not pinned by a test for that reason.
+This corpus is **not** frozen: it grew as the M4 tranches landed, and
+its fingerprint above describes its current contents only. It is
+deliberately **not pinned to a constant** the way v2 and v3 are — a
+constant would have to be rewritten every time a tranche lands, which
+defeats the purpose. It *is* checked for drift by
+`reviewer/tests/test_corpus.py::test_documented_provenance_fingerprint_matches_the_corpus`,
+which asserts the fingerprint printed above still matches the corpus, so
+the two cannot silently diverge. Updating that row is the correct fix
+when this corpus legitimately changes.
 Any result ever run against it must record the fingerprint it actually
 ran against — that is what makes two runs comparable
 (`docs/BENCHMARK_METHODOLOGY.md` §11a). It becomes frozen only if and

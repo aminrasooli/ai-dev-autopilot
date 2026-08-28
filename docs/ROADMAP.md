@@ -75,8 +75,8 @@ gates in section 3 are preserved forever.
   process/provenance demonstration only, not a measurement, and supports
   no general claim about qwen3.6:27b's authoring quality; no further
   authorship pilot is planned. Both tranches live in the same new,
-  separate provenance corpus, `eval/cases-provenance/cases/` —
-  fingerprint
+  separate provenance corpus, `eval/cases-provenance/cases/`, whose
+  fingerprint at that point — before the M4-C tranche below — was
   `0bd3328b82427ffa6b856550914b6b5937c67ce3987a50c7c4ae2aad563d245f`.
   Neither frozen corpus moved (v2 `f31d4631…`, v3 `81daa0b7…`), no
   authoritative M2/M3 result changed, and no model has been evaluated
@@ -101,7 +101,7 @@ gates in section 3 are preserved forever.
   by tooling, and concept-by-human plus diff-by-tooling is
   `human_authored: false`, which does not satisfy this pillar. The
   provenance corpus is now 7 cases, fingerprint
-  `991ed01a6cea12195b0b8515e0c4f66bef5bc630def3ba41b9d9c5ee2422b5fc`
+  `ec3a4d7cb5095299982c6a61ad4b1b51b20dc1b0ed6f30f8f2cfc7420e61246c`
   (`claude=4, qwen=1, human=2`).
 - Remaining: **nothing — M4 has no open blocker.** All four pillars are
   literally satisfied.
