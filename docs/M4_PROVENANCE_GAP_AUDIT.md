@@ -74,7 +74,7 @@ Legend: **VERIFIED** (directly confirmed in a case file, doc, or PR) ·
 | dimension | status | detail |
 |---|---|---|
 | Design | VERIFIED | fully specified in `docs/BENCHMARK_METHODOLOGY.md` §11, since v2 — storage class, layout, versioning, authorship skew, backups, rotation triggers, publishing rules, residual-leakage honesty all written down |
-| Existence | MISSING | no holdout directory exists anywhere JP or this session has visibility into; `docs/HANDOFF.md` and the maintainer's private machine-operations docs are out of this session's reach by instruction, not just by absence |
+| Existence | MISSING when this audit was written; VERIFIED after | a private holdout now exists outside this repository, in the storage class §11 requires — 12 cases, schema-validated with no warnings, contamination-checked clean, with one completed run and rotation initialised at generation 1. Its location, contents, case ids and fingerprint stay private per §11 and are deliberately not recorded here |
 | Harness support | VERIFIED | `bin/review-eval --cases DIR` already works against any schema-valid directory; nothing holdout-specific needed in the scored path |
 | Contamination-check tooling | MISSING before this session; VERIFIED after | `reviewer/holdout.py`, this session — compares a directory's fingerprint against every fingerprint named in `eval/EXPERIMENTS.md` and against the public corpora, so a holdout accidentally reused as a public run is machine-detectable |
 | Public results record format | MISSING before this session; VERIFIED (empty scaffold) after | `eval/results/HOLDOUT-RESULTS.md`, header only, per `docs/M4_DESIGN_BRIEF.md` §D |
