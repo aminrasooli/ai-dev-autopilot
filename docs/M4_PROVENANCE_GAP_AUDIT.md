@@ -50,7 +50,7 @@ Legend: **VERIFIED** (directly confirmed in a case file, doc, or PR) ·
 | dimension | status | detail |
 |---|---|---|
 | Mechanism exists | VERIFIED | `reviewer/propose.py` + `eval/proposals/README.md`, validated by `reviewer.propose validate-cases` / `validate-audits`; requires `author_family`, `generator` (exact model/person string), `rationale`; enforces the embedded case's `provenance.author_family` matches the proposal's |
-| Content | PARTIAL | 4 proposals exist (`eval/proposals/cases/`), all `author_family: claude` real-bug reconstructions, all now `status: accepted` and admitted. The mechanism is therefore proven end to end — but **zero non-Claude-authored proposals exist**, which is the gap this intake was built for. M4-B remains blocked on local-model execution access |
+| Content | PARTIAL when this audit was written; **RESOLVED 2026-08-26** | 5 proposals now exist (`eval/proposals/cases/`), all `status: accepted` and admitted: 4 `author_family: claude` real-bug reconstructions plus **1 `author_family: qwen`** authored end to end by a local non-Claude model. The mechanism is proven end to end *and* the gap this intake was built for is closed — M4-B is no longer blocked on local-model execution access. Caveat retained: one case, the sole survivor of nine attempts, is a process demonstration, not a claim about that model's authoring quality |
 
 ## Real historical bugs (`mined-real-fix`)
 
@@ -83,13 +83,17 @@ Legend: **VERIFIED** (directly confirmed in a case file, doc, or PR) ·
 
 In priority order, grounded only in the rows above:
 
-1. **Zero non-Claude-authored cases exist anywhere**, including in the
-   intake mechanism that has existed since before this session. This is
-   the single largest credibility gap M4 names, and it is currently
-   MISSING content, not missing mechanism. Unchanged by the 2026-08-25
-   real-bug admission: those four cases diversify *provenance* (the
-   defect mechanisms are historical), not *authorship* — Claude wrote
-   every reconstruction, and each case's `author_model` says so.
+1. ~~**Zero non-Claude-authored cases exist anywhere**~~ — **closed
+   2026-08-26**: one case authored end to end by a local non-Claude
+   model is admitted at `eval/cases-provenance/cases/`
+   (`author_family: qwen`). The original framing still holds for the
+   2026-08-25 real-bug admission, which is why this stayed open until
+   the pilot landed: those four cases diversify *provenance* (the defect
+   mechanisms are historical), not *authorship* — Claude wrote every
+   reconstruction, and each case's `author_model` says so. The remaining
+   honest caveat is size and selection, not existence: one case, the
+   sole survivor of nine attempts, is a process demonstration and is
+   explicitly **not** a claim about that model's authoring quality.
 2. **Zero human-written cases exist.** Same shape as #1: the schema and
    packet exist as of this session, the content does not.
 3. ~~**Zero real-bug (`mined-real-fix`) cases exist**~~ — **closed
@@ -97,8 +101,19 @@ In priority order, grounded only in the rows above:
    remaining honest caveat is size, not existence: four cases is a
    process demonstration, not a measurement, and no model has been run
    against them.
-4. **No private holdout exists.** Design has been complete since v2;
-   nothing has been built or populated.
+4. ~~**No private holdout exists.**~~ — **closed 2026-08-27**: a private
+   holdout now exists outside this repository, in the storage class §11
+   requires — 12 cases, schema-validated with no warnings,
+   contamination-checked clean, one completed run, rotation initialised
+   at generation 1. Its location, contents, case ids and fingerprint
+   stay private per `docs/BENCHMARK_METHODOLOGY.md` §11 and are
+   deliberately not recorded here. Two caveats are recorded rather than
+   glossed: the first tranche is Claude-authored reconstruction of real,
+   license-checked upstream defects, so it reproduces the same
+   self-authorship caveat as the public corpora (diversifying authorship
+   is its first rotation trigger); and at 12 cases the result is
+   directional only — no rate, no per-category claim, no model
+   comparison.
 5. **v3's ground-truth human review is UNKNOWN, not VERIFIED**, unlike
    v2's. This is not strictly an M4 blocker (M4 is about authorship
    diversity, not re-litigating M3's gate), but it is a real gap the
@@ -109,5 +124,8 @@ M4 "complete" requires at minimum one real populated case in each of the
 three content categories (real-bug, non-Claude-authored, human-written)
 plus a live rotating private holdout — this audit's job was to establish
 that baseline honestly, not to shorten the distance to it. As of
-2026-08-25 exactly one of those four is satisfied (real-bug, 4 cases
-admitted). The other three remain at zero content.
+2026-08-28 **three of those four are satisfied**: real-bug (4 cases
+admitted 2026-08-25), non-Claude-authored (1 case admitted 2026-08-26),
+and the private holdout (live 2026-08-27). **Human-written cases remain
+at zero content** and are M4's only remaining literal blocker. Every
+satisfied item is small-scale admitted evidence, not measurement.
