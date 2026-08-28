@@ -16,8 +16,8 @@ exact handoff so that step doesn't require re-deriving the design.
    `docs/BENCHMARK_METHODOLOGY.md` §11's storage-class rule: a private
    repository or a private project directory, never a subdirectory of
    this one. The methodology doc's own suggestion:
-   `~/projects/reviewer-benchmark-holdout/`, registered wherever that
-   machine tracks its projects.
+   a sibling project directory outside this repository, registered
+   wherever that machine tracks its projects.
 2. **Populate it** with schema-v2 case JSON files, same layout as
    `eval/cases/` — one file per case, filename stem equals `id`.
    Authorship should skew *away* from Claude (methodology §11:
@@ -35,12 +35,12 @@ exact handoff so that step doesn't require re-deriving the design.
    the provenance honest.
 3. **Validate it** with the existing tooling, unchanged:
    ```sh
-   bin/review-corpus --cases /path/to/reviewer-benchmark-holdout
+   bin/review-corpus --cases <path-to-private-corpus>
    ```
 4. **Check it for contamination** before ever running a model against
    it:
    ```sh
-   bin/review-holdout check --cases /path/to/reviewer-benchmark-holdout
+   bin/review-holdout check --cases <path-to-private-corpus>
    ```
    A non-zero exit means stop — either the holdout is byte-identical to
    a public corpus (not actually holding anything back) or its
@@ -53,7 +53,7 @@ exact handoff so that step doesn't require re-deriving the design.
    (`CURRENT-MILESTONE.md`) — extend it, don't invent a new one.
 6. **Run it** with the existing harness, no new plumbing:
    ```sh
-   bin/review-eval --cases /path/to/reviewer-benchmark-holdout --backend claude --runs 3
+   bin/review-eval --cases <path-to-private-corpus> --backend claude --runs 3
    ```
 7. **Publish only the aggregate row** in `eval/results/HOLDOUT-RESULTS.md`
    per that file's own header — never a case id, diff, or explanation.
@@ -142,8 +142,8 @@ private discipline — this repo has no visibility into it and shouldn't).
 
 ## What this session deliberately did not do
 
-- Did not create `~/projects/reviewer-benchmark-holdout/` or any
-  directory outside this repository.
+- Did not create the private holdout directory, or any directory
+  outside this repository.
 - Did not touch the maintainer's private machine-operations
   documentation or any file it governs.
 - Did not author any holdout case content (that would itself need to

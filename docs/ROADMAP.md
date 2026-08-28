@@ -63,7 +63,7 @@ gates in section 3 are preserved forever.
 - Date: 2026-08-27
 - Current milestone: M4 Credibility and provenance (M0, M1, M2 and M3
   are complete)
-- Done recently: two of four M4 pillars are closed, each on admitted
+- Done recently: three of four M4 pillars are closed, each on admitted
   evidence at very small scale. Four transformed reconstructions of real
   historical bug fixes (license-checked, BSD-3-Clause sources) were
   adjudicated and admitted (M4-A). Separately, two live non-Claude
@@ -81,13 +81,19 @@ gates in section 3 are preserved forever.
   Neither frozen corpus moved (v2 `f31d4631…`, v3 `81daa0b7…`), no
   authoritative M2/M3 result changed, and no model has been evaluated
   against the new corpus — admission is not measurement.
-- Remaining: M4-C (human-written cases) and M4-D (live rotating private
-  holdout) are M4's only remaining literal blockers; neither has
-  admitted evidence yet.
+  M4-D also closed: a private holdout now exists outside this
+  repository, validated by `bin/review-corpus` and contamination-checked
+  by `bin/review-holdout check`, with a completed first run at 3 runs
+  per case and an initialised rotation state. Its contents, fingerprint
+  and location stay private per §11; the corpus is 12 cases and its
+  first tranche is Claude-authored reconstruction of real upstream
+  defects, so diversifying authorship is registered as its first
+  rotation trigger. Aggregate result is directional only at that size.
+- Remaining: M4-C (human-written cases) is M4's only remaining literal
+  blocker; it has no admitted evidence yet.
 - Blockers: M4-C needs case material from JP himself, since a case whose
   diff is written by tooling from JP's concept is `human_authored: false`
-  by definition. M4-D needs a private holdout directory that does not
-  yet exist. M4-B has no open blocker — it is closed.
+  by definition. M4-B and M4-D have no open blocker — both are closed.
 
 ---
 

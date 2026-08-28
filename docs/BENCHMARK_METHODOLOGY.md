@@ -405,8 +405,8 @@ against cases it has never published:
   the runner, validator, scoring and reports work identically on it.
 - The holdout lives **outside this repository** — never in git history,
   PRs, issues, or docs. Proposed location on the maintainer's machine:
-  a sibling project directory (e.g. `~/projects/reviewer-benchmark-holdout/`,
-  registered per the machine's project registry conventions), plain
+  a sibling project directory outside this repository, registered per
+  the machine's project registry conventions, plain
   case-JSON files, no secrets, no machine topology. Creating and
   registering it is a human step, deliberately not automated here.
 - Published holdout results must state: corpus name, case count,
