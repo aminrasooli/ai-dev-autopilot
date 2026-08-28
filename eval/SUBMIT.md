@@ -18,11 +18,18 @@ report is the artifact, prose is optional.
    | quantization (local models) | `Q4_K_M (Ollama default tag)` |
    | backend | `ollama` |
    | hardware | `RTX 6000, 24 GB VRAM` |
-   | harness commit | `git rev-parse HEAD` output |
+   | harness commit | **recorded automatically** in `harness.commit` |
    | corpus | `eval/cases @ same commit` or named holdout |
    | corpus fingerprint | the `corpus.sha256` in your report |
    | runs per case | `3` |
    | reproduction command | the full `bin/review-eval ...` line |
+
+   `harness.commit` and `harness.dirty` are written by the harness
+   itself, so you do not supply them — and `dirty: true` means the
+   working tree was modified, which makes the run unreproducible from
+   that commit. The invocation is deliberately **not** recorded: it
+   contains `--cases <path>`, and a report that may be submitted must
+   never carry a local path (`docs/BENCHMARK_METHODOLOGY.md` §11).
 
    The **fingerprint is the field that decides comparability** — a
    commit can contain more than one corpus, and a corpus can change
