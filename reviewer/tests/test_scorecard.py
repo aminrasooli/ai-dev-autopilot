@@ -147,3 +147,36 @@ class CliTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HarnessProvenanceTests(unittest.TestCase):
+    """`eval/SUBMIT.md` requires a harness commit; it is the one required
+    field a submitter cannot reconstruct afterwards, so the harness
+    records it itself."""
+
+    def test_report_identifies_the_harness_commit(self):
+        from reviewer import evaluate
+        prov = evaluate._harness_provenance()
+        self.assertIn("available", prov)
+        if prov["available"]:
+            self.assertRegex(prov["commit"], r"^[0-9a-f]{40}$")
+            self.assertIn(prov["dirty"], (True, False, None))
+        else:
+            self.assertIn("reason", prov)
+
+    def test_provenance_never_carries_a_filesystem_path(self):
+        # docs/BENCHMARK_METHODOLOGY.md §11: a submitted report must not
+        # leak local paths, and a private holdout's path must never
+        # appear anywhere. That is why the invocation is not recorded.
+        from reviewer import evaluate
+        blob = json.dumps(evaluate._harness_provenance())
+        self.assertNotIn("/", blob.replace("\\/", ""))
+
+    def test_missing_harness_block_is_tolerated(self):
+        # The six already-published reports predate this field; they must
+        # keep verifying and keep appearing in the scorecard.
+        report = make_report([case("d", True, [run(1, detected=True)])],
+                             runs_per_case=1)
+        self.assertNotIn("harness", report)
+        row = scorecard.summarize(report)
+        self.assertEqual(row["detected"], 1)

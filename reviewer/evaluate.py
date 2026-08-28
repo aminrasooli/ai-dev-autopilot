@@ -38,6 +38,7 @@ maintainer's local execution mode.
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 
@@ -270,10 +271,55 @@ def run_eval(backend, cases, runs=1, progress=None, checkpoint=None):
             "version": PROMPT_CONTRACT_VERSION,
             "fingerprint": prompt_contract_fingerprint(),
         },
+        # Which harness produced this. `eval/SUBMIT.md` requires a
+        # submitter to state the harness commit, and it is the one
+        # required field they cannot reconstruct afterwards — the corpus
+        # is fingerprinted, the prompt is fingerprinted, but the scoring
+        # code was not identified at all. Recorded automatically so a
+        # submitted report says what produced it.
+        #
+        # Only the commit, never the command line: an invocation carries
+        # `--cases <path>`, and per `docs/BENCHMARK_METHODOLOGY.md` §11 a
+        # private holdout's path must never appear in a report that may
+        # be submitted. Same reason `corpus` above records no path.
+        "harness": _harness_provenance(),
         "cases": case_records,
         "summary": {**aggregate(flat_runs),
                     **_corpus_consistency(case_records),
                     "runs_per_case": runs},
+    }
+
+
+def _harness_provenance():
+    """Identify the harness that produced a report: commit, and whether
+    the working tree was modified.
+
+    Degrades to `available: false` rather than failing — a tarball
+    install, a vendored copy or a machine without git is a legitimate way
+    to run the benchmark, and refusing to produce a report over missing
+    provenance would be worse than recording that it is missing.
+
+    `dirty` matters as much as the commit: a result produced from an
+    edited working tree is not reproducible from that commit, and saying
+    so is the honest version of naming a commit at all.
+    """
+    home = os.environ.get("AI_DEV_HOME") or os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__)))
+    try:
+        commit = subprocess.run(
+            ["git", "-C", home, "rev-parse", "HEAD"],
+            capture_output=True, text=True, timeout=10, check=False)
+        if commit.returncode != 0:
+            return {"available": False, "reason": "not a git checkout"}
+        status = subprocess.run(
+            ["git", "-C", home, "status", "--porcelain"],
+            capture_output=True, text=True, timeout=10, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return {"available": False, "reason": "git unavailable"}
+    return {
+        "available": True,
+        "commit": commit.stdout.strip(),
+        "dirty": bool(status.stdout.strip()) if status.returncode == 0 else None,
     }
 
 
