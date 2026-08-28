@@ -480,6 +480,49 @@ rankings — and the contribution/result-submission paths are documented in
 [`docs/BENCHMARK_METHODOLOGY.md`](docs/BENCHMARK_METHODOLOGY.md) and
 [`eval/README.md`](eval/README.md).
 
+### Reproduce it yourself
+
+Everything below runs **offline**, needs **no API key**, and **costs
+nothing**. It is the path a stranger should be able to follow from this
+README alone.
+
+```bash
+git clone https://github.com/aminrasooli/ai-dev-autopilot.git
+cd ai-dev-autopilot
+
+bin/review-doctor                     # 1. prove the harness works, offline
+bin/review-corpus --cases eval/cases-v3/cases   # 2. validate a corpus, print its fingerprint
+python3 -m reviewer.verify eval/results/claude-sonnet-5-m3hard-3runs.json  # 3. re-check a published result
+```
+
+What each step establishes:
+
+1. **`bin/review-doctor`** — the whole scoring path end to end against a
+   fake backend: the corpus validates, the oracle scores ground truth
+   perfectly, repeat runs produce an internally consistent report,
+   existing results are protected from overwrite, and the offline path
+   opens no network connection.
+2. **`bin/review-corpus`** — recomputes the corpus fingerprint. It must
+   print `81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790`
+   for v3. That hash is what makes two runs comparable; every published
+   result names the corpus it ran against.
+3. **`python3 -m reviewer.verify`** — recomputes every summary number in
+   a published result file from its own per-case records. It reports
+   `internally consistent` or names the discrepancy.
+
+Step 3 checks that our published numbers follow from our published data.
+It does **not** re-run a model — that is the separate, non-free step:
+
+```bash
+bin/review-eval --cases eval/cases-v3/cases --backend ollama --model <model> --runs 3
+```
+
+Hosted backends cost money and local models need a GPU, so neither is
+required to check our arithmetic. **Results are evidence, not a ranking**
+— see the honest limitations in
+[`eval/results/M3-HARD-SCORECARD.md`](eval/results/M3-HARD-SCORECARD.md),
+which is also where the headline numbers and their caveats live.
+
 Claude Code, Qwen and other local models through Ollama, and
 Codex-compatible backends are participants behind the same interface —
 none is positioned as the permanent or exclusive reviewer. That is the

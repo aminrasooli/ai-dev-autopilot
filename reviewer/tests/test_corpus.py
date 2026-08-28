@@ -580,6 +580,37 @@ class RealCorpusTests(unittest.TestCase):
             self.assertEqual(actual, expected,
                              f"frozen corpus {path} changed fingerprint")
 
+    def test_documented_provenance_fingerprint_matches_the_corpus(self):
+        # The provenance corpus is deliberately NOT frozen — it grows as
+        # tranches land — so it cannot be pinned to a constant the way v2
+        # and v3 are above. But its fingerprint is *published* in
+        # eval/cases-provenance/README.md, and a published fingerprint
+        # that no longer matches the corpus is worse than none: it is the
+        # value a reader would cite to prove which corpus a result ran
+        # against. This drifted once already, when case content was
+        # edited after the fingerprint was written down. Assert the
+        # documented value against the computed one so the doc must be
+        # updated in the same commit as the corpus, rather than silently
+        # going stale. Unlike the frozen test above, updating this
+        # expected value IS the correct fix when the corpus legitimately
+        # changes.
+        eval_dir = os.path.dirname(corpus.DEFAULT_CASES_DIR)
+        cases = os.path.join(eval_dir, "cases-provenance", "cases")
+        readme = os.path.join(eval_dir, "cases-provenance", "README.md")
+        if not os.path.isdir(cases):
+            self.skipTest("provenance corpus not present")
+        actual = corpus.corpus_fingerprint(corpus.load_corpus(cases))
+        with open(readme, encoding="utf-8") as handle:
+            text = handle.read()
+        # assertTrue, not assertIn: assertIn would dump the whole README
+        # into the failure output and bury the one line that matters.
+        self.assertTrue(
+            actual in text,
+            "eval/cases-provenance/README.md does not record the provenance "
+            f"corpus's current fingerprint.\n  computed: {actual}\n"
+            "  fix: update the fingerprint row in that README in the same "
+            "commit that changes the corpus.")
+
     def test_cli_validates_shipped_corpus(self):
         self.assertEqual(corpus.main(["--cases", corpus.DEFAULT_CASES_DIR]), 0)
 

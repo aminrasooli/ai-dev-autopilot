@@ -20,12 +20,30 @@ report is the artifact, prose is optional.
    | hardware | `RTX 6000, 24 GB VRAM` |
    | harness commit | `git rev-parse HEAD` output |
    | corpus | `eval/cases @ same commit` or named holdout |
+   | corpus fingerprint | the `corpus.sha256` in your report |
    | runs per case | `3` |
    | reproduction command | the full `bin/review-eval ...` line |
+
+   The **fingerprint is the field that decides comparability** — a
+   commit can contain more than one corpus, and a corpus can change
+   without the path changing. Two rows are only comparable when their
+   `corpus.sha256` matches (`docs/BENCHMARK_METHODOLOGY.md` §11a).
 
 3. **Cost honesty**: report dollars only if your tooling measured them.
    Local execution is reported as "no external model API charge" — it is
    not called *free*, because your hardware and electricity are not.
+
+## Check your own report first
+
+```sh
+python3 -m reviewer.verify eval/results/<your-report>.json
+```
+
+This recomputes every summary number from your report's own per-case
+records and prints either `internally consistent` or the exact
+discrepancy. It is offline, costs nothing, and takes a second. A report
+that fails this will be sent back, so it is cheaper to run it yourself —
+and it is the same check we run on our own published results.
 
 ## Rules
 
