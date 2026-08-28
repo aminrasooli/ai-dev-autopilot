@@ -1,0 +1,45 @@
+{
+  "benchmark_version": 2,
+  "id": "maintainer-upload-dir-override-ignored",
+  "title": "Upload directory resolution",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "authored-realistic",
+    "author_family": "human",
+    "human_authored": true,
+    "provenance_notes": "Human-authored case. The substantive code was written by the benchmark maintainer. Authorship was verified locally before admission using Git author/committer metadata, absence of AI co-author trailers, and line-level blame. Source identifiers are not included in the public corpus. The real defect: an upload-directory override was supplied so an isolated environment would write its own files, but the code hardcoded the path and ignored the setting, so an environment that looked isolated could still write into another environment's directory. The real fix made the path honour the environment, resolving a relative value against the project root. Both sides of the diff are the maintainer's verbatim code. The only work applied was selecting a self-contained slice of it, generating the unified diff with difflib, and assigning the classification metadata. No code was invented, renamed or altered. The diff is the REVERSE of the real fix, per this corpus's convention, so it reintroduces the original defect. No source_repository/transformation record is claimed: that machinery exists for incorporating third-party code, and no third-party code is incorporated here."
+  },
+  "affected_files": [
+    "backend/app.py"
+  ],
+  "diff": [
+    "--- a/backend/app.py",
+    "+++ b/backend/app.py",
+    "@@ -3,13 +3,5 @@",
+    " ",
+    " PROJECT_ROOT = Path(__file__).resolve().parent.parent",
+    " ",
+    "-",
+    "-def _resolve_upload_dir() -> Path:",
+    "-    env = os.environ.get(\"UPLOAD_DIR\")",
+    "-    if env:",
+    "-        p = Path(env)",
+    "-        return p if p.is_absolute() else PROJECT_ROOT / p",
+    "-    return PROJECT_ROOT / \"data\" / \"uploads\"",
+    "-",
+    "-UPLOAD_DIR = _resolve_upload_dir()",
+    "+UPLOAD_DIR = Path(__file__).parent.parent / \"data\" / \"uploads\"",
+    " UPLOAD_DIR.mkdir(parents=True, exist_ok=True)"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "contract-mismatch",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "explanation": "The change breaks the configuration contract between the deployment and the application. The upload directory is hardcoded to <project>/data/uploads instead of resolving the UPLOAD_DIR environment variable, so a deployment that sets UPLOAD_DIR to isolate an environment is silently ignored and the process keeps writing to the default directory. Nothing errors, so the environment appears isolated while sharing another environment's upload storage. Removing the relative-path branch also means a relative override would no longer be resolved against the project root."
+  },
+  "difficulty": "moderate"
+}

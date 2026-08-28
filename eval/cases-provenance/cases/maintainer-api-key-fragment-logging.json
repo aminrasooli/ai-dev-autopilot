@@ -1,0 +1,66 @@
+{
+  "benchmark_version": 2,
+  "id": "maintainer-api-key-fragment-logging",
+  "title": "Startup and diagnostic logging of API key facts",
+  "language": "python",
+  "status": "pilot",
+  "provenance": {
+    "type": "authored-realistic",
+    "author_family": "human",
+    "human_authored": true,
+    "provenance_notes": "Human-authored case. The substantive code was written by the benchmark maintainer. Authorship was verified locally before admission using Git author/committer metadata, absence of AI co-author trailers, and line-level blame. Source identifiers are not included in the public corpus. The real defect: startup and authentication-error paths logged the first 8 characters and the exact length of an API key held in the environment, treating a key fragment as safe to log. The real fix reduced every such site to presence-only. Both sides of the diff are the maintainer's verbatim code. The only work applied was selecting a self-contained slice of it, generating the unified diff with difflib, and assigning the classification metadata. No code was invented, renamed or altered. The diff is the REVERSE of the real fix, per this corpus's convention, so it reintroduces the original defect. No source_repository/transformation record is claimed: that machinery exists for incorporating third-party code, and no third-party code is incorporated here. No real key material enters the corpus: the value is read from the environment and never appears."
+  },
+  "affected_files": [
+    "backend/ai.py",
+    "backend/app.py"
+  ],
+  "diff": [
+    "--- a/backend/ai.py",
+    "+++ b/backend/ai.py",
+    "@@ -2,11 +2,12 @@",
+    " ",
+    " ",
+    " def _safe_key_info(api_key: str) -> dict:",
+    "-    \"\"\"Return loggable key facts — presence and whitespace only, never any",
+    "-    fragment (prefix/suffix/length) of the value itself.\"\"\"",
+    "+    \"\"\"Return loggable key facts — never the full value.\"\"\"",
+    "     raw = os.environ.get(\"OPENAI_API_KEY\", \"\")",
+    "     stripped = raw.strip()",
+    "     return {",
+    "         \"present\":        bool(stripped),",
+    "+        \"prefix\":         (stripped[:8] + \"...\") if stripped else \"\",",
+    "+        \"length\":         len(stripped),",
+    "         \"had_whitespace\": raw != stripped,",
+    "     }",
+    "--- a/backend/app.py",
+    "+++ b/backend/app.py",
+    "@@ -8,11 +8,11 @@",
+    " ",
+    " @app.on_event(\"startup\")",
+    " async def _log_startup_config():",
+    "-    \"\"\"Log key presence at startup — never any fragment of the key itself.\"\"\"",
+    "+    \"\"\"Log key presence and safe prefix at startup — never the full key.\"\"\"",
+    "     env_file = PROJECT_ROOT / \".env\"",
+    "     key = os.environ.get(\"OPENAI_API_KEY\", \"\")",
+    "     if key:",
+    "         logger.warning(",
+    "-            \"OPENAI_API_KEY configured: yes  env_file=%s\",",
+    "-            env_file,",
+    "+            \"OPENAI_API_KEY: present=True  prefix='%s...'  length=%d  env_file=%s\",",
+    "+            key[:8], len(key), env_file,",
+    "         )"
+  ],
+  "ground_truth": {
+    "defect": true,
+    "category": "sensitive-logging",
+    "severity": [
+      "medium",
+      "high"
+    ],
+    "accepted_categories": [
+      "secret-exposure"
+    ],
+    "explanation": "The change reinstates logging of secret material. _safe_key_info() again returns a 'prefix' holding the first 8 characters of the API key plus its exact 'length', and the startup handler again formats that prefix and length into a warning-level log line. A key prefix is not a safe token: it identifies the key's issuer and account family, and combined with an exact length it materially narrows the search space for anyone holding the logs. Warning-level records are routinely shipped to aggregators and retained, so this writes partial credential material into a lower-trust system on every startup and on every authentication error. The docstrings are edited to describe the weaker behaviour as safe, which makes the regression easy to wave through in review."
+  },
+  "difficulty": "moderate"
+}
