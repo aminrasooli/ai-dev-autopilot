@@ -100,14 +100,24 @@ harder, not that a model regressed. Full methodology, every raw report,
 and the scoring code are public in the repo if you want to point out
 where I'm wrong.
 
-**What's next.** I already know the biggest weakness in this benchmark:
-it's currently 100% authored with Claude's help, and Claude is one of
-the models I'm scoring. My next milestone is specifically about fixing
-that: real historical bugs pulled from permissively-licensed repos with
-their provenance preserved, cases authored by non-Claude local models,
-a small human-written tranche, and a private holdout so nothing gets
-memorized into a future training run. Posting about that separately once
-there's something real to show, not vaporware-teasing it here.
+**What's next — partly done since I drafted this.** The biggest weakness
+here is that the corpus is Claude-authored while Claude is one of the
+models being scored. That is now partly addressed, in public: real
+historical bug fixes reconstructed from permissively-licensed repos with
+per-case provenance and the upstream commit recorded; one case authored
+end to end by a non-Claude local model, admitted as provenance evidence
+and explicitly *not* a claim about that model's authoring quality since
+it was the only survivor of nine attempts; and two human-written cases,
+reversing real bugs I fixed in my own application, admitted only after a
+third proposed case was rejected for having been written by tooling
+rather than by me. There is also a private holdout of never-published
+cases now. On it the same tradeoff reappeared: every completed defective
+review identified the defect, while clean examples still drew
+substantial false positives. With 12 cases and 36 observations that is
+directional evidence, not a model-quality measurement. All of this is
+small-scale existence proof that the provenance machinery works —
+admission is not measurement, and no model has been scored against the
+new corpus.
 
 ---
 
@@ -125,7 +135,7 @@ there's something real to show, not vaporware-teasing it here.
 | Qwen local time | same | 2491.6s (~41.5 min) measured model execution |
 | DeepSeek local time | same | 208.9s (~3.5 min) measured model execution |
 | Corpus size | eval/cases-v3/README.md | 37 cases, 29 defective / 8 clean |
-| Diff size range | same | 80-219 lines, median 102 |
+| Diff size range | M3-HARD-SCORECARD.md | 80-219 lines, median 102 |
 | Corpus fingerprint | same | `81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790` |
 | Error counts (2 / 6 / 2 of 111) | M3-HARD-SCORECARD.md headline table | Sonnet 2 (both defective); Qwen 5 defective + 1 clean = 6; DeepSeek 2 |
 | DeepSeek 12 of 85 completed | same | 12/87 raw, 2 errors -> 85 completed |

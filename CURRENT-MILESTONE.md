@@ -184,10 +184,14 @@ work, in the design brief.
 
 Four pillars (`docs/ROADMAP.md` §4): real historical bugs, non-Claude
 authorship, human-written cases, private holdout live and rotating.
-**Three of the four pillars are closed — M4-A, M4-B and M4-D — each on
-admitted evidence at very small scale. M4 is not complete: M4-C remains
-and has zero human-authored content, so M4 must not be described as
-closed.**
+**All four pillars are closed — M4-A, M4-B, M4-C and M4-D — each on
+admitted evidence at very small scale. M4 is complete in the literal
+sense its done-when defines: one real populated case in each content
+category plus a live rotating private holdout. It is emphatically not a
+measurement — 4 real-bug reconstructions, 1 non-Claude-authored case, 2
+human-written cases and a 12-case private holdout are existence proofs
+that the provenance machinery works end to end, and admission is not
+measurement.**
 
 **M4-A real historical bugs — ADMITTED EVIDENCE (smallest pillar
 genuinely closed).** Four transformed reconstructions of real
@@ -245,12 +249,24 @@ authorship label is the failure mode the pipeline exists to prevent.
 Per-attempt reasoning: `eval/authorship-pilot/ADJUDICATION.md`.
 **A live pilot is not authored content** — B is still unmet.
 
-**M4-C human-written cases — PACKET ONLY, zero human content.**
-`docs/M4_HUMAN_AUTHOR_PACKET.md` exists; no case with
-`provenance.human_authored: true` exists anywhere in this repository.
-Requires JP to supply case material himself; a case built from a
-concept JP supplies while tooling writes the diff is `human_authored:
-false` (human-reviewed), not human-written.
+**M4-C human-written cases — ADMITTED EVIDENCE, 2 cases.** Two cases
+carry `provenance.human_authored: true` with `author_family: human` and
+no `author_model`: `maintainer-upload-dir-override-ignored` and
+`maintainer-api-key-fragment-logging`. Both reverse real fixes the maintainer authored himself — authorship verified locally before admission using Git author/committer metadata, absence of AI co-author trailers, and line-level blame. Source identifiers are not included in the public corpus.
+Both sides of each diff are his verbatim code; the only work applied was
+selecting a self-contained slice of it, generating the diff with
+`difflib`, and assigning classification metadata. Tranche size is
+**2 by JP's decision** (the roadmap says "human-written cases", plural,
+with no count; the packet's 3-5 is explicitly a floor to react to, not
+a target).
+
+The distinction the schema enforces was applied, not waved through: a
+third proposed case was **rejected** because the code implementing it
+was written by tooling (`AI Dev Autopilot`, with a Claude co-author
+trailer) rather than by JP. A concept JP supplies while tooling writes
+the diff is `human_authored: false` (human-reviewed), not human-written,
+and does not satisfy this pillar. Two genuine cases is small-scale
+admitted evidence, not a measurement.
 
 **M4-D private holdout — REAL: live, validated and rotating.**
 A private holdout now exists outside this repository, in the storage
