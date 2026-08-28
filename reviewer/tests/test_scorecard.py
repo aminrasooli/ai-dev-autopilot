@@ -180,3 +180,43 @@ class HarnessProvenanceTests(unittest.TestCase):
         self.assertNotIn("harness", report)
         row = scorecard.summarize(report)
         self.assertEqual(row["detected"], 1)
+
+
+class CommittedScorecardTests(unittest.TestCase):
+    """`eval/results/SCORECARD.md` is generated. Nothing forced it to be
+    regenerated when a result file changed, so it could silently describe
+    a set of results that no longer exists — the same failure mode that
+    already produced a wrong published corpus fingerprint once.
+
+    M5 makes this live: accepting an outside submission adds a report to
+    `eval/results/`, and the scorecard must be regenerated in that same
+    change rather than drifting until someone notices."""
+
+    def test_committed_scorecard_matches_a_fresh_generation(self):
+        import glob as _glob
+        from reviewer import scorecard as sc
+        root = os.path.dirname(os.path.dirname(os.path.abspath(sc.__file__)))
+        committed = os.path.join(root, "eval", "results", "SCORECARD.md")
+        if not os.path.exists(committed):
+            self.skipTest("no committed scorecard")
+        paths = sorted(p for p in _glob.glob(
+            os.path.join(root, "eval", "results", "*.json"))
+            if "checkpoint" not in os.path.basename(p))
+        rows = {}
+        for path in paths:
+            with open(path, encoding="utf-8") as handle:
+                report = json.load(handle)
+            errors, _ = sc.verify_report(report, origin=path)
+            if errors:
+                continue
+            row = sc.summarize(report)
+            rows.setdefault(row["corpus_sha256"], []).append(row)
+        with open(committed, encoding="utf-8") as handle:
+            on_disk = handle.read().strip()
+        # assertTrue, not assertEqual: assertEqual dumps the whole
+        # rendered scorecard as a diff and buries the instruction.
+        self.assertTrue(
+            on_disk == sc.render(rows).strip(),
+            "eval/results/SCORECARD.md is stale. Regenerate it in the same "
+            "change that altered eval/results/:\n"
+            "  bin/review-scorecard --out eval/results/SCORECARD.md")
