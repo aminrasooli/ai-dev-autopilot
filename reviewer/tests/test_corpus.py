@@ -2,8 +2,10 @@
 in this suite."""
 
 import copy
+import hashlib
 import json
 import os
+import re
 import tempfile
 import unittest
 
@@ -663,3 +665,73 @@ class DiagnosticsTests(unittest.TestCase):
         blob = json.dumps(d).lower()
         for banned in ("quality_score", "overall_score", "composite"):
             self.assertNotIn(banned, blob)
+
+
+class PublishedEvidenceIntegrityTests(unittest.TestCase):
+    """`eval/EXPERIMENTS.md` records a sha256 for each authoritative
+    result file. Nothing checked it, so a published result could be
+    edited — by accident, a bad merge, or deliberately — and every
+    citation of it would keep reading as valid. These are the numbers the
+    project's public claims rest on, so the recorded hash is checked
+    against the file it names."""
+
+    _RECORD = re.compile(
+        r"`(?P<name>[A-Za-z0-9._-]+\.json)` \(sha256 "
+        r"`(?P<prefix>[0-9a-f]{6,})…(?P<suffix>[0-9a-f]{4,})`\)")
+
+    def _repo_root(self):
+        return os.path.dirname(os.path.dirname(corpus.DEFAULT_CASES_DIR))
+
+    def test_recorded_result_hashes_match_the_files(self):
+        root = self._repo_root()
+        experiments = os.path.join(root, "eval", "EXPERIMENTS.md")
+        if not os.path.exists(experiments):
+            self.skipTest("EXPERIMENTS.md not present")
+        with open(experiments, encoding="utf-8") as handle:
+            text = handle.read()
+
+        records = list(self._RECORD.finditer(text))
+        self.assertTrue(records,
+                        "EXPERIMENTS.md records no result hashes — if the "
+                        "format changed, update this test rather than "
+                        "dropping the check")
+
+        for match in records:
+            name = match.group("name")
+            path = os.path.join(root, "eval", "results", name)
+            with self.subTest(result=name):
+                self.assertTrue(os.path.exists(path),
+                                f"{name} is cited in EXPERIMENTS.md but "
+                                "missing from eval/results/")
+                digest = hashlib.sha256()
+                with open(path, "rb") as handle:
+                    for chunk in iter(lambda: handle.read(65536), b""):
+                        digest.update(chunk)
+                actual = digest.hexdigest()
+                self.assertTrue(
+                    actual.startswith(match.group("prefix"))
+                    and actual.endswith(match.group("suffix")),
+                    f"{name} no longer matches the sha256 recorded in "
+                    f"EXPERIMENTS.md\n  recorded: {match.group('prefix')}…"
+                    f"{match.group('suffix')}\n  actual:   {actual}\n"
+                    "A published result must not change. If this file was "
+                    "legitimately regenerated it is a NEW experiment with a "
+                    "new row, not an edit to this one.")
+
+    def test_every_authoritative_result_still_verifies(self):
+        # A result whose summary no longer follows from its own runs must
+        # never keep being cited. reviewer.verify is the same check
+        # SUBMIT.md asks outside submitters to run on themselves.
+        from reviewer import verify as verify_mod
+        results = os.path.join(self._repo_root(), "eval", "results")
+        if not os.path.isdir(results):
+            self.skipTest("eval/results not present")
+        reports = [f for f in sorted(os.listdir(results))
+                   if f.endswith("-3runs.json") and "checkpoint" not in f]
+        self.assertTrue(reports, "no authoritative result files found")
+        for name in reports:
+            with self.subTest(result=name):
+                with open(os.path.join(results, name), encoding="utf-8") as fh:
+                    report = json.load(fh)
+                errors, _ = verify_mod.verify_report(report, origin=name)
+                self.assertEqual(errors, [], f"{name} is not internally consistent")
