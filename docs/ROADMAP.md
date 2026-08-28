@@ -60,10 +60,10 @@ gates in section 3 are preserved forever.
 
 ## 2. Current status (update this section at every milestone)
 
-- Date: 2026-08-27
-- Current milestone: M4 Credibility and provenance (M0, M1, M2 and M3
-  are complete)
-- Done recently: three of four M4 pillars are closed, each on admitted
+- Date: 2026-08-28
+- Current milestone: **M4 Credibility and provenance is COMPLETE** (M0,
+  M1, M2 and M3 are complete). M5 public launch is next.
+- Done recently: all four M4 pillars are closed, each on admitted
   evidence at very small scale. Four transformed reconstructions of real
   historical bug fixes (license-checked, BSD-3-Clause sources) were
   adjudicated and admitted (M4-A). Separately, two live non-Claude
@@ -89,11 +89,26 @@ gates in section 3 are preserved forever.
   first tranche is Claude-authored reconstruction of real upstream
   defects, so diversifying authorship is registered as its first
   rotation trigger. Aggregate result is directional only at that size.
-- Remaining: M4-C (human-written cases) is M4's only remaining literal
-  blocker; it has no admitted evidence yet.
-- Blockers: M4-C needs case material from JP himself, since a case whose
-  diff is written by tooling from JP's concept is `human_authored: false`
-  by definition. M4-B and M4-D have no open blocker — both are closed.
+  M4-C also closed: two cases carry `human_authored: true` with
+  `author_family: human` and no `author_model`. Both reverse real bug
+  fixes JP wrote himself; authorship was verified locally before
+  admission using Git author/committer metadata, absence of AI
+  co-author trailers, and line-level blame. Source identifiers are not
+  included in the public corpus. Both sides of each diff are his
+  verbatim code, with only slice selection, `difflib` diff generation
+  and classification applied. Tranche size 2 is JP's decision. A third
+  proposed case was **rejected**: the code implementing it was written
+  by tooling, and concept-by-human plus diff-by-tooling is
+  `human_authored: false`, which does not satisfy this pillar. The
+  provenance corpus is now 7 cases, fingerprint
+  `991ed01a6cea12195b0b8515e0c4f66bef5bc630def3ba41b9d9c5ee2422b5fc`
+  (`claude=4, qwen=1, human=2`).
+- Remaining: **nothing — M4 has no open blocker.** All four pillars are
+  literally satisfied.
+- Blockers: none for M4. Note for M5: no model has been evaluated
+  against the provenance corpus, so none of this is a measurement —
+  admission is not measurement, and the M5 launch gate still requires a
+  stranger to reproduce the headline from the README alone.
 
 ---
 

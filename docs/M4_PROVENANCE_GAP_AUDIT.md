@@ -65,7 +65,7 @@ Legend: **VERIFIED** (directly confirmed in a case file, doc, or PR) ·
 
 | dimension | status | detail |
 |---|---|---|
-| Any case with `human_authored: true` | MISSING | zero — the field did not exist before this session |
+| Any case with `human_authored: true` | MISSING when this audit was written; **RESOLVED 2026-08-28** | 2 admitted — `maintainer-upload-dir-override-ignored` and `maintainer-api-key-fragment-logging`, both `author_family: human`, `human_authored: true`, no `author_model`. Both reverse real fixes the maintainer authored himself — authorship verified locally before admission using Git author/committer metadata, absence of AI co-author trailers, and line-level blame. Source identifiers are not included in the public corpus; both sides of each diff are his verbatim code |
 | Packet to make this cheap for JP | MISSING before this session; VERIFIED after | `docs/M4_HUMAN_AUTHOR_PACKET.md`, created this session |
 | Schema support for the human-written/human-reviewed distinction | MISSING before this session; VERIFIED after | `provenance.human_authored`, required-if-present-family per `docs/BENCHMARK_METHODOLOGY.md` §4 |
 
@@ -94,8 +94,14 @@ In priority order, grounded only in the rows above:
    honest caveat is size and selection, not existence: one case, the
    sole survivor of nine attempts, is a process demonstration and is
    explicitly **not** a claim about that model's authoring quality.
-2. **Zero human-written cases exist.** Same shape as #1: the schema and
-   packet exist as of this session, the content does not.
+2. ~~**Zero human-written cases exist.**~~ — **closed 2026-08-28**: 2
+   admitted. The authorship bar was enforced rather than stretched to
+   reach the count: a third proposed case was **rejected** because the
+   code implementing it was written by tooling (`AI Dev Autopilot`, with
+   a Claude co-author trailer), and concept-by-human plus
+   diff-by-tooling is `human_authored: false`. Remaining honest caveat
+   is size, not existence: two cases is a process demonstration, and no
+   model has been run against them.
 3. ~~**Zero real-bug (`mined-real-fix`) cases exist**~~ — **closed
    2026-08-25**: 4 admitted at `eval/cases-provenance/cases/`. The
    remaining honest caveat is size, not existence: four cases is a
@@ -124,8 +130,9 @@ M4 "complete" requires at minimum one real populated case in each of the
 three content categories (real-bug, non-Claude-authored, human-written)
 plus a live rotating private holdout — this audit's job was to establish
 that baseline honestly, not to shorten the distance to it. As of
-2026-08-28 **three of those four are satisfied**: real-bug (4 cases
-admitted 2026-08-25), non-Claude-authored (1 case admitted 2026-08-26),
-and the private holdout (live 2026-08-27). **Human-written cases remain
-at zero content** and are M4's only remaining literal blocker. Every
-satisfied item is small-scale admitted evidence, not measurement.
+2026-08-28 **all four are satisfied**: real-bug (4 cases admitted
+2026-08-25), non-Claude-authored (1 case admitted 2026-08-26), the
+private holdout (live 2026-08-27), and human-written (2 cases admitted
+2026-08-28). **M4 has no remaining literal blocker.** Every satisfied
+item is small-scale admitted evidence, not measurement — nothing here
+licenses a rate, a per-category claim, or a model comparison.

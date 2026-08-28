@@ -19,11 +19,10 @@ Claude-authored, seeded or authored-realistic, and say so
 largest credibility gap. This directory is where cases with a different
 origin land after human adjudication.
 
-Today it contains two tranches — **real historical bugs (M4-A)** and
-**non-Claude authorship (M4-B)** — sliced apart by
-`provenance.author_family` / `provenance.type` rather than by directory,
-the way every future tranche will be. The human-written (M4-C) tranche
-does not exist yet.
+Today it contains three tranches — **real historical bugs (M4-A)**,
+**non-Claude authorship (M4-B)** and **human-written (M4-C)** — sliced
+apart by `provenance.author_family` / `provenance.type` rather than by
+directory, the way every future tranche will be.
 
 ## Relationship to the frozen corpora
 
@@ -34,7 +33,7 @@ re-open either frozen corpus:
 |---|---|---|---|
 | v2 | `../cases/` | `f31d46310988f61c4534344ad05a52a4385fd15159126a0be85aad532f045690` | frozen, unchanged |
 | v3 | `../cases-v3/cases/` | `81daa0b7a48259184a91c48ab1dcf17c9d3ed4902fa891b5895db0f29fd79790` | frozen, unchanged |
-| provenance | `cases/` | `0bd3328b82427ffa6b856550914b6b5937c67ce3987a50c7c4ae2aad563d245f` | this corpus, **not frozen** |
+| provenance | `cases/` | `991ed01a6cea12195b0b8515e0c4f66bef5bc630def3ba41b9d9c5ee2422b5fc` | this corpus, **not frozen** |
 
 Both frozen fingerprints are pinned by
 `reviewer/tests/test_corpus.py::test_frozen_corpus_fingerprints_are_exact`,
@@ -180,8 +179,51 @@ unchanged model output.
   pillar's question is provenance ("does an admissible non-Claude-authored
   case exist"), not a quality measurement of qwen3.6:27b. No further
   authorship pilot is planned.
-- **M4 is not complete, but M4-A and M4-B are closed.** Both closed on
+- **M4 is complete: A, B, C and D are all closed.** Each closed on
   admitted evidence at very small scale, supporting no general or
-  quality claim. Human-written cases (M4-C) and the live rotating
-  private holdout (M4-D) remain, with no admitted evidence yet — they
-  are M4's only remaining literal blockers.
+  quality claim. M4-C landed 2 human-written cases (below) and M4-D is a
+  live rotating private holdout kept outside this repository. **M4 has
+  no remaining literal blocker.** Nothing here has been measured: no
+  model has been run against this corpus, and admission is not
+  measurement.
+
+## Current contents — human-written (M4-C)
+
+2 cases, both defective, both `python`.
+
+| id | category | severity | difficulty |
+|---|---|---|---|
+| `maintainer-upload-dir-override-ignored` | contract-mismatch | medium-high | moderate |
+| `maintainer-api-key-fragment-logging` | sensitive-logging | medium-high | moderate |
+
+`provenance.type: authored-realistic`, `provenance.author_family:
+human`, `provenance.human_authored: true`, **no** `author_model` — the
+schema refuses to let those last two coexist, which is what makes the
+claim checkable rather than asserted.
+
+Both are derived from real fixes the maintainer authored himself — authorship verified locally before admission using Git author/committer metadata, absence of AI co-author trailers, and line-level blame. Source identifiers are not included in the public corpus. Both sides of each diff
+are his verbatim code; the only work applied was selecting a
+self-contained slice of it, generating the unified diff with `difflib`,
+and assigning category/severity/difficulty. No code was invented,
+renamed or altered.
+
+No `source_repository`/`transformation` record is claimed: that
+machinery exists for incorporating third-party code, and no third-party
+code is incorporated here. **This corpus deliberately records no source
+identifiers — no repository name, commit hash, commit date or internal
+path.** M4-C is a claim about *who authored the case content*, not about
+identifying where it came from, so the public record carries only what
+that claim rests on: `human_authored: true`, `author_family: human`, no
+`author_model`, no AI co-author trailer, and line-level authorship
+verified locally before admission.
+
+**The bar was enforced, not stretched to reach the count.** A third
+proposed case was rejected: the code implementing it was written by
+tooling (`AI Dev Autopilot`, with a Claude co-author trailer), and
+`docs/BENCHMARK_METHODOLOGY.md` §4 makes concept-by-human plus
+diff-by-tooling `human_authored: false` (human-reviewed), which does not
+satisfy this pillar. Tranche size 2 is the maintainer's decision; the
+roadmap says "human-written cases" with no count.
+
+Two cases is a process demonstration, not a measurement. No model has
+been run against them.
