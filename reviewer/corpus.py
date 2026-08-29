@@ -600,14 +600,79 @@ DEFAULT_CASES_DIR = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "eval", "cases")
 
 
+def render_review_packet(cases, origin):
+    """Render a corpus's ground truth for a human reviewer.
+
+    `docs/ROADMAP.md` §5's M5 launch gate requires that ground truth was
+    human-reviewed. v2 has that on record (JP's D1-D5 decisions); v3 does
+    not, and the blocker is simply that nothing rendered 37 answer keys
+    in a form a person can actually sit down with.
+
+    This renders, it does not decide: no verdict field, no scoring, no
+    suggested answer. The reviewer's conclusions belong in the corpus
+    README as a dated, attributed record — a generated file is not a
+    review, and this output must never be mistaken for one.
+    """
+    out = [f"# Ground-truth review packet — `{origin}`",
+           "",
+           f"{len(cases)} cases. **This is reading material, not a review.**",
+           "A review is a human decision, recorded with who and when in the "
+           "corpus README. Generating this file establishes nothing.",
+           "",
+           "For each case, the question is only: *is the recorded answer "
+           "correct for the diff shown* — is a defective case really "
+           "defective, is a clean case really behaviour-preserving, and is "
+           "the category/severity defensible.",
+           "",
+           "**Do not commit this file for a private holdout corpus** — it "
+           "contains the full answer key "
+           "(`docs/BENCHMARK_METHODOLOGY.md` §11).",
+           ""]
+
+    defective = [c for c in cases if c["ground_truth"]["defect"]]
+    clean = [c for c in cases if not c["ground_truth"]["defect"]]
+
+    for heading, group in (("Defective cases", defective),
+                           ("Clean controls", clean)):
+        out += [f"## {heading} ({len(group)})", ""]
+        for case in sorted(group, key=lambda c: c["id"]):
+            gt = case["ground_truth"]
+            out += [f"### `{case['id']}`", "",
+                    f"- **title**: {case.get('title', '')}",
+                    f"- **language**: {case.get('language', '')}"]
+            if gt["defect"]:
+                alts = gt.get("accepted_categories") or []
+                out += [f"- **category**: `{gt['category']}`"
+                        + (f" (also accepted: {', '.join('`%s`' % a for a in alts)})"
+                           if alts else ""),
+                        f"- **severity**: {gt['severity'][0]}–{gt['severity'][1]}",
+                        f"- **difficulty**: {case.get('difficulty', '(unset)')}"]
+            out += [f"- **claimed**: {gt['explanation']}",
+                    "",
+                    "```diff",
+                    case["diff"] if isinstance(case["diff"], str)
+                    else "\n".join(case["diff"]),
+                    "```",
+                    ""]
+    return "\n".join(out)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="reviewer-corpus",
         description="Validate a benchmark corpus and print its distribution.")
     parser.add_argument("--cases", default=DEFAULT_CASES_DIR,
                         help="corpus directory (default: eval/cases)")
-    parser.add_argument("--json", action="store_true",
+    # Mutually exclusive rather than "review wins": a caller asking for
+    # --json and silently receiving markdown would be a scripting trap.
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument("--json", action="store_true",
                         help="emit the summary as JSON")
+    output.add_argument("--review", action="store_true",
+                        help="emit a markdown ground-truth review packet "
+                             "for a human reviewer, instead of the "
+                             "distribution summary. Reading only; changes "
+                             "nothing and decides nothing.")
     parser.add_argument("--cross-check", action="append", default=[],
                         metavar="DIR",
                         help="also load DIR and report case ids or diffs "
@@ -636,6 +701,10 @@ def main(argv=None):
                       file=sys.stderr)
                 return 2
         conflicts = cross_corpus_conflicts(corpora)
+
+    if args.review:
+        print(render_review_packet(cases, args.cases))
+        return 0
 
     summary = summarize(cases)
     if args.json:
