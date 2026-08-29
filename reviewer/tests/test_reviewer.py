@@ -752,8 +752,16 @@ class HarnessProvenanceTests(unittest.TestCase):
     modified relative to the recorded commit?"""
 
     def _repo(self, tmp):
+        # -c core.hooksPath= keeps the fixture hermetic: a developer
+        # machine may install ambient git hooks that apply to every
+        # repository, and a hook that interferes with `git commit` would
+        # make these tests error for a reason unrelated to the code
+        # under test. A throwaway repo in $TMPDIR should not be subject
+        # to whatever git customisation the surrounding environment
+        # happens to carry.
         run = lambda *a: subprocess.run(  # noqa: E731
-            a, cwd=tmp, capture_output=True, text=True, check=True)
+            ("git", "-c", "core.hooksPath=") + a[1:],
+            cwd=tmp, capture_output=True, text=True, check=True)
         run("git", "init", "-q")
         run("git", "config", "user.email", "t@example.com")
         run("git", "config", "user.name", "t")
