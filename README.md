@@ -130,7 +130,7 @@ upgrade.
 
 | Suite | Assertions | What it establishes |
 | --- | ---: | --- |
-| `approval.test.sh` | 978 | routine work is allowed and everything else escalates, clause by clause |
+| `approval.test.sh` | 1055 | routine work is allowed and everything else escalates, clause by clause |
 | `guard-portability.test.sh` | 134 | the framework self-protection rule and the deployed hook paths both follow `$AI_DEV_HOME`, not a hardcoded path; the ceiling fails closed; neither a line continuation nor the shell's own quote and escape removal splits a command past the rules; the notebook tools are screened by the field they actually send; the ceiling answers inside the timeout that would otherwise cancel it |
 | `permission-posture.test.sh` | 39 | every spelling of every permission-bypass flag is refused, and every flag that widens the session's scope or configuration — including `--add-dir`; the managed version floor is at least the version the control it protects needs |
 | `prompt-injection.test.sh` | 22 | injection payloads are refused deterministically |

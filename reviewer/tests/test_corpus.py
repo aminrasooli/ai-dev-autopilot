@@ -521,6 +521,18 @@ class LoadCorpusTests(unittest.TestCase):
         self.assertEqual(summary["severities"],
                          {"(clean)": 1, "medium-high": 2})
 
+    def test_rendered_summary_prints_the_fingerprint(self):
+        # README.md's reproduction path tells a stranger that
+        # `bin/review-corpus --cases ...` prints the corpus fingerprint,
+        # and that comparing it is what step 2 establishes. Emitting it
+        # only under --json made that instruction false, so the claim is
+        # pinned here rather than left to prose.
+        cases = [make_case("fp-a"), make_case("fp-b", defect=False)]
+        summary = corpus.summarize(cases)
+        rendered = corpus.render_summary(summary)
+        self.assertIn(summary["sha256"], rendered)
+        self.assertIn("fingerprint", rendered)
+
     def test_summarize_counts_execution_validated_cases(self):
         a = make_case("ev-a")
         a["ground_truth"]["execution_validated"] = True
