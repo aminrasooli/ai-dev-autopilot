@@ -60,9 +60,10 @@ gates in section 3 are preserved forever.
 
 ## 2. Current status (update this section at every milestone)
 
-- Date: 2026-08-28
-- Current milestone: **M4 Credibility and provenance is COMPLETE** (M0,
-  M1, M2 and M3 are complete). M5 public launch is next.
+- Date: 2026-08-29
+- Current milestone: **M5 Public launch — engineering complete on
+  main; the launch itself is pending JP's publication decision** (M0
+  through M4 are complete).
 - Done recently: all four M4 pillars are closed, each on admitted
   evidence at very small scale. Four transformed reconstructions of real
   historical bug fixes (license-checked, BSD-3-Clause sources) were
@@ -103,12 +104,27 @@ gates in section 3 are preserved forever.
   provenance corpus is now 7 cases, fingerprint
   `ec3a4d7cb5095299982c6a61ad4b1b51b20dc1b0ed6f30f8f2cfc7420e61246c`
   (`claude=4, qwen=1, human=2`).
-- Remaining: **nothing — M4 has no open blocker.** All four pillars are
-  literally satisfied.
-- Blockers: none for M4. Note for M5: no model has been evaluated
-  against the provenance corpus, so none of this is a measurement —
-  admission is not measurement, and the M5 launch gate still requires a
-  stranger to reproduce the headline from the README alone.
+- M5 engineering landed 2026-08-29 as seven PRs (#41–#47): the
+  "stable corpus" gate made executable with v2 declared stable at
+  corpus level (frozen fingerprint untouched); the README reproduction
+  path fixed so it actually does what it tells a stranger (the corpus
+  command now prints the fingerprint, and the evidence table's
+  assertion count was corrected against the measured total); a
+  generated ground-truth review packet (`--review`) that renders and
+  never decides; the licence decisions recorded with
+  inbound = outbound and no CLA; the v3 answer-key errata admitting
+  the corpus is human-reviewed *with documented errata*, not
+  error-free; a drift guard pinning the committed scorecard to a fresh
+  generation; and `harness.dirty` corrected to count tracked
+  modifications only, so following SUBMIT.md's own instructions no
+  longer brands a run unreproducible. Each fix came from *executing*
+  the documented path, not reading it.
+- Remaining for M5: **the launch itself — an external publication,
+  permanently a human gate.** No agent may perform it. The leaderboard
+  goes live only after outside submissions exist, which is what
+  launching is for.
+- Blockers: none in engineering. No model has been evaluated against
+  the provenance corpus — admission is not measurement.
 
 ---
 
