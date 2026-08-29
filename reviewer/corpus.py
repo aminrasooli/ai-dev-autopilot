@@ -593,6 +593,12 @@ def render_summary(summary):
                        ("authored by", "author_families")):
         dist = ", ".join(f"{k}={v}" for k, v in summary[key].items())
         lines.append(f"  {label:<12} {dist}")
+    # The fingerprint is what makes two runs comparable, and README.md's
+    # reproduction path tells a stranger this command prints it. It was
+    # only ever emitted under --json, so that instruction was false and
+    # the one step a stranger cannot check by eye was the one that
+    # mattered. Printed last: it is the line to compare, not a heading.
+    lines.append(f"  {'fingerprint':<12} {summary['sha256']}")
     return "\n".join(lines)
 
 
