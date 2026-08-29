@@ -7,7 +7,16 @@ where that reality is summarized. Superseded reports (`REPORT-PHASE2-*`,
 `OVERNIGHT-REPORT-*`, `DEEP-EVIDENCE-REPORT-*`) stay in the worktree as
 history; this file is what a fresh session reads first.
 
-## Current milestone: M4 Credibility and provenance (per `docs/ROADMAP.md` §2 and §4)
+## Current milestone: M5 Public launch (per `docs/ROADMAP.md` §2 and §4)
+
+**M5 engineering is complete on main** (PRs #41–#47, 2026-08-29): stable
+corpus declared, reproduction path verified by execution, generated
+scorecard guarded against drift, submission path dry-run end to end,
+licence decisions recorded, v3 errata admitted, leaderboard page fixed
+in advance. **What remains of M5 is the launch itself — an external
+publication, permanently a human gate.** Nothing below this line has
+been rewritten for M5; the M4 record that follows is history, kept
+accurate as of its closure.
 
 `docs/ROADMAP.md` is the canonical public governing strategy and owns
 milestone numbering; this section summarizes status against it and must
@@ -341,33 +350,30 @@ M2 (see above), and the Human Operator Touches operating model
   unless a human has explicitly decided that fork (see
   `docs/M3_DESIGN_BRIEF.md` — the diff-only-vs-execution question is
   unresolved by design)
-- Any M5+ work (public launch, leaderboard activation) before M4's own
-  gate is met
+- Performing the launch itself: external publication is permanently a
+  human gate, never an agent action
+- Leaderboard activation before genuine outside submissions exist
+- Any M6+ work (traction measurement, routing, agent teams)
 
 These remain North Star destinations, not current backlog. Do not build
 them because a stale branch or scheduler run once pointed that way.
 
-## Next human gate (M0, M1, M2 and M3 are complete; nothing above is blocking)
+## Next human gate (M0 through M4 complete; M5 engineering complete)
 
-See `docs/M4_DESIGN_BRIEF.md` and the session decision packet it was
-produced alongside for the current, dated list — this file intentionally
-does not duplicate a list that changes every M4 work session. As of the
-M4 kickoff session (2026-08-24): real-bug candidate approvals, the
-minimum human-authored-case tranche, and the r/LocalLLaMA post
-publish/no-publish decision are the standing human gates; publication of
-any drafted post remains a human gate per ROADMAP §3 regardless of how
-this list evolves.
+One gate stands: **the launch publish/no-publish decision** — the
+drafted post (`docs/COMMS_M3_LOCALLLAMA_DRAFT.md`, fact-checked against
+authoritative files) and any accompanying README-facing announcement.
+Publication of any drafted material remains a human gate per ROADMAP §3
+regardless of how this list evolves. The M4-era gate list this section
+used to carry is closed and lives in the M4 record above.
 
 ## Next autonomous work
 
-M4 only, exactly as scoped in `docs/M4_DESIGN_BRIEF.md`: license-checked
-real-bug candidate intake (queue only, never automatic admission),
-non-Claude-authored case proposals via `eval/proposals/` (blocked in any
-session without local Ollama/GPU access — see the design brief's
-handoff), the human-author packet, and private-holdout scaffolding that
-stops at this repository's boundary — the holdout itself is created
-outside it. Nothing outside M4 scope (no M5 launch prep, no routing, no
-agent teams).
+None pending the launch decision. M5 engineering is merged; the launch
+is human-only; M6+ is out of scope. If the launch decision produces
+edits (post revisions, README-facing announcement copy), those are
+in-scope M5 work; anything else is not. Agents finding this section
+should verify main and stop rather than manufacture work.
 
 ## Instructions for a future session with zero chat history
 
