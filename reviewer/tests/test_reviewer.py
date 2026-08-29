@@ -11,6 +11,7 @@ Run via suite: tests/reviewer.test.sh
 
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -743,3 +744,53 @@ class RepeatRunTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HarnessProvenanceTests(unittest.TestCase):
+    """`harness.dirty` is a reproducibility claim, so it must answer the
+    question eval/SUBMIT.md says it answers: was the *tracked* tree
+    modified relative to the recorded commit?"""
+
+    def _repo(self, tmp):
+        # -c core.hooksPath= keeps the fixture hermetic: a developer
+        # machine may install ambient git hooks that apply to every
+        # repository, and a hook that interferes with `git commit` would
+        # make these tests error for a reason unrelated to the code
+        # under test. A throwaway repo in $TMPDIR should not be subject
+        # to whatever git customisation the surrounding environment
+        # happens to carry.
+        run = lambda *a: subprocess.run(  # noqa: E731
+            ("git", "-c", "core.hooksPath=") + a[1:],
+            cwd=tmp, capture_output=True, text=True, check=True)
+        run("git", "init", "-q")
+        run("git", "config", "user.email", "t@example.com")
+        run("git", "config", "user.name", "t")
+        with open(os.path.join(tmp, "tracked.txt"), "w") as fh:
+            fh.write("original\n")
+        run("git", "add", "tracked.txt")
+        run("git", "commit", "-qm", "init")
+        return run
+
+    def _provenance(self, tmp):
+        with mock.patch.dict(os.environ, {"AI_DEV_HOME": tmp}):
+            return evaluate._harness_provenance()
+
+    def test_untracked_file_alone_is_not_dirty(self):
+        # The submission path itself creates one: SUBMIT.md tells a
+        # submitter to write eval/results/<model>-<date>.json. If that
+        # marked the run dirty, following the instructions would brand
+        # the result unreproducible.
+        with tempfile.TemporaryDirectory() as tmp:
+            self._repo(tmp)
+            with open(os.path.join(tmp, "report.json"), "w") as fh:
+                fh.write("{}\n")
+            prov = self._provenance(tmp)
+            self.assertTrue(prov["available"])
+            self.assertFalse(prov["dirty"])
+
+    def test_modified_tracked_file_is_dirty(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._repo(tmp)
+            with open(os.path.join(tmp, "tracked.txt"), "w") as fh:
+                fh.write("edited\n")
+            self.assertTrue(self._provenance(tmp)["dirty"])

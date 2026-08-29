@@ -311,8 +311,17 @@ def _harness_provenance():
             capture_output=True, text=True, timeout=10, check=False)
         if commit.returncode != 0:
             return {"available": False, "reason": "not a git checkout"}
+        # --untracked-files=no on purpose. `dirty` answers "is this run
+        # reproducible from that commit?", and an untracked file cannot
+        # change the answer: every tracked byte still matches HEAD. Left
+        # in, it made the field fire constantly and mean nothing --
+        # eval/SUBMIT.md tells submitters to write their report to
+        # eval/results/<model>-<date>.json, so following the submission
+        # instructions is itself enough to produce an untracked file and
+        # have the harness stamp the resulting run unreproducible.
         status = subprocess.run(
-            ["git", "-C", home, "status", "--porcelain"],
+            ["git", "-C", home, "status", "--porcelain",
+             "--untracked-files=no"],
             capture_output=True, text=True, timeout=10, check=False)
     except (OSError, subprocess.SubprocessError):
         return {"available": False, "reason": "git unavailable"}
