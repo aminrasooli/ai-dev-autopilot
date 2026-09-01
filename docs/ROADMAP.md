@@ -60,10 +60,14 @@ gates in section 3 are preserved forever.
 
 ## 2. Current status (update this section at every milestone)
 
-- Date: 2026-08-29
-- Current milestone: **M5 Public launch — engineering complete on
-  main; the launch itself is pending JP's publication decision** (M0
-  through M4 are complete).
+- Date: 2026-08-31
+- Current milestone: **M6 Traction gate** (M0 through M5 are complete).
+  JP launched publicly on LinkedIn on 2026-08-31 — the external
+  publication that was M5's last, permanently human-gated item. Per the
+  §5 M6 gate ("measured 3 weeks after M5 launch"), the measurement date
+  is **2026-09-21**. The gate's criteria are the ones in §5, unchanged;
+  it is measured once, at that time (§9, failure mode 7). M7 starts
+  only if the measured gate passes.
 - Done recently: all four M4 pillars are closed, each on admitted
   evidence at very small scale. Four transformed reconstructions of real
   historical bug fixes (license-checked, BSD-3-Clause sources) were
@@ -119,10 +123,14 @@ gates in section 3 are preserved forever.
   modifications only, so following SUBMIT.md's own instructions no
   longer brands a run unreproducible. Each fix came from *executing*
   the documented path, not reading it.
-- Remaining for M5: **the launch itself — an external publication,
-  permanently a human gate.** No agent may perform it. The leaderboard
+- M5 closed 2026-08-31: JP performed the launch himself (LinkedIn).
+  External publication was and remains permanently a human gate; no
+  agent performed or will perform any part of it. The leaderboard
   goes live only after outside submissions exist, which is what
   launching is for.
+- Remaining for M6: wait for 2026-09-21 and measure the §5 criteria
+  once. Until then: maintenance on concrete defects, verification of
+  any outside submissions, and passive evidence collection only.
 - Blockers: none in engineering. No model has been evaluated against
   the provenance corpus — admission is not measurement.
 

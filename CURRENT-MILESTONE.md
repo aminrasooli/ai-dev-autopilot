@@ -7,16 +7,29 @@ where that reality is summarized. Superseded reports (`REPORT-PHASE2-*`,
 `OVERNIGHT-REPORT-*`, `DEEP-EVIDENCE-REPORT-*`) stay in the worktree as
 history; this file is what a fresh session reads first.
 
-## Current milestone: M5 Public launch (per `docs/ROADMAP.md` §2 and §4)
+## Current milestone: M6 Traction gate (per `docs/ROADMAP.md` §2 and §4)
 
-**M5 engineering is complete on main** (PRs #41–#47, 2026-08-29): stable
-corpus declared, reproduction path verified by execution, generated
-scorecard guarded against drift, submission path dry-run end to end,
-licence decisions recorded, v3 errata admitted, leaderboard page fixed
-in advance. **What remains of M5 is the launch itself — an external
-publication, permanently a human gate.** Nothing below this line has
-been rewritten for M5; the M4 record that follows is history, kept
-accurate as of its closure.
+**M5 is COMPLETE.** Engineering landed on main 2026-08-29 (PRs #41–#47):
+stable corpus declared, reproduction path verified by execution,
+generated scorecard guarded against drift, submission path dry-run end
+to end, licence decisions recorded, v3 errata admitted, leaderboard page
+fixed in advance. **The launch itself — the permanently human-gated
+external publication — was performed by JP on 2026-08-31: a LinkedIn
+launch post** (recorded here on JP's own statement; external platforms
+are not verifiable from this repository). That closes M5's last item.
+
+**M6 is the current milestone: the traction gate, measured once, at its
+scheduled time — 2026-09-21, exactly three weeks after the 2026-08-31
+launch, per ROADMAP §5.** The gate's criteria are the ones already
+written in `docs/ROADMAP.md` §5 and are not restated here so that this
+file can never drift from them: what counts is defined there,
+unchanged. Between now and 2026-09-21 the only traction-related work is
+passive evidence collection (stars, forks, issues, PRs, outside
+submissions as they arrive); per ROADMAP §9 failure mode 7, day-to-day
+audience numbers are noise and the gate is measured once. **M7 does not
+begin — not design, not implementation — until the M6 gate is measured
+and passes.** Nothing below this line has been rewritten for M6; the
+M4/M5 record that follows is history, kept accurate as of its closure.
 
 `docs/ROADMAP.md` is the canonical public governing strategy and owns
 milestone numbering; this section summarizes status against it and must
@@ -306,7 +319,7 @@ scheduler starts from a fresh clone or worktree of `origin/main`.
 
 ## Stable base
 
-**`origin/main`** @ `1c4d44a9776c18d884bdf7ebabfb60f11ad11170` (PR #24
+**`origin/main`** @ `b9c7346700dfaa35332a68e8154bb61615287c6f` (PR #48
 merge commit, the current tip of `origin/main` as of this file). Verify
 with `git fetch origin main` before trusting this line — reality wins
 if it has moved.
@@ -350,30 +363,41 @@ M2 (see above), and the Human Operator Touches operating model
   unless a human has explicitly decided that fork (see
   `docs/M3_DESIGN_BRIEF.md` — the diff-only-vs-execution question is
   unresolved by design)
-- Performing the launch itself: external publication is permanently a
-  human gate, never an agent action
+- External publication of any kind: permanently a human gate, never an
+  agent action (the 2026-08-31 launch was performed by JP; follow-up
+  posts, comment replies, and channel posts remain human-only)
 - Leaderboard activation before genuine outside submissions exist
-- Any M6+ work (traction measurement, routing, agent teams)
+- Measuring the M6 gate before its scheduled date (2026-09-21), or
+  treating day-to-day star/view counts as the measurement (ROADMAP §9
+  failure mode 7)
+- Any M7+ work (routing, model selection, agent teams) before the M6
+  gate is measured and passes — including "design work" for it
 
 These remain North Star destinations, not current backlog. Do not build
 them because a stale branch or scheduler run once pointed that way.
 
-## Next human gate (M0 through M4 complete; M5 engineering complete)
+## Next human gate (M0 through M5 complete)
 
-One gate stands: **the launch publish/no-publish decision** — the
-drafted post (`docs/COMMS_M3_LOCALLLAMA_DRAFT.md`, fact-checked against
-authoritative files) and any accompanying README-facing announcement.
+One gate stands: **the M6 traction gate measurement on 2026-09-21**,
+three weeks after the 2026-08-31 launch, against the criteria exactly
+as written in `docs/ROADMAP.md` §5. The measurement itself and the
+go/no-go decision are JP's; agents may assemble the public evidence
+into a gate report but may not declare the gate passed or start M7.
 Publication of any drafted material remains a human gate per ROADMAP §3
-regardless of how this list evolves. The M4-era gate list this section
-used to carry is closed and lives in the M4 record above.
+regardless of how this list evolves.
 
 ## Next autonomous work
 
-None pending the launch decision. M5 engineering is merged; the launch
-is human-only; M6+ is out of scope. If the launch decision produces
-edits (post revisions, README-facing announcement copy), those are
-in-scope M5 work; anything else is not. Agents finding this section
-should verify main and stop rather than manufacture work.
+M6-scope maintenance only, and only when a concrete need exists: fixing
+an actual reproducible defect or reproduction/onboarding failure,
+verifying an incoming outside benchmark submission, preparing local
+review notes on incoming PRs (never posting responses — drafts are for
+JP), collecting public traction evidence, and keeping reproducibility
+infrastructure working. No invented work: a day with nothing genuinely
+needed produces no PR. On or after 2026-09-21, autonomous work may
+prepare the M6 gate report from public evidence and must then stop at
+the gate. M7 is out of scope in every form until the gate is measured
+and passes.
 
 ## Instructions for a future session with zero chat history
 
