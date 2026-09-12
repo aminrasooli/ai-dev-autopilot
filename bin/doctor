@@ -19,6 +19,7 @@ set -uo pipefail
 # that describe a different installation. An explicit AI_DEV_HOME still wins.
 AI_DEV_HOME="${AI_DEV_HOME:-$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)}"
 GUARD="$AI_DEV_HOME/hooks/security-guard.sh"
+BROKER="$AI_DEV_HOME/hooks/permission-broker.sh"
 QUICK=0
 ONLY=""
 while [ $# -gt 0 ]; do
@@ -897,6 +898,74 @@ guard_says deny "guard: command past the subject ceiling" \
   "$(python3 -c 'import json; print(json.dumps({"hook_event_name":"PreToolUse","tool_name":"Bash","cwd":"/tmp","tool_input":{"command":"echo " + "a"*200000}}))' 2>/dev/null)"
 guard_says deny "guard: payload past the payload ceiling" \
   "$(python3 -c 'import json; print(json.dumps({"hook_event_name":"PreToolUse","tool_name":"Write","cwd":"/tmp","tool_input":{"file_path":"/tmp/x","content":"z"*2000000}}))' 2>/dev/null)"
+
+# THE BROKER'S CEILING IS A CLAUSE COUNT, MEASURED THE SAME WAY THE GUARD'S IS
+#
+# hooks/permission-broker.sh does not cost time per byte the way the guard
+# does: every clause is decomposed, dispatched and canonicalised with its own
+# subprocesses, so a command of many short clauses sits far inside the byte
+# ceiling while costing far more. AI_DEV_MAX_CLAUSES bounds that quantity
+# instead. The broker registers as a PermissionRequest hook, not PreToolUse —
+# a different key in the deployed settings than the guard's — but the same
+# contract governs it: a hook that reaches its timeout is cancelled and
+# renders no decision, so the cap is only as good as the timeout actually
+# deployed here, and that is measured, not assumed.
+if want "broker:workbound"; then
+  cap="$(grep -oE 'AI_DEV_MAX_CLAUSES:-[0-9]+' "$BROKER" 2>/dev/null | head -1 | sed 's/.*-//')"
+  budget="$(jq -r --arg b "$BROKER" \
+      '[.hooks.PermissionRequest[]?.hooks[]? | select((.command // "") | contains($b)) | .timeout // empty] | first // empty' \
+      "$HOME/.claude/settings.json" 2>/dev/null)"
+  # Not deployed yet: fall back to the timeout the hub would deploy, and say so.
+  budget_src="the deployed settings"
+  if [ -z "$budget" ]; then
+    budget="$(jq -r '[.hooks.PermissionRequest[]?.hooks[]? | .timeout // empty] | first // empty' \
+        "$AI_DEV_HOME/adapters/claude/settings.fragment.json" 2>/dev/null)"
+    budget_src="the hub fragment (not deployed here yet)"
+  fi
+  if [ -z "$cap" ] || [ -z "$budget" ]; then
+    skip "the broker answers well inside its hook timeout" \
+         "could not read the clause cap or the registered hook timeout"
+  else
+    # The broker's worst admitted case: exactly `cap` short, recognised
+    # clauses, so every one pays full decomposition cost instead of any
+    # clause short-circuiting the loop early.
+    at_cap="$(python3 -c "print(' ; '.join(['ls -la']*$cap))" 2>/dev/null)"
+    t0="$(( $(date +%s%N) / 1000000 ))"
+    out="$(printf '%s' "$(bash_payload "$at_cap")" \
+        | env AI_DEV_UNATTENDED=0 AI_DEV_OVERNIGHT=0 AI_DEV_HOME="$AI_DEV_HOME" bash "$BROKER" 2>/dev/null)"
+    t1="$(( $(date +%s%N) / 1000000 ))"
+    spent=$((t1 - t0)); allowed=$((budget * 1000))
+    decision="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.decision.behavior // empty' 2>/dev/null)"
+    if [ "$decision" != "allow" ]; then
+      bad "the broker classifies a command at the clause cap" \
+          "expected allow at $cap clauses, got '${decision:-<none>}' — the worst case could not even be measured"
+    elif [ "$spent" -lt $((allowed / 2)) ]; then
+      ok "the broker's worst admitted case answers in ${spent}ms of its ${budget}s timeout (cap ${cap} clauses, budget from $budget_src)"
+    else
+      bad "the broker answers well inside its hook timeout" \
+          "worst case ${spent}ms of a ${allowed}ms budget on this machine. A hook that reaches its timeout is cancelled and renders NO decision, and Claude Code falls back to asking a human who, unattended, is not there — so this is the ceiling disappearing, not the ceiling being slow. Lower AI_DEV_MAX_CLAUSES in hooks/permission-broker.sh or raise the hook timeout in adapters/claude/settings.fragment.json, then re-sync."
+    fi
+
+    # One clause past the cap must escalate promptly rather than being
+    # classified slowly and cancelled: the fast path this cap exists for.
+    past_cap="$(python3 -c "print(' ; '.join(['ls -la']*($cap + 1)))" 2>/dev/null)"
+    t0="$(( $(date +%s%N) / 1000000 ))"
+    out="$(printf '%s' "$(bash_payload "$past_cap")" \
+        | env AI_DEV_UNATTENDED=0 AI_DEV_OVERNIGHT=0 AI_DEV_HOME="$AI_DEV_HOME" bash "$BROKER" 2>/dev/null)"
+    t1="$(( $(date +%s%N) / 1000000 ))"
+    past_spent=$((t1 - t0))
+    past_decision="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.decision.behavior // empty' 2>/dev/null)"
+    if [ -n "$past_decision" ]; then
+      bad "one clause past the cap escalates rather than being classified" \
+          "expected no decision (escalate) at $((cap + 1)) clauses, got '$past_decision'"
+    elif [ "$past_spent" -ge "$allowed" ]; then
+      bad "one clause past the cap escalates promptly" \
+          "took ${past_spent}ms against a ${allowed}ms budget — the fast path is not fast"
+    else
+      ok "one clause past the cap escalates in ${past_spent}ms rather than being classified slowly"
+    fi
+  fi
+fi
 
 if want "guard:nosecrets"; then
   probe='cat /nonexistent && export TOTALLY_SECRET_VALUE=hunter2sesame'

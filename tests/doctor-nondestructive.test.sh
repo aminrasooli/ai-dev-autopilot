@@ -177,6 +177,31 @@ else
       "the claim moved or was reworded — re-point this assertion rather than deleting it"
 fi
 
+# --------------------- 4. broker:workbound writes nothing outside its temp dirs
+# Unlike guard:workbound's mktemp'd probe file, the broker:workbound check pipes
+# its worst-case payload straight into the broker with no file on disk at all.
+# This pins that: a synthetic $HOME with no real ~/.claude sees no new files
+# after the check runs, and no stray file appears under the shared TMPDIR.
+printf '\n4. broker:workbound writes nothing outside its temp dirs\n'
+BHOME="$WORK/broker-home"; mkdir -p "$BHOME"
+before_home="$(find "$BHOME" | sort)"
+before_tmp="$(find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'aidev-*' 2>/dev/null | sort)"
+env HOME="$BHOME" AI_DEV_HOME="$AI_DEV_HOME" bash "$DOCTOR" --only broker:workbound >/dev/null 2>&1
+after_home="$(find "$BHOME" | sort)"
+after_tmp="$(find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'aidev-*' 2>/dev/null | sort)"
+if [ "$before_home" = "$after_home" ]; then
+  ok "a synthetic \$HOME has no new files after broker:workbound runs"
+else
+  bad "a synthetic \$HOME has no new files after broker:workbound runs" \
+      "new entries: $(comm -13 <(printf '%s\n' "$before_home") <(printf '%s\n' "$after_home") | tr '\n' ' ')"
+fi
+if [ "$before_tmp" = "$after_tmp" ]; then
+  ok "broker:workbound leaves no stray probe file under TMPDIR"
+else
+  bad "broker:workbound leaves no stray probe file under TMPDIR" \
+      "new entries: $(comm -13 <(printf '%s\n' "$before_tmp") <(printf '%s\n' "$after_tmp") | tr '\n' ' ')"
+fi
+
 printf '\n'
 if [ "$FAIL" -gt 0 ]; then printf '%s%d passed, %d failed%s\n' "$R" "$PASS" "$FAIL" "$N"; exit 1; fi
 printf '%s%d passed%s\n' "$G" "$PASS" "$N"; exit 0
