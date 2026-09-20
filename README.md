@@ -1,5 +1,9 @@
 # AI Dev Autopilot
 
+
+> **Current status:** M6 traction measurement is active through September 21, 2026. Maintenance may continue during this window, but M7 work remains blocked until the traction gate is measured and passes.
+
+
 ## Autonomous coding without turning yourself into the message bus.
 
 **An open, vendor-neutral path toward autonomous software engineering — the human gives direction, not constant approval.**
