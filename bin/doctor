@@ -1076,9 +1076,16 @@ section "project bootstrap"
 if want "bootstrap:disposable"; then
   if [ "$QUICK" = "1" ]; then skip "bootstrap works in a disposable repo" "--quick"
   else
-    "$AI_DEV_HOME/tests/bootstrap.test.sh" >"${TMPDIR:-/tmp}/aidev-bootstrap.log" 2>&1 \
-      && ok "bootstrap produces a working project in a disposable git repo" \
-      || bad "bootstrap works in a disposable repo" "see ${TMPDIR:-/tmp}/aidev-bootstrap.log"
+    "$AI_DEV_HOME/tests/bootstrap.test.sh" >"${TMPDIR:-/tmp}/aidev-bootstrap.log" 2>&1
+    rc=$?
+    case $rc in
+      0) ok "bootstrap produces a working project in a disposable git repo" ;;
+      # 2 = the same "contract holds; a control awaits make sync" signal
+      # tests/run-all.sh maps for every suite — not a bootstrap failure.
+      2) pending "bootstrap produces a working project in a disposable git repo" \
+                  "not deployed on this machine yet — run: make -C $AI_DEV_HOME sync — see ${TMPDIR:-/tmp}/aidev-bootstrap.log" ;;
+      *) bad "bootstrap works in a disposable repo" "see ${TMPDIR:-/tmp}/aidev-bootstrap.log" ;;
+    esac
   fi
 fi
 
