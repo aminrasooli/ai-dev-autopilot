@@ -246,6 +246,69 @@ else
   bad "deployed broken host prerequisite exits 1" "exit $RC"
 fi
 
+# --- 6. broker:workbound: measured against the timeout actually registered ---
+#
+# broker:workbound (like guard:workbound before it) always answers — it falls
+# back to the hub's own shipped fragment when nothing is deployed yet, so there
+# is no PENDING state to prove here. What needs proving is the other direction:
+# an artificially tiny hook timeout, injected through the exact settings path
+# the check reads, must make it fail hard rather than pass or skip; the shipped
+# values, and a normal deployed timeout, must still pass.
+printf '\n%s6. broker:workbound: measured against the timeout actually registered%s\n' "$B" "$N"
+
+run_broker_case() {
+  OUT="$(env HOME="$1" bash "$DOCTOR" --only "broker:workbound" 2>&1)"
+  RC=$?
+}
+
+BROKER_FRESH="$WORK/broker-fresh"
+mkdir -p "$BROKER_FRESH"
+run_broker_case "$BROKER_FRESH"
+if printf '%s' "$OUT" | grep -qE "^  PASS  the broker's worst admitted case"; then
+  ok "undeployed: broker:workbound passes via the hub fragment fallback"
+else
+  bad "undeployed: broker:workbound passes via the hub fragment fallback" "$OUT"
+fi
+if printf '%s' "$OUT" | grep -q 'not deployed here yet'; then
+  ok "...and names the fragment fallback as its budget source"
+else
+  bad "undeployed: broker:workbound names the fragment fallback" "$OUT"
+fi
+
+BROKER_NORMAL="$WORK/broker-normal"
+mkdir -p "$BROKER_NORMAL/.claude"
+jq -n --arg c "bash $AI_DEV_HOME/hooks/permission-broker.sh" \
+  '{hooks:{PermissionRequest:[{hooks:[{type:"command",command:$c,timeout:20}]}]}}' \
+  > "$BROKER_NORMAL/.claude/settings.json"
+run_broker_case "$BROKER_NORMAL"
+if printf '%s' "$OUT" | grep -qE "^  PASS  the broker's worst admitted case.*deployed settings"; then
+  ok "deployed with the shipped timeout: broker:workbound passes and reads the deployed settings"
+else
+  bad "deployed with the shipped timeout: broker:workbound passes and reads the deployed settings" "$OUT"
+fi
+if [ "$RC" -eq 0 ]; then
+  ok "the shipped-timeout run exits 0"
+else
+  bad "the shipped-timeout run exits 0" "exit $RC"
+fi
+
+BROKER_TINY="$WORK/broker-tiny"
+mkdir -p "$BROKER_TINY/.claude"
+jq -n --arg c "bash $AI_DEV_HOME/hooks/permission-broker.sh" \
+  '{hooks:{PermissionRequest:[{hooks:[{type:"command",command:$c,timeout:1}]}]}}' \
+  > "$BROKER_TINY/.claude/settings.json"
+run_broker_case "$BROKER_TINY"
+if printf '%s' "$OUT" | grep -qE '^  FAIL  the broker answers well inside its hook timeout'; then
+  ok "an injected 1s timeout makes broker:workbound fail hard, not skip or pass"
+else
+  bad "an injected 1s timeout makes broker:workbound fail hard, not skip or pass" "$OUT"
+fi
+if [ "$RC" -eq 1 ]; then
+  ok "the injected-tiny-timeout run exits 1"
+else
+  bad "the injected-tiny-timeout run exits 1" "exit $RC"
+fi
+
 printf '\n'
 if [ "$FAIL" -eq 0 ]; then printf '%s%d passed%s\n' "$G" "$PASS" "$N"; exit 0; fi
 printf '%s%d passed · %d FAILED%s\n' "$R" "$PASS" "$FAIL" "$N"; exit 1
