@@ -41,6 +41,11 @@ that touch protected paths, to write goals, and to decide milestone or policy
 questions.
 
 The daily digest is the single channel that may ask the owner for anything.
+It reports what ran, what was delivered, what was repaired, what is blocked,
+and measured usage. It carries **at most one decision line**, with the evidence
+and the exact options. When nothing needs the owner it says so in the subject —
+and that is a successful day, not an empty one. No other channel may request
+owner action.
 
 ## The continuation protocol
 
