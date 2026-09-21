@@ -7,7 +7,23 @@ where that reality is summarized. Superseded reports (`REPORT-PHASE2-*`,
 `OVERNIGHT-REPORT-*`, `DEEP-EVIDENCE-REPORT-*`) stay in the worktree as
 history; this file is what a fresh session reads first.
 
-## Current milestone: M6 Traction gate (per `docs/ROADMAP.md` §2 and §4)
+## Current milestone: M6 CLOSED — MISS (measured 2026-09-20/21)
+
+**The M6 traction gate was measured and MISSED.** Full record, evidence and
+limitations: `docs/M6-GATE-RESULT.md`. All three §5 criteria were unmet;
+organic external engagement was effectively zero once the single non-owner
+account was classified SOLICITED by the owner. Gate criteria and date are
+unchanged and were not rewritten.
+
+This is the **first** miss, so §5's one bounded repositioning/relaunch round is
+authorized. It **ends 2026-10-19** and is tracked as a goal issue.
+**M7 remains BLOCKED** — not implementation, not design — and this result
+authorizes none of it.
+
+The section below is the pre-measurement statement of the milestone, retained
+unedited as history.
+
+## Current milestone (as stated before measurement): M6 Traction gate (per `docs/ROADMAP.md` §2 and §4)
 
 **M5 is COMPLETE.** Engineering landed on main 2026-08-29 (PRs #41–#47):
 stable corpus declared, reproduction path verified by execution,
