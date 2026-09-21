@@ -1,0 +1,14 @@
+[Unit]
+Description=AI Dev Autopilot bounded self-repair session (oneshot, after a controller fault)
+# Reuses the controller's state, lock, time guard and kill switch.
+# NOT a second controller: it runs no cycles and publishes nothing.
+After=ai-dev-autopilot-travel.service
+
+[Service]
+Type=oneshot
+# The ceiling is enforced twice: here, and by `timeout` inside the script.
+TimeoutStartSec=50m
+ExecStart=%h/projects/ai-team-runtime-v0/automation/repair-session.sh
+# Same identity as the WORKER, never the merger.
+Environment=GH_TOKEN=
+Environment=GITHUB_TOKEN=
