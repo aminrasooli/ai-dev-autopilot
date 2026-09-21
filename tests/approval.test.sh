@@ -38,6 +38,33 @@ bad() { FAIL=$((FAIL+1)); printf '  %sFAIL%s  %s\n        %s\n' "$R" "$N" "$1" "
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/aidev-broker.XXXXXX")" || exit 3
 trap 'rm -rf "$WORK"' EXIT
+
+# `git_hooks_present()` (hooks/permission-broker.sh) asks git for the MERGED
+# core.hooksPath, which includes whatever the machine running this suite has
+# configured globally. A developer box with a user-global core.hooksPath (or
+# any other global git setting) would leak into every disposable repo built
+# below, making an unhooked fixture look hooked and turning routine `git
+# commit` cases into escalations. Point HOME (and the XDG path git falls
+# back to when HOME/.gitconfig is absent) at an empty, throwaway directory so
+# every git command below — both the ones that build fixtures and the ones
+# the guard/broker run internally against them — sees no global git config at
+# all. This does not touch GIT_CONFIG_GLOBAL/GIT_CONFIG_SYSTEM: the broker
+# itself treats those as an injected redirection and escalates on their mere
+# presence (git_config_env_inert), so setting them here would manufacture a
+# different false signal instead of removing one. Local, repo-level
+# core.hooksPath (set with `git -C "$REPO" config ...` below) is untouched by
+# this and still escalates exactly as before.
+#
+# Some fixtures further down build a path that must land outside this
+# session's workspace: in_ws() (hooks/permission-broker.sh) treats the repo,
+# TMPDIR, and — on a machine whose TMPDIR is under /tmp/claude* — that whole
+# prefix as workspace. They use $HOME for that because a real home directory
+# is reliably elsewhere. Once HOME below points inside $WORK it no longer is,
+# so REAL_HOME preserves the original value for them.
+REAL_HOME="$HOME"
+export HOME="$WORK/home" XDG_CONFIG_HOME="$WORK/home/.config"
+mkdir -p "$HOME"
+
 REPO="$WORK/repo"; mkdir -p "$REPO/tests"
 git -C "$REPO" init -q >/dev/null 2>&1
 printf 'x\n' > "$REPO/f.txt"
@@ -316,8 +343,8 @@ expect allow "$(old_b NotebookRead "{\"notebook_path\":\"$(jstr "$HOME/.aws/x.ip
     "baseline: the pre-fix broker ALLOWS reading a notebook under ~/.aws"
 
 expect allow "$(bnbe "$REPO/analysis.ipynb")"          "an in-repo NotebookEdit is silent, like Edit"
-expect ""    "$(bnbe "$HOME/notes.ipynb")"             "a notebook outside the workspace escalates"
-expect deny  "$(bnbe "$HOME/notes.ipynb" 1)"           "...and denies overnight instead of waiting"
+expect ""    "$(bnbe "$REAL_HOME/notes.ipynb")"        "a notebook outside the workspace escalates"
+expect deny  "$(bnbe "$REAL_HOME/notes.ipynb" 1)"      "...and denies overnight instead of waiting"
 expect ""    "$(bnbe "$REPO/.github/workflows/x.ipynb")" "a notebook inside executable CI configuration escalates"
 expect ""    "$(broker NotebookEdit '{"new_source":"x"}')" "a NotebookEdit with no path still escalates: fail-closed is kept"
 expect ""    "$(bnbr "$HOME/.aws/x.ipynb")"            "reading a notebook under ~/.aws now escalates"
@@ -1813,13 +1840,13 @@ was_allowed "arbitrary execution: xargs after &" \
 was_allowed "deleting the workspace root after &" \
   'true & rm -rf .'
 was_allowed "deleting a path outside the workspace after &" \
-  "true & rm -rf $HOME/Documents/important"
+  "true & rm -rf $REAL_HOME/Documents/important"
 was_allowed "...inside a brace group" \
-  "{ rm -rf $HOME/Documents/important; }"
+  "{ rm -rf $REAL_HOME/Documents/important; }"
 was_allowed "...inside a conditional" \
-  "if true; then rm -rf $HOME/Documents/important; fi"
+  "if true; then rm -rf $REAL_HOME/Documents/important; fi"
 was_allowed "...negated" \
-  "! rm -rf $HOME/Documents/important"
+  "! rm -rf $REAL_HOME/Documents/important"
 was_allowed "writing outside the workspace inside a for loop" \
   'for x in 1; do cp f.txt /etc/aidev-canary; done'
 was_allowed "...inside a while loop" \
