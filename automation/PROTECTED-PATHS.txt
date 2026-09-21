@@ -1,0 +1,15 @@
+# Paths a repair session may never modify. It opens a PR and stops instead.
+# This list is itself protected: changing it is a human-merged change.
+hooks/
+.github/workflows/
+.github/CODEOWNERS
+automation/repair-session.sh
+automation/PROTECTED-PATHS.txt
+automation/REPAIR-CHARTER.md
+automation/systemd/
+docs/AUTOMERGE_POLICY.md
+SECURITY.md
+LICENSE
+eval/cases/
+eval/cases-v3/
+eval/cases-provenance/

@@ -23,6 +23,25 @@ not product documentation; a report is committed only if it becomes
 durable documentation). Charters live wherever the human issues them;
 if an agent drafts one it goes next to the report it emerged from.
 
+## Goal intake — the only path
+
+A goal reaches the autopilot as a **GitHub issue** opened by the repository
+owner using the `Goal` template (`.github/ISSUE_TEMPLATE/goal.yml`): goal,
+acceptance criteria, boundaries, priority. The controller already mines open
+issues; it plans from the owner's open `goal`-labelled issues.
+
+**Opening that issue is the operator touch, and nothing else is required.** No
+brief is pasted into a session. No prompt is carried from one agent to another
+by hand — that is a manual transfer and the ledger records it as one.
+
+Faults do not need an intake path at all: a controller fault launches a bounded
+repair session automatically against the standing charter in
+`automation/REPAIR-CHARTER.md`. The owner is involved only to merge repairs
+that touch protected paths, to write goals, and to decide milestone or policy
+questions.
+
+The daily digest is the single channel that may ask the owner for anything.
+
 ## The continuation protocol
 
 An agent starting a block MUST, in order:
