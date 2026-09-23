@@ -21,7 +21,8 @@ authorized. It **ends 2026-10-19** and is tracked as a goal issue.
 authorizes none of it.
 
 The section below is the pre-measurement statement of the milestone, retained
-unedited as history.
+as history. Its body is byte-identical; only its heading was relabelled to mark
+it as pre-measurement.
 
 ## Current milestone (as stated before measurement): M6 Traction gate (per `docs/ROADMAP.md` §2 and §4)
 

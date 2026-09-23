@@ -38,7 +38,7 @@ pull requests, 0 external benchmark submissions. Page views over the trailing
 
 All non-owner activity in the repository's history comes from a single account,
 **`matinrasooli`** — one star (2026-08-25T16:53:50Z) and one issue, #23
-(2026-08-25T17:06:15Z), thirteen minutes apart, both six days **before** the
+(2026-08-25T17:06:15Z), twelve minutes apart, both six days **before** the
 2026-08-31 launch.
 
 **JP has recorded that this activity was solicited: he personally asked that
@@ -50,6 +50,11 @@ only its status as traction evidence is being recorded here.
 
 With that account excluded, **organic external engagement for the M6 gate is
 effectively zero**.
+
+The classification is **not outcome-determinative**: even counting that account
+in full, criterion 2 still fails (1 < 2) and criterion 3 still fails (1 ≪ 100).
+The gate is missed either way. The classification is recorded because it is
+true, not because the result depends on it.
 
 ## Limitations, stated rather than buried
 
