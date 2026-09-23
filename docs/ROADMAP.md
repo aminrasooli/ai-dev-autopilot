@@ -128,7 +128,12 @@ gates in section 3 are preserved forever.
   agent performed or will perform any part of it. The leaderboard
   goes live only after outside submissions exist, which is what
   launching is for.
-- Remaining for M6: wait for 2026-09-21 and measure the §5 criteria
+- **M6 RESULT (recorded 2026-09-20/21): MISS.** All three §5 criteria unmet;
+  the only non-owner activity was solicited by the owner and is classified
+  NOT ORGANIC. Record: `docs/M6-GATE-RESULT.md`. First miss, so §5's single
+  repositioning/relaunch round is authorized and ends 2026-10-19. M7 stays
+  blocked. The criteria below are unchanged and were not rewritten.
+- Remaining for M6 (pre-measurement text, retained): wait for 2026-09-21 and measure the §5 criteria
   once. Until then: maintenance on concrete defects, verification of
   any outside submissions, and passive evidence collection only.
 - Blockers: none in engineering. No model has been evaluated against
