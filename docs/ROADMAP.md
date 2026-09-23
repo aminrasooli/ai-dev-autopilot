@@ -144,10 +144,15 @@ gates in section 3 are preserved forever.
 ## 3. Operating model (how we work, every day)
 
 - Touch metric: 3 or fewer human operator touches per day.
-- Human gates that NEVER automate: merge to main, secrets and
-  passphrases, sudo and security-sensitive changes, publishing
-  externally, product-direction changes, spend above the authorized
-  threshold. Reduce touch frequency by batching; never delete gates.
+- Human gates that NEVER automate: secrets and passphrases, sudo and
+  security-sensitive changes, publishing externally, product-direction
+  changes, spend above the authorized threshold. Merge to main is a
+  human gate too, narrowed only by the 2026-09-20 limited automatic-merge
+  authorization (`docs/AUTOMERGE_POLICY.md`): a trusted controller may
+  merge routine `auto/*` maintenance pull requests that meet every
+  condition that policy states, with branch protection never bypassed;
+  every other merge stays human-only. Reduce touch frequency by
+  batching; never delete gates.
 - Session hygiene: every autonomous block ends with a REPORT file
   written, work committed and pushed, then `/clear`. The next block
   starts from the report. Never keep one session alive for days;

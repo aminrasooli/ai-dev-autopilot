@@ -53,7 +53,10 @@ human interaction that the system required in order to proceed:
 
 Target: **≤3 meaningful touches per day.** Current baseline: not yet
 measured — no historical numbers are claimed; measurement starts when
-the recording convention in `docs/HANDOFF.md` is actually used.
+the recording convention in `docs/HANDOFF.md` is actually used. The
+personal-track experiment defined in
+`docs/ROADMAP-AMENDMENT-2026-09-20.md` (M7p-M10p) is measured against
+this same touch definition; the metric itself is unchanged.
 
 The governing principle: **reduce touch frequency, never remove
 accountability.** Gates that stay human — merge to main, secrets,

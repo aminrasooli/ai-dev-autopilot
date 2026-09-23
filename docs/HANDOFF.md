@@ -21,7 +21,15 @@ Naming: reports are `REPORT-<phase-or-topic>-<YYYY-MM-DD>.md` in the
 worktree root, uncommitted by default (they are operational artifacts,
 not product documentation; a report is committed only if it becomes
 durable documentation). Charters live wherever the human issues them;
-if an agent drafts one it goes next to the report it emerged from.
+if an agent drafts one it goes next to the report it emerged from. This
+root-report convention is for the human checkout. The unattended
+automation worktree instead keeps its brief and PR-body outputs in
+`.claude-travel/`, and routes every other operational artifact — review
+notes, drafted replies, traction notes — to `.claude-travel/DRAFTS/`,
+per the 2026-09-20 limited automatic-merge authorization
+(`docs/ROADMAP-AMENDMENT-2026-09-20.md` §6); an untracked product-tree
+file there counts as uncommitted product work, not an operational
+report.
 
 ## Goal intake — the only path
 
