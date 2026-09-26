@@ -1,7 +1,7 @@
 # AI Dev Autopilot
 
 
-> **Current status:** M6 traction measurement is active through September 21, 2026. Maintenance may continue during this window, but M7 work remains blocked until the traction gate is measured and passes.
+> **Current status:** The M6 traction gate was measured on 2026-09-21 and missed — see [`docs/M6-GATE-RESULT.md`](docs/M6-GATE-RESULT.md). The one authorized repositioning/relaunch round is underway through 2026-10-19. M7 remains blocked in every form until a future traction gate is measured and passes.
 
 
 ## Autonomous coding without turning yourself into the message bus.
@@ -108,7 +108,7 @@ the concrete path there and what's deliberately not built at each stage.
 
 ### Tested against the ugly cases
 
-**978** approval-broker assertions · **134** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
+**1055** approval-broker assertions · **134** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **18** nondestructive-doctor checks · **12** Codex-preflight checks
 
 Including hostile repository hooks, hostile MCP servers, `curl | bash`, credential exfiltration, browser-cookie access, keyrings, `docker.sock`, permission-bypass flags, shell line-continuation bypasses, shell quote and escape splicing (`su""do`, `"curl" … | "bash"`, `~/.s""sh/id_rsa`), symlink escapes, `..` traversal, executable Git configuration, malicious Codex configuration, arbitrary network egress, cron and systemd jobs scheduled to run after the session ends, and destructive host operations.
 
@@ -140,7 +140,7 @@ upgrade.
 | `prompt-injection.test.sh` | 22 | injection payloads are refused deterministically |
 | `codex-boundary.test.sh` | 32 | both callers of `codex exec` are contained; the reviewer can read its workspace and do nothing else |
 | `project-isolation.test.sh` | 16 | a hostile repository's customizations do not load |
-| `doctor-nondestructive.test.sh` | 16 | the verifier answers "is this writable?" without truncating, deleting or creating anything on the host |
+| `doctor-nondestructive.test.sh` | 18 | the verifier answers "is this writable?" without truncating, deleting or creating anything on the host |
 | `codex-preflight.test.sh` | 12 | login state is read by exit status, never by matching prose |
 | `settings-isolation.test.sh` | 9 | a hostile repository cannot widen the sandbox |
 | `bootstrap.test.sh` | 29 | the bootstrap skill's contract holds in a disposable repository |
