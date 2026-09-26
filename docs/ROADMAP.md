@@ -133,6 +133,11 @@ gates in section 3 are preserved forever.
   NOT ORGANIC. Record: `docs/M6-GATE-RESULT.md`. First miss, so §5's single
   repositioning/relaunch round is authorized and ends 2026-10-19. M7 stays
   blocked. The criteria below are unchanged and were not rewritten.
+- **Responsibility boundary (2026-09-26):** M8–M10 and M7 routing decisions
+  belong to a separate manager program; this repository keeps M6/issue #55,
+  M7 measurement, and the security/authority patterns. See §4. The
+  hand-built runtime that developed this repository unattended in
+  August–September is retired; no gate moved.
 - Remaining for M6 (pre-measurement text, retained): wait for 2026-09-21 and measure the §5 criteria
   once. Until then: maintenance on concrete defects, verification of
   any outside submissions, and passive evidence collection only.
@@ -175,12 +180,35 @@ gates in section 3 are preserved forever.
 | M4 | Credibility and provenance | Real historical bugs (license-checked), cases authored by non-Claude models, human-written cases, private holdout live and rotating |
 | M5 | Public launch | Stable corpus, reproducible runs, multi-dimensional scorecard (repeatability, cost, latency, precision, classification, hard tier), SUBMIT.md accepting outside results, leaderboard page |
 | M6 | Traction gate | Numbers in section 5 measured; go/no-go for platform |
-| M7 | Measured model selection | Evidence-based task-to-model routing from benchmark data (the router, earned) |
-| M8 | Agent team execution | Planner / builder / reviewer roles across models, durable handoffs, measured touches |
-| M9 | Continuity and authority | Quota failover, resumable execution, risk tiers, escalation policy |
-| M10 | AI Engineering Manager | North Star realized |
+| M7 | Measured model selection | **Measurement only, here:** task class → benchmark evidence → a published competence / cost / latency / reliability / reproducibility artifact. The routing *decision* (task + artifact → model/agent) belongs to an external manager that consumes the artifact (see the responsibility boundary below). Originally: "Evidence-based task-to-model routing from benchmark data (the router, earned)" |
+| M8 | Agent team execution | **Not built in this repository** — multi-agent orchestration belongs to a separate manager program. Originally: "Planner / builder / reviewer roles across models, durable handoffs, measured touches" |
+| M9 | Continuity and authority | **Runtime not built in this repository** — continuity/orchestration belongs to a separate manager program; the security lessons and generic authority/isolation patterns stay documented here. Originally: "Quota failover, resumable execution, risk tiers, escalation policy" |
+| M10 | AI Engineering Manager | **Not built in this repository** — belongs to a separate manager program. Originally: "North Star realized" |
 
 Order is strict. No milestone starts before the previous one's gate.
+
+**Responsibility boundary (recorded 2026-09-26, owner decision).** This
+repository and a separate, maintained AI-manager program are
+complementary, never competing implementations.
+
+- **Stays here:** M6 and issue #55 (the relaunch round and its 2026-10-19
+  hard stop); M7 *measurement* — benchmark evidence, task-specific model
+  competence, cost, latency, reliability and reproducibility, published
+  as artifacts; the security lessons of this project and its generic
+  authority/isolation patterns (model isolation, frozen authority,
+  independent review, scoped merger identity).
+- **Belongs to the external manager:** M7 routing *decisions* (it consumes
+  the measurement artifacts), M8 multi-agent orchestration, M9 runtime
+  continuity/orchestration, M10 the AI Engineering Manager.
+- **Interface: artifacts only** — scorecards, competence data, generic
+  routing recommendations, isolation design, authority-boundary
+  documentation and digest schemas. No shared runtime, role users,
+  credentials, sudoers rules, queues, worktrees or services.
+
+This moves no gate: §5 is unchanged, M7 stays blocked by issue #55, and
+if its gate later opens only the measurement layer above is built here.
+The unmerged 2026-09-20 amendment proposing a personal M7p–M10p manager
+runtime (PR #57) is not adopted.
 
 **Note on the M3 criterion (revised 2026-08-24, after results, under a disclosed same-day procedural waiver).**
 
@@ -344,6 +372,9 @@ source. Build only when our differentiated requirement is not served.
 Our differentiation, the only things worth building: measured
 engineering competence, safe autonomy, human-touch reduction,
 evidence-based delegation, durable handoff, and the manager layer.
+Since 2026-09-26 delegation, handoff and the manager layer are pursued by
+a separate program (§4 responsibility boundary); this repository
+contributes measured competence and safety patterns to it as artifacts.
 
 ---
 

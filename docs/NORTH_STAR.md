@@ -9,6 +9,12 @@ agreed to — it is a parking lot, not a roadmap.
 Git remembers committed work. This file remembers the vision. The
 production tree should stay small.
 
+**2026-09-26:** the engineering-manager vision below is pursued by a
+separate, maintained manager program, not in this repository. This
+repository supplies it artifacts only — benchmark scorecards, model
+competence data and the security/authority patterns — per the
+responsibility boundary in `docs/ROADMAP.md` §4.
+
 ## What's actually implemented today
 
 A single, narrow wedge: an independent code reviewer that can run against

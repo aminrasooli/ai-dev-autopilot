@@ -20,6 +20,32 @@ authorized. It **ends 2026-10-19** and is tracked as a goal issue.
 **M7 remains BLOCKED** — not implementation, not design — and this result
 authorizes none of it.
 
+### Responsibility boundary and runtime retirement (recorded 2026-09-26, owner decision)
+
+- **Stays in this repository:** M6 and issue #55 (hard stop 2026-10-19,
+  unchanged); M7 *measurement* only — benchmark evidence, task-specific
+  model competence, cost, latency, reliability, reproducibility — once its
+  gate permits; the security lessons and generic authority/isolation
+  patterns.
+- **Belongs to a separate manager program:** M7 routing decisions (it
+  consumes this repository's measurement artifacts), M8 multi-agent
+  orchestration, M9 runtime continuity/orchestration, M10.
+- **Interface: artifacts only** (scorecards, competence data, generic
+  routing recommendations, isolation design, authority-boundary docs,
+  digest schemas) — no shared runtime, role users, credentials, sudoers
+  rules, queues, worktrees or services.
+- **Retired:** the hand-built unattended-development runtime used on this
+  repository in August–September. Its scheduler is disabled and automatic
+  merging was never enabled. The repository's `automation/` self-repair
+  and goal-intake scripts (PR #54) belonged to that runtime and are
+  inert history.
+- **Not adopted:** the 2026-09-20 roadmap amendment (PR #57: personal
+  M7p–M10p manager runtime and automatic-merge authorization); closed
+  unmerged, superseded by this record.
+
+No gate, criterion, date or recorded result changed. Details:
+`docs/ROADMAP.md` §4.
+
 The section below is the pre-measurement statement of the milestone, retained
 as history. Its body is byte-identical; only its heading was relabelled to mark
 it as pre-measurement.
