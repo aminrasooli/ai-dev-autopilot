@@ -401,7 +401,11 @@ as written in `docs/ROADMAP.md` §5. The measurement itself and the
 go/no-go decision are JP's; agents may assemble the public evidence
 into a gate report but may not declare the gate passed or start M7.
 Publication of any drafted material remains a human gate per ROADMAP §3
-regardless of how this list evolves.
+regardless of how this list evolves. Routine maintenance merges inside
+`docs/AUTOMERGE_POLICY.md`'s scope are no longer a human gate, per the
+2026-09-20 limited automatic-merge authorization
+(`docs/ROADMAP-AMENDMENT-2026-09-20.md` §6); the M6 measurement above and
+every path that policy excludes remain human-only.
 
 ## Next autonomous work
 
