@@ -1,0 +1,4 @@
+# Deliberate secret-shaped test fixture (not a credential): the reviewer's
+# corpus test asserts that a secret-shaped string is REJECTED. One exact
+# gitleaks fingerprint only — never a whole rule or path.
+ea16ca28880ac96c99356eac92f3f121e6e9304c:reviewer/tests/test_corpus.py:aws-access-token:112
