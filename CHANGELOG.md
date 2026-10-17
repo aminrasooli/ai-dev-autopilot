@@ -4,7 +4,52 @@ Notable changes to AI Dev Autopilot. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - Unreleased
+
+What a user notices, compared to v0.1.0 (below):
+
+- **A five-minute try-it path.** The README now opens with a "Try it in five
+  minutes" section: `git clone` + `make sync`, then three exact
+  prompts/commands that show one routine command allowed, one credential read
+  blocked, and one `sudo` stopped for a human — each with the exact message
+  you see.
+- **Removal and recovery.** `make unsync` reverses `make sync` — restoring
+  every file it backed up and removing every file or symlink it created
+  fresh. README gained "Remove it" and "If something goes wrong" sections
+  covering uninstall, a broken `settings.json`, a hook that misbehaves, and
+  rolling back to the previous release.
+- **A support path.** [SUPPORT.md](SUPPORT.md) says where to ask a question,
+  report a bug, or report a security issue. [docs/FAQ.md](docs/FAQ.md) answers
+  the questions a newcomer actually asks, each one backed by a file in the
+  repository. The bug-report issue template now asks for exactly what makes a
+  report reproducible: OS and version, `claude --version`, which `make`
+  targets were run, the exact command, expected vs. actual decision, and
+  `make doctor` output.
+- **A real demo.** [docs/DEMO.md](docs/DEMO.md): a session captured on a real
+  machine, showing the try-it path's outputs.
+- **Fixed:** the README's status banner no longer disagrees with
+  [CURRENT-MILESTONE.md](CURRENT-MILESTONE.md) about where the project
+  actually stands.
+- **Fixed:** the README stated two different assertion counts for the same
+  suites in two places ("Tested against the ugly cases" vs. the Evidence
+  table); both now match what `make test` prints today.
+
+### Known limitations
+
+- Linux only; developed and tested on Ubuntu 24.04. No Windows or macOS
+  support.
+- Experimental prototype, not independently audited — see README's
+  [Security limitations](README.md#security-limitations).
+- The M6 traction gate closed as a MISS (see
+  [docs/M6-GATE-RESULT.md](docs/M6-GATE-RESULT.md)): there is no confirmed
+  external user yet besides the project owner.
+- `make unsync` restores files sync overwrote and removes files sync created
+  fresh; it does not reverse `make manage` (`make unmanage` does that
+  separately) and does not uninstall `bubblewrap`/`socat` (`make deps`
+  installed those as system packages).
+- The independent-reviewer benchmark (`eval/`) is a small, self-authored pilot
+  corpus — evidence, not a ranking; see
+  [docs/BENCHMARK_METHODOLOGY.md](docs/BENCHMARK_METHODOLOGY.md).
 
 ### Security
 
