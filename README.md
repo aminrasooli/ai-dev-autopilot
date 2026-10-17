@@ -1,7 +1,10 @@
 # AI Dev Autopilot
 
 
-> **Current status:** M6 traction measurement is active through September 21, 2026. Maintenance may continue during this window, but M7 work remains blocked until the traction gate is measured and passes.
+> **Current status:** experimental, early-stage project, Linux only, no stable
+> release yet. The M6 traction gate closed 2026-09-21 as a miss — see
+> [CURRENT-MILESTONE.md](CURRENT-MILESTONE.md). Questions or problems:
+> [SUPPORT.md](SUPPORT.md).
 
 
 ## Autonomous coding without turning yourself into the message bus.
@@ -42,6 +45,46 @@ When an agent reaches something consequential, credentials, privilege escalation
   arbitrary external egress        │
   unknown behavior                ─┘
 ```
+
+## Try it in five minutes
+
+```bash
+git clone https://github.com/aminrasooli/ai-dev-autopilot.git ~/.ai-dev
+cd ~/.ai-dev
+make sync
+```
+
+Run these two commands **from a normal shell, not from inside a Claude Code
+session** — a session's own sandbox refuses to write `~/.ai-dev` or
+`~/.claude/settings.json` (`[framework-write]`), by design: the framework is
+read-only from a project session.
+
+`make sync` alone needs no `sudo` and takes a couple of seconds. It writes or
+merges `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/skills/*`,
+and `~/.codex/*` if Codex is present, and puts an `aidev` launcher on your
+`PATH`. Every file it overwrites is backed up first, under
+`~/.ai-dev-backups/<timestamp>/` — see [Remove it](#remove-it) to undo all of
+this.
+
+Now start Claude Code in any project (`cd` into it, run `claude` or `aidev`)
+and try three prompts:
+
+1. **Routine work runs.** Ask it to run `ls`. It runs immediately, no prompt.
+2. **Credentials are refused.** Ask it to run `cat ~/.ssh/id_rsa`. You see:
+   > `[cred-path] Blocked: this path holds credentials, keys, browser profiles
+   > or a password store. AI-DEV never reads it. If the human needs it, they
+   > do it themselves.`
+3. **Privilege escalation stops for a human.** Ask it to run `sudo whoami`.
+   Claude Code raises a permission dialog — `[sudo] Elevated privileges.
+   Confirm this is what you want.` — and nothing runs until you approve or
+   deny it.
+
+The first is automatic, the second is a hard refusal, the third hands the
+decision to you. That's the whole shape of the project.
+
+`make deps` and `make manage`, under [Quick start](#quick-start) below, are
+the hardening step that comes *after* this: an OS sandbox and a machine-wide
+managed floor. Neither is required to see the behaviour above.
 
 ## Why this exists
 
@@ -108,7 +151,7 @@ the concrete path there and what's deliberately not built at each stage.
 
 ### Tested against the ugly cases
 
-**978** approval-broker assertions · **134** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
+**1055** approval-broker assertions · **134** guard-portability assertions · **39** permission-posture checks · **32** Codex-boundary checks · **22** prompt-injection cases · **16** hostile-project isolation checks · **16** nondestructive-doctor checks · **12** Codex-preflight checks
 
 Including hostile repository hooks, hostile MCP servers, `curl | bash`, credential exfiltration, browser-cookie access, keyrings, `docker.sock`, permission-bypass flags, shell line-continuation bypasses, shell quote and escape splicing (`su""do`, `"curl" … | "bash"`, `~/.s""sh/id_rsa`), symlink escapes, `..` traversal, executable Git configuration, malicious Codex configuration, arbitrary network egress, cron and systemd jobs scheduled to run after the session ends, and destructive host operations.
 
@@ -353,6 +396,42 @@ make doctor                  # verify contracts and behaviour
 make test                    # run every contract test
 make review ARGS="--range main...HEAD"   # independent Codex review
 make remote                  # start Claude Code Remote Control here
+```
+
+## Remove it
+
+```bash
+make unmanage   # only if `make manage` was ever run — needs sudo
+make unsync     # undo `make sync`: restore every file it backed up, remove
+                # every file and symlink it created fresh (CLAUDE.md, the
+                # merged keys in settings.json, skills, Codex/Qwen AGENTS.md,
+                # the aidev launcher, the remote-control unit)
+rm -rf ~/.ai-dev
+```
+
+`make unsync` works from the newest backup under `~/.ai-dev-backups/<timestamp>/`
+by default, or pass a specific one: `make unsync ARGS=~/.ai-dev-backups/<ts>`.
+It leaves the backup directory itself in place — delete `~/.ai-dev-backups/`
+yourself once you've checked the restore. Restart Claude Code afterwards.
+
+## If something goes wrong
+
+**Claude Code won't start, or complains about `settings.json`.**
+`jq . ~/.claude/settings.json` shows whether it's valid JSON. If not, restore
+the last known-good copy from `~/.ai-dev-backups/<timestamp>/.claude_settings.json`,
+or run `make unsync` to undo the last sync entirely, then `make sync` again.
+
+**A hook blocks something it should not.** This is a false positive, not
+something to work around by disabling the guard. `var/permission-audit.log`
+has the rule id and decision; open an issue with the exact command — see
+[SUPPORT.md](SUPPORT.md) for the reproducible bug-report path.
+
+**You want the previous release back.**
+
+```bash
+git clone https://github.com/aminrasooli/ai-dev-autopilot.git ~/.ai-dev
+git -C ~/.ai-dev checkout v0.1.0
+make -C ~/.ai-dev sync
 ```
 
 ## Unattended mode
