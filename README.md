@@ -434,13 +434,20 @@ something to work around by disabling the guard. `var/permission-audit.log`
 has the rule id and decision; open an issue with the exact command — see
 [SUPPORT.md](SUPPORT.md) for the reproducible bug-report path.
 
-**You want the previous release back.**
+**You want the previous release back.** This section assumes `~/.ai-dev`
+already exists, as it does for anyone reading this far — `git clone` into it
+fails with "already exists and is not an empty directory". Fetch and switch
+the existing hub instead:
 
 ```bash
-git clone https://github.com/aminrasooli/ai-dev-autopilot.git ~/.ai-dev
+git -C ~/.ai-dev fetch --tags
 git -C ~/.ai-dev checkout v0.1.0
 make -C ~/.ai-dev sync
 ```
+
+If you already ran [Remove it](#remove-it) and deleted `~/.ai-dev`, clone it
+fresh first: `git clone https://github.com/aminrasooli/ai-dev-autopilot.git
+~/.ai-dev`, then run the `checkout` and `sync` lines above.
 
 ## Unattended mode
 
