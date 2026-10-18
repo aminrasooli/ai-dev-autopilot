@@ -411,23 +411,27 @@ make unsync     # undo `make sync`: restore every file it backed up, remove
                 # every file and symlink it created fresh (CLAUDE.md, the
                 # merged keys in settings.json, skills, Codex/Qwen AGENTS.md,
                 # the aidev launcher, the remote-control unit)
-rm -rf ~/.ai-dev
+rm -rf ~/.ai-dev-backups ~/.ai-dev
 ```
 
-By default `make unsync` restores each file from the **oldest** backup under
-`~/.ai-dev-backups/` that has it — the pre-AI-DEV state, even if you ran
-`make sync` more than once — rather than the newest, which could just be the
-already-merged output of an earlier sync. Pass a specific backup instead with
-`make unsync ARGS=~/.ai-dev-backups/<ts>`. It leaves the backup directory
-itself in place — delete `~/.ai-dev-backups/` yourself once you've checked
-the restore. Restart Claude Code afterwards.
+`make unsync` restores each file from the **oldest** backup under
+`~/.ai-dev-backups/` that has it, rather than the newest, which could just be
+the already-merged output of an earlier sync — so it undoes every `make sync`
+you've run since `~/.ai-dev-backups/` was last empty, not necessarily your
+very first install. Pass a specific backup instead with
+`make unsync ARGS=~/.ai-dev-backups/<ts>`. Once you've checked the restore,
+delete `~/.ai-dev-backups/` (as above): if you leave it and run `make sync`
+again later, a future `make unsync` will reach past this restore into the
+older backups and undo more than that one cycle. Restart Claude Code
+afterwards.
 
 ## If something goes wrong
 
 **Claude Code won't start, or complains about `settings.json`.**
 `jq . ~/.claude/settings.json` shows whether it's valid JSON. If not, restore
 the last known-good copy from `~/.ai-dev-backups/<timestamp>/.claude_settings.json`,
-or run `make unsync` to undo the last sync entirely, then `make sync` again.
+or run `make unsync` to undo every sync since your last cleanup (see
+[Remove it](#remove-it)), then `make sync` again.
 
 **A hook blocks something it should not.** This is a false positive, not
 something to work around by disabling the guard. `var/permission-audit.log`
@@ -448,6 +452,12 @@ make -C ~/.ai-dev sync
 If you already ran [Remove it](#remove-it) and deleted `~/.ai-dev`, clone it
 fresh first: `git clone https://github.com/aminrasooli/ai-dev-autopilot.git
 ~/.ai-dev`, then run the `checkout` and `sync` lines above.
+
+If you later want to [remove it](#remove-it) after rolling back, switch the
+hub back to a release that has `unsync` first — v0.1.0 does not:
+`git -C ~/.ai-dev checkout main`, then run `make -C ~/.ai-dev unsync` as
+usual. Running `make unsync` straight from a hub checked out at v0.1.0 fails
+with `No rule to make target 'unsync'`.
 
 ## Unattended mode
 

@@ -46,7 +46,11 @@ What a user notices, compared to v0.1.0 (below):
 - `make unsync` restores files sync overwrote and removes files sync created
   fresh; it does not reverse `make manage` (`make unmanage` does that
   separately) and does not uninstall `bubblewrap`/`socat` (`make deps`
-  installed those as system packages).
+  installed those as system packages). It restores from the oldest backup
+  under `~/.ai-dev-backups/`, so delete that directory after checking a
+  restore — otherwise a later `make sync` + `make unsync` cycle can reach
+  past it and undo more than that one cycle. `v0.1.0` predates `make unsync`
+  entirely; switch the hub back to `main` before removing after a rollback.
 - The independent-reviewer benchmark (`eval/`) is a small, self-authored pilot
   corpus — evidence, not a ranking; see
   [docs/BENCHMARK_METHODOLOGY.md](docs/BENCHMARK_METHODOLOGY.md).
