@@ -414,10 +414,13 @@ make unsync     # undo `make sync`: restore every file it backed up, remove
 rm -rf ~/.ai-dev
 ```
 
-`make unsync` works from the newest backup under `~/.ai-dev-backups/<timestamp>/`
-by default, or pass a specific one: `make unsync ARGS=~/.ai-dev-backups/<ts>`.
-It leaves the backup directory itself in place — delete `~/.ai-dev-backups/`
-yourself once you've checked the restore. Restart Claude Code afterwards.
+By default `make unsync` restores each file from the **oldest** backup under
+`~/.ai-dev-backups/` that has it — the pre-AI-DEV state, even if you ran
+`make sync` more than once — rather than the newest, which could just be the
+already-merged output of an earlier sync. Pass a specific backup instead with
+`make unsync ARGS=~/.ai-dev-backups/<ts>`. It leaves the backup directory
+itself in place — delete `~/.ai-dev-backups/` yourself once you've checked
+the restore. Restart Claude Code afterwards.
 
 ## If something goes wrong
 

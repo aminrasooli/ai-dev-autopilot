@@ -73,5 +73,34 @@ for d in "$T/.claude/skills" "$T/.codex/skills"; do
 done
 ok "no hub skill symlink survives unsync"
 
+# Evidence (review of 12388dc, finding 2): sync a second time and unsync must
+# still land on the pre-AI-DEV state, not the newest backup — which after a
+# second sync is just the already-merged output of the first sync.
+echo "unsync after two syncs"
+
+printf '{"preexisting": true}\n' >"$T/.claude/settings.json"
+"$AI_DEV_HOME/bin/ai-dev" sync >"$T/sync2.out" 2>&1
+rc=$?
+[ "$rc" -eq 0 ] || { bad "second sync succeeds" "exit $rc:"; cat "$T/sync2.out"; exit 1; }
+sleep 1
+"$AI_DEV_HOME/bin/ai-dev" sync >"$T/sync3.out" 2>&1
+rc=$?
+[ "$rc" -eq 0 ] || { bad "third sync (second re-sync) succeeds" "exit $rc:"; cat "$T/sync3.out"; exit 1; }
+ok "synced twice over a preexisting settings.json"
+
+"$AI_DEV_HOME/bin/ai-dev" unsync >"$T/unsync2.out" 2>&1
+rc=$?
+[ "$rc" -eq 0 ] || { bad "unsync after two syncs succeeds" "exit $rc:"; cat "$T/unsync2.out"; exit 1; }
+ok "unsync after two syncs succeeds"
+
+[ ! -e "$T/.claude/CLAUDE.md" ] && ok "unsync removed CLAUDE.md after two syncs" \
+  || bad "unsync removed CLAUDE.md after two syncs" "still present"
+jq -e '.hooks' "$T/.claude/settings.json" >/dev/null 2>&1 \
+  && bad "unsync removed the merged .hooks key after two syncs" "hooks key still present — guard still wired in" \
+  || ok "unsync removed the merged .hooks key after two syncs"
+diff -q <(printf '{"preexisting": true}\n') "$T/.claude/settings.json" >/dev/null 2>&1 \
+  && ok "unsync restored the pre-AI-DEV settings.json after two syncs, not an intermediate merge" \
+  || bad "unsync restored the pre-AI-DEV settings.json after two syncs" "file differs from its original pre-sync content"
+
 [ "$FAIL" -ne 0 ] && exit 1
 exit 0
