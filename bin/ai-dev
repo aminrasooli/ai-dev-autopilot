@@ -337,10 +337,11 @@ do_unmanage() {
 
 # ----------------------------------------------------------------------- unsync
 # Reverses what `sync` changed. A file sync overwrote is restored from the
-# newest backup that covers it; a file sync created fresh (no prior backup,
-# because backup() only copies something that already existed) is removed
-# instead. The backup directory itself is left in place either way, so a bad
-# restore can always be re-tried from the same evidence.
+# oldest backup that covers it — the state from before AI-DEV touched it,
+# even across more than one sync; a file sync created fresh (no prior
+# backup, because backup() only copies something that already existed) is
+# removed instead. The backup directory itself is left in place either way,
+# so a bad restore can always be re-tried from the same evidence.
 do_unsync() {
   local explicit_dir="${1:-}"
   local -a search_dirs=()
