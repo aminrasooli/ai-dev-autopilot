@@ -49,22 +49,25 @@ When an agent reaches something consequential, credentials, privilege escalation
 ## Try it in five minutes
 
 ```bash
+sudo apt-get install -y bubblewrap socat   # or: make deps — see why below
 git clone https://github.com/aminrasooli/ai-dev-autopilot.git ~/.ai-dev
 cd ~/.ai-dev
 make sync
 ```
 
-Run these two commands **from a normal shell, not from inside a Claude Code
+Run all of this **from a normal shell, not from inside a Claude Code
 session** — a session's own sandbox refuses to write `~/.ai-dev` or
 `~/.claude/settings.json` (`[framework-write]`), by design: the framework is
 read-only from a project session.
 
-`make sync` alone needs no `sudo` and takes a couple of seconds. It writes or
-merges `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.claude/skills/*`,
-and `~/.codex/*` if Codex is present, and puts an `aidev` launcher on your
-`PATH`. Every file it overwrites is backed up first, under
-`~/.ai-dev-backups/<timestamp>/` — see [Remove it](#remove-it) to undo all of
-this.
+`make sync` itself turns on Claude Code's own sandbox, which refuses to start
+a session at all without `bubblewrap` present — that is why the first command
+above is not optional, even though `make sync` needs no `sudo` and takes only
+a couple of seconds on its own. It writes or merges `~/.claude/CLAUDE.md`,
+`~/.claude/settings.json`, `~/.claude/skills/*`, and `~/.codex/*` if Codex is
+present, and puts an `aidev` launcher on your `PATH`. Every file it overwrites
+is backed up first, under `~/.ai-dev-backups/<timestamp>/` — see
+[Remove it](#remove-it) to undo all of this.
 
 Now start Claude Code in any project (`cd` into it, run `claude` or `aidev`)
 and try three prompts:
@@ -82,9 +85,11 @@ and try three prompts:
 The first is automatic, the second is a hard refusal, the third hands the
 decision to you. That's the whole shape of the project.
 
-`make deps` and `make manage`, under [Quick start](#quick-start) below, are
-the hardening step that comes *after* this: an OS sandbox and a machine-wide
-managed floor. Neither is required to see the behaviour above.
+`make manage`, under [Quick start](#quick-start) below, is the hardening step
+that comes *after* this: a machine-wide managed floor. It is not required to
+see the behaviour above — but `bubblewrap` and `socat` (installed above, or
+via `make deps`) are, because `make sync` turns on a sandbox that depends on
+them, not something `make manage` adds later.
 
 ## Why this exists
 
