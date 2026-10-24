@@ -4,6 +4,11 @@
 #
 #   ai-dev generate [--check]   rebuild generated/AGENTS.md from core/
 #   ai-dev sync                 project the hub onto Claude, Codex and Qwen
+#   ai-dev unsync [dir]         undo sync: restore backups, remove what sync
+#                               created fresh. Defaults to, for each path,
+#                               the OLDEST backup under ~/.ai-dev-backups/
+#                               that has it — the pre-AI-DEV state, even
+#                               after more than one sync.
 #   ai-dev manage               deploy the managed enforcement floor (sudo)
 #   ai-dev unmanage             remove it (sudo)
 #   ai-dev status               show what is linked where
@@ -330,6 +335,73 @@ do_unmanage() {
   sudo rm -f "$MANAGED_FILE" && say "removed $MANAGED_FILE"
 }
 
+# ----------------------------------------------------------------------- unsync
+# Reverses what `sync` changed. A file sync overwrote is restored from the
+# oldest backup that covers it — the state from before AI-DEV touched it,
+# even across more than one sync; a file sync created fresh (no prior
+# backup, because backup() only copies something that already existed) is
+# removed instead. The backup directory itself is left in place either way,
+# so a bad restore can always be re-tried from the same evidence.
+do_unsync() {
+  local explicit_dir="${1:-}"
+  local -a search_dirs=()
+  if [ -n "$explicit_dir" ]; then
+    [ -d "$explicit_dir" ] || die "no such backup directory: $explicit_dir"
+    search_dirs=("${explicit_dir%/}")
+  else
+    # Oldest first: a path backed up by more than one sync (settings.json, on
+    # every run) has a newer backup that is itself already-merged output from
+    # an earlier sync, not the pre-AI-DEV file. Only the OLDEST backup that
+    # still has the path is guaranteed to predate AI-DEV entirely, so that is
+    # the one restored.
+    while IFS= read -r d; do search_dirs+=("${d%/}"); done \
+      < <(ls -1dtr "$HOME"/.ai-dev-backups/*/ 2>/dev/null)
+  fi
+  [ "${#search_dirs[@]}" -gt 0 ] || die "no backup directory found under $HOME/.ai-dev-backups — pass one explicitly: ai-dev unsync <dir>"
+  printf 'Restoring from backup%s: %s\n' "$([ "${#search_dirs[@]}" -gt 1 ] && printf s)" "${search_dirs[*]}"
+
+  restore_or_remove() { # restore_or_remove <live-path-that-sync-may-have-written>
+    local live="$1" key d
+    key="$(printf '%s' "${live#$HOME/}" | tr '/' '_')"
+    for d in "${search_dirs[@]}"; do
+      if [ -e "$d/$key" ]; then
+        mkdir -p "$(dirname "$live")"
+        cp -aL "$d/$key" "$live" && say "restore $live"
+        return 0
+      fi
+    done
+    if [ -e "$live" ] || [ -L "$live" ]; then
+      rm -rf "$live" && say "remove  $live (sync created this; no prior backup)"
+    fi
+  }
+
+  restore_or_remove "$CLAUDE_DIR/CLAUDE.md"
+  restore_or_remove "$CLAUDE_DIR/settings.json"
+  restore_or_remove "$CODEX_DIR/config.toml"
+  restore_or_remove "$HOME/.config/systemd/user/ai-dev-remote@.service"
+
+  # Symlinks sync creates (skills, generated AGENTS.md, the aidev launcher) are
+  # never backed up by backup() — they did not pre-exist a first sync — so they
+  # are removed outright, and only if they still point into this hub.
+  points_into_hub() { [ -L "$1" ] && [ "$(readlink -f "$1" 2>/dev/null)" = "$(readlink -f "$2" 2>/dev/null)" ]; }
+  for d in "$CLAUDE_DIR/skills" "$CODEX_DIR/skills"; do
+    [ -d "$d" ] || continue
+    for s in "$d"/*; do
+      [ -e "$s" ] || continue
+      case "$(readlink -f "$s" 2>/dev/null)" in
+        "$AI_DEV_HOME"/skills/*) rm -f "$s" && say "remove  $s" ;;
+      esac
+    done
+  done
+  points_into_hub "$CODEX_DIR/AGENTS.md" "$AI_DEV_HOME/generated/AGENTS.md" && rm -f "$CODEX_DIR/AGENTS.md" && say "remove  $CODEX_DIR/AGENTS.md"
+  points_into_hub "$QWEN_DIR/AGENTS.md" "$AI_DEV_HOME/generated/AGENTS.md" && rm -f "$QWEN_DIR/AGENTS.md" && say "remove  $QWEN_DIR/AGENTS.md"
+  for d in "$HOME/bin" "$HOME/.local/bin"; do
+    points_into_hub "$d/aidev" "$AI_DEV_HOME/bin/aidev" && rm -f "$d/aidev" && say "remove  $d/aidev"
+  done
+
+  say "note  $HOME/.ai-dev-backups/ left in place — delete it yourself once you have checked the restore"
+}
+
 # --------------------------------------------------------------------- status
 do_status() {
   printf 'AI-DEV hub: %s\n' "$AI_DEV_HOME"
@@ -377,6 +449,7 @@ do_remote() {
 case "${1:-}" in
   generate)  shift; generate "$@" ;;
   sync)      shift; do_sync ;;
+  unsync)    shift; do_unsync "$@" ;;
   manage)    shift; do_manage ;;
   unmanage)  shift; do_unmanage ;;
   status)    shift; do_status ;;

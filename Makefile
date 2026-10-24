@@ -1,4 +1,4 @@
-.PHONY: help sync generate status doctor test review manage unmanage remote deps clean
+.PHONY: help sync unsync generate status doctor test review manage unmanage remote deps clean
 
 # The hub is the checkout this Makefile lives in, so `make status`, `make sync`
 # and `make test` all act on the tree you are standing in rather than on
@@ -12,6 +12,7 @@ help:
 	@echo "AI-DEV — $(AI_DEV_HOME) is the source of truth."
 	@echo
 	@echo "  make sync       project the hub onto Claude, Codex and Qwen adapters"
+	@echo "  make unsync     undo sync: restore backups, remove what sync created"
 	@echo "  make generate   rebuild generated/AGENTS.md from core/"
 	@echo "  make status     show what is linked where"
 	@echo "  make doctor     verify contracts and behaviour"
@@ -23,6 +24,7 @@ help:
 	@echo "  make deps       install sandbox dependencies (needs sudo)"
 
 sync:      ; @bin/ai-dev sync
+unsync:    ; @bin/ai-dev unsync $(ARGS)
 generate:  ; @bin/ai-dev generate
 status:    ; @bin/ai-dev status
 doctor:    ; @bin/doctor $(ARGS)

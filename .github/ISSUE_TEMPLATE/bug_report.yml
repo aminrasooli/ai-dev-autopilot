@@ -24,12 +24,29 @@ body:
   - type: textarea
     id: reproduction
     attributes:
-      label: Smallest reproduction
+      label: Steps to reproduce, from a clean clone
       description: >-
-        A command, a settings fragment, a repository layout — the smallest thing
-        that shows it. If a permission decision is involved, the command you ran
-        and the decision you got.
+        Start from `git clone` of this repository. List which `make` targets
+        you ran, in order (`make sync`, `make manage`, `make deps`, …), then the
+        exact command or tool call that shows the problem. If a permission
+        decision is involved, give the exact command text.
+      placeholder: |
+        1. git clone https://github.com/aminrasooli/ai-dev-autopilot.git ~/.ai-dev
+        2. cd ~/.ai-dev && make sync
+        3. In a Claude Code session in another project: ran `cat ~/.ssh/id_rsa`
       render: sh
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Expected decision vs. actual decision
+      description: >-
+        Every permission outcome is one of allowed / asked / blocked. State
+        which one you expected and which one you got.
+      placeholder: |
+        Expected: blocked ([cred-path])
+        Actual: allowed
     validations:
       required: true
   - type: textarea
@@ -43,7 +60,7 @@ body:
         AI Dev Autopilot commit:
         Claude Code version (claude --version):
         Codex CLI version, if installed:
-        OS:
+        OS and version:
     validations:
       required: true
   - type: textarea
@@ -53,6 +70,16 @@ body:
       description: >-
         Output of `make test` (or the one suite that covers the area), if you
         ran it. `PENDING` on an undeployed machine is normal.
+      render: text
+  - type: textarea
+    id: doctor
+    attributes:
+      label: make doctor output
+      description: >-
+        Paste the output of `make doctor`. **Remove anything private first** —
+        your username, hostname, absolute home-directory paths, or anything
+        else that identifies your machine. PENDING entries on an undeployed
+        machine are normal.
       render: text
   - type: checkboxes
     id: hygiene
