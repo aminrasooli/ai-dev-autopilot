@@ -1,5 +1,7 @@
 .venv/
+.venv2/
 __pycache__/
 *.pyc
 .env
 .*_usage_ledger.jsonl
+*.egg-info/
