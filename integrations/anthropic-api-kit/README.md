@@ -28,10 +28,11 @@ imports it into its own process and supplies its own config.
 
 ## Why a monthly-cycle budget, not a calendar-month one
 
-The Console credit grant lands on a fixed day (for this org: the 21st, per
-JP's stated next-credit date of 2026-11-21). `budget.py`'s `_cycle_start()`
-anchors the local spend window to that day, not the 1st, so "spent this
-cycle" actually means "spent since the credits most recently landed."
+The Console credit grant lands on a fixed day of the month, not necessarily
+the 1st — `budget.py`'s `_cycle_start()` defaults `anchor_day` to 21, but
+every caller should set it to match their own org's actual grant day, so
+"spent this cycle" means "spent since the credits most recently landed,"
+not "spent since the 1st of the month."
 
 ## What this kit does NOT do
 
@@ -54,7 +55,7 @@ cycle" actually means "spent since the credits most recently landed."
 3. In *your own project's* `.env` (never this repo's), set:
    ```
    <PREFIX>_ANTHROPIC_API_KEY=sk-ant-...
-   <PREFIX>_MONTHLY_BUDGET_USD=<your cap, well under the org's $200/mo>
+   <PREFIX>_MONTHLY_BUDGET_USD=<your cap, well under your org's monthly credit grant>
    ```
 4. In your code:
    ```python
@@ -72,7 +73,7 @@ cycle" actually means "spent since the credits most recently landed."
 5. Run `pytest` here once to confirm the kit itself is healthy before wiring
    it into your app; your app should also get its own test for the fallback
    path (budget exhausted -> deterministic behavior), since that's the path
-   that will actually run once the $200 credit is spent down.
+   that will actually run once the monthly credit is spent down.
 
 ## Running the JP Autopilot demo
 
