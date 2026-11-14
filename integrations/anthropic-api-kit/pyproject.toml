@@ -1,0 +1,16 @@
+[project]
+name = "anthropic-api-kit"
+version = "0.1.0"
+description = "Reusable, project-scoped Anthropic Claude API adapter (budget, retries, rate limiting, usage logging) — separate from the Claude Code subscription."
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=2.8.0",
+]
+
+[project.optional-dependencies]
+agent-sdk = ["claude-agent-sdk"]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

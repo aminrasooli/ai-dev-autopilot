@@ -71,3 +71,10 @@ yarn.lock
 __pycache__/
 .pytest_cache/
 node_modules/
+
+# anthropic-api-kit local artifacts
+integrations/anthropic-api-kit/.venv/
+integrations/anthropic-api-kit/**/__pycache__/
+integrations/anthropic-api-kit/.env
+integrations/anthropic-api-kit/demos/output/
+integrations/anthropic-api-kit/.*_usage_ledger.jsonl
