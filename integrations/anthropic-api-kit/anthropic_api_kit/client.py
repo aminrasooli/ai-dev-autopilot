@@ -47,6 +47,17 @@ class CreditsExhaustedError(AdapterError):
     """
 
 
+class InvalidCredentialError(AdapterError):
+    """Anthropic rejected the key itself (401) — not a credits problem.
+
+    Distinct from CreditsExhaustedError: a 401 means the configured key is
+    missing, malformed, revoked, or scoped to the wrong organization/
+    workspace. Retrying or escalating model tier will not fix this —
+    only a corrected credential will. Never billed: a 401 is rejected
+    before the request reaches a model, so it costs nothing.
+    """
+
+
 class ApiAdapter:
     def __init__(self, config: AdapterConfig):
         self.config = config
@@ -117,6 +128,13 @@ class ApiAdapter:
                 system=system or anthropic.NOT_GIVEN,
                 messages=[{"role": "user", "content": prompt}],
             )
+        except anthropic.AuthenticationError as exc:
+            raise InvalidCredentialError(
+                f"{self.config.project_name}: Anthropic rejected the "
+                f"{self.config.api_key_env_var} credential itself (401) — "
+                f"check it was copied correctly and belongs to this org's "
+                f"workspace ({exc})"
+            ) from exc
         except anthropic.RateLimitError as exc:
             raise CreditsExhaustedError(
                 f"{self.config.project_name}: Anthropic rate-limited or "
@@ -126,6 +144,13 @@ class ApiAdapter:
             raise CreditsExhaustedError(
                 f"{self.config.project_name}: Anthropic denied this request "
                 f"— check Console org credit balance and workspace scoping "
+                f"({exc})"
+            ) from exc
+        except anthropic.APIStatusError as exc:
+            # Catch-all for any other non-2xx response so a raw SDK
+            # exception never escapes this adapter uncaught.
+            raise AdapterError(
+                f"{self.config.project_name}: Anthropic API call failed "
                 f"({exc})"
             ) from exc
 

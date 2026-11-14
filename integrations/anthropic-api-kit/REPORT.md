@@ -91,8 +91,22 @@ trusting it for a new model or a long time after `PRICING_LAST_VERIFIED`.
 
 ## What's genuinely verified
 
-Only the no-credentials path has actually been executed: both
-`demos/jp_autopilot_demo.py` and `demos/jp_autopilot_demo.py --smoke-test`
-print a `[blocked]` message and exit 0 with no API key configured —
-confirmed by running them, not just reading the code. No real API call has
-been made from this session; none was available to make.
+- The no-credentials path: both `demos/jp_autopilot_demo.py` and
+  `demos/jp_autopilot_demo.py --smoke-test` print a `[blocked]` message
+  and exit 0 with no API key configured — confirmed by running them, not
+  just reading the code.
+- One real `--smoke-test` call was executed against a configured project
+  key. Result: **HTTP 401, `Invalid bearer token`** — the key as
+  currently stored is not accepted by the API. A 401 is rejected before
+  reaching a model, so **zero tokens were consumed and nothing was
+  billed**. This exposed a real bug (fixed): the adapter's exception
+  handling didn't have a 401-specific branch, so it surfaced as a raw,
+  uncaught SDK exception instead of a clean error — `client.py` now maps
+  `anthropic.AuthenticationError` to a dedicated `InvalidCredentialError`,
+  distinct from `CreditsExhaustedError`, with tests covering both the
+  mapping and that nothing gets recorded to the budget ledger for a
+  rejected call.
+- **Owner action:** the key in `~/.config/jp-autopilot/env` needs to be
+  checked/regenerated in the Console — confirm it was copied in full, is
+  still active, and belongs to this org's intended workspace, then re-run
+  the smoke test.

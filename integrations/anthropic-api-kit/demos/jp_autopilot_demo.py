@@ -64,7 +64,7 @@ import anyio
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from anthropic_api_kit.budget import Budget
-from anthropic_api_kit.client import ApiAdapter, CreditsExhaustedError
+from anthropic_api_kit.client import ApiAdapter, CreditsExhaustedError, InvalidCredentialError
 from anthropic_api_kit.config import load_config
 from anthropic_api_kit.exceptions import AdapterError, BudgetExhaustedError
 from anthropic_api_kit.pricing import estimate_cost_usd
@@ -153,11 +153,14 @@ def run_smoke_test(config, budget: Budget) -> int:
             difficulty="routine",
             max_tokens=16,
         )
-    except AdapterError as exc:
-        print(f"[error] smoke test did not run: {exc}")
+    except InvalidCredentialError as exc:
+        print(f"[error] credential rejected (401, zero tokens billed): {exc}")
         return 1
     except CreditsExhaustedError as exc:
         print(f"[error] Anthropic reported credits/rate exhausted: {exc}")
+        return 1
+    except AdapterError as exc:
+        print(f"[error] smoke test did not run: {exc}")
         return 1
 
     text = "".join(block.text for block in response.content if hasattr(block, "text"))
