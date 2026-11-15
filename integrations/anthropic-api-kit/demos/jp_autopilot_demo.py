@@ -56,6 +56,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -64,7 +65,7 @@ import anyio
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from anthropic_api_kit.budget import Budget
-from anthropic_api_kit.client import ApiAdapter, CreditsExhaustedError, InvalidCredentialError
+from anthropic_api_kit.client import API_BASE_URL, ApiAdapter, CreditsExhaustedError, InvalidCredentialError
 from anthropic_api_kit.config import load_config
 from anthropic_api_kit.exceptions import AdapterError, BudgetExhaustedError
 from anthropic_api_kit.pricing import estimate_cost_usd
@@ -87,17 +88,25 @@ _OTHER_CREDENTIAL_ENV_VARS = (
     "ANTHROPIC_IDENTITY_TOKEN_FILE",
     "ANTHROPIC_IDENTITY_TOKEN",
     "ANTHROPIC_PROFILE",
+    "CLAUDE_CODE_OAUTH_TOKEN",
+    "CLAUDE_CODE_USE_BEDROCK",
+    "CLAUDE_CODE_USE_VERTEX",
+    "CLAUDE_CODE_USE_FOUNDRY",
 )
 
 
-def _locked_down_env(api_key: str) -> dict[str, str]:
+def _locked_down_env(api_key: str, config_dir: Path) -> dict[str, str]:
     env = {var: "" for var in _OTHER_CREDENTIAL_ENV_VARS}
     env["ANTHROPIC_API_KEY"] = api_key
+    env["ANTHROPIC_BASE_URL"] = API_BASE_URL
+    # A fresh, empty config dir means the CLI cannot see ~/.claude/.credentials.json
+    # (the claude.ai subscription login) even if the API key were missing or rejected.
+    env["CLAUDE_CONFIG_DIR"] = str(config_dir)
     return env
 
 
-async def run_review(target_path: Path, config) -> ResultMessage | None:
-    options = ClaudeAgentOptions(
+def _build_options(target_path: Path, config, config_dir: Path) -> ClaudeAgentOptions:
+    return ClaudeAgentOptions(
         cwd=str(target_path.parent if target_path.is_file() else target_path),
         allowed_tools=READ_ONLY_TOOLS,
         disallowed_tools=DISALLOWED_TOOLS,
@@ -105,7 +114,9 @@ async def run_review(target_path: Path, config) -> ResultMessage | None:
         max_turns=6,
         max_budget_usd=0.50,  # SDK-native second ceiling, independent of our own Budget
         model=config.routine_model,
-        env=_locked_down_env(config.api_key()),
+        env=_locked_down_env(config.api_key(), config_dir),
+        # No user/project settings: a reviewed repo's .claude/settings.json must not inject env or an apiKeyHelper.
+        setting_sources=[],
         system_prompt=(
             "You are a read-only code reviewer. You may only read files and "
             "search; you have no tools to edit, run commands, or write "
@@ -114,6 +125,8 @@ async def run_review(target_path: Path, config) -> ResultMessage | None:
         ),
     )
 
+
+async def run_review(target_path: Path, config) -> ResultMessage | None:
     prompt = (
         f"Read {target_path.name} in the current directory and list, as "
         "plain text bullet points, up to 5 concrete correctness or security "
@@ -122,13 +135,15 @@ async def run_review(target_path: Path, config) -> ResultMessage | None:
     )
 
     result: ResultMessage | None = None
-    async for message in query(prompt=prompt, options=options):
-        if isinstance(message, AssistantMessage):
-            for block in message.content:
-                if isinstance(block, TextBlock):
-                    print(block.text)
-        elif isinstance(message, ResultMessage):
-            result = message
+    with tempfile.TemporaryDirectory(prefix="jpautopilot-claude-config-") as config_dir:
+        options = _build_options(target_path, config, Path(config_dir))
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        print(block.text)
+            elif isinstance(message, ResultMessage):
+                result = message
     return result
 
 

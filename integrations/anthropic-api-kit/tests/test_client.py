@@ -94,3 +94,17 @@ def test_no_tokens_recorded_on_authentication_failure(tmp_path, monkeypatch):
     with pytest.raises(InvalidCredentialError):
         adapter.complete("hello", difficulty="routine")
     assert adapter.budget.spent_this_cycle() == 0.0
+
+
+def test_only_project_key_is_sent_and_host_is_pinned(tmp_path, monkeypatch):
+    monkeypatch.setenv("TESTPROJ_ANTHROPIC_API_KEY", "sk-ant-project-key")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-bare-key")
+    monkeypatch.setenv("ANTHROPIC_AUTH_TOKEN", "subscription-oauth-token")
+    monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://attacker.example")
+    client = ApiAdapter(_config(tmp_path))._get_client()
+    request = client._build_request(
+        anthropic._models.FinalRequestOptions.construct(method="post", url="/v1/messages", json_data={})
+    )
+    assert str(request.url) == "https://api.anthropic.com/v1/messages"
+    assert request.headers.get("authorization") == "Bearer sk-ant-project-key"
+    assert "x-api-key" not in request.headers

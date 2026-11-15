@@ -37,6 +37,9 @@ Difficulty = Literal["routine", "hard"]
 # heuristic.
 _CHARS_PER_TOKEN_WORST_CASE = 3.2
 
+# Pinned so an inherited ANTHROPIC_BASE_URL can never route this project's key to another host.
+API_BASE_URL = "https://api.anthropic.com"
+
 
 class CreditsExhaustedError(AdapterError):
     """Anthropic itself reported the account/org is out of credits.
@@ -80,6 +83,7 @@ class ApiAdapter:
         if self._client is None:
             self._client = anthropic.Anthropic(
                 api_key=api_key,
+                base_url=API_BASE_URL,
                 timeout=self.config.request_timeout_s,
                 max_retries=self.config.max_retries,
             )

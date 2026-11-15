@@ -59,10 +59,27 @@ error (`result.is_error` is checked and reported); the demo never retries
 past it and never falls back to a different credential or model tier on
 its own.
 
-The plain Messages API path (`ApiAdapter`, used by `--smoke-test`) has no
-such risk at all: `anthropic.Anthropic(api_key=...)` is constructed with
-an explicit key and performs no environment-based auth auto-detection —
-there is no subscription concept in that client.
+Precedence alone was judged insufficient (2026-11-14): with the default
+`~/.claude` config dir and no API key, the bundled CLI (2.1.325) reports
+`authMethod: claude.ai` — i.e. it would bill the owner's Claude
+subscription. So the demo now also isolates the CLI structurally:
+
+- `CLAUDE_CONFIG_DIR` points at a fresh, empty per-run temp dir, so
+  `~/.claude/.credentials.json` (the subscription login) is unreachable.
+  Verified offline: under that dir with no key, `claude auth status`
+  reports `loggedIn: false, authMethod: none`; with a key, `api_key`.
+- `CLAUDE_CODE_OAUTH_TOKEN` and `CLAUDE_CODE_USE_BEDROCK/VERTEX/FOUNDRY`
+  are blanked; `ANTHROPIC_BASE_URL` is pinned to `https://api.anthropic.com`.
+- `setting_sources=[]`: no user/project settings are loaded, so a reviewed
+  repo's `.claude/settings.json` cannot inject `env` or an `apiKeyHelper`.
+
+The plain Messages API path (`ApiAdapter`, used by `--smoke-test`) sends
+only the explicit project key — verified that an inherited
+`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_PROFILE` is never
+sent instead of or alongside it. The SDK *does* honor an inherited
+`ANTHROPIC_BASE_URL`, which would have sent the key to another host, so
+`base_url` is now pinned in `client.py` (test:
+`test_only_project_key_is_sent_and_host_is_pinned`).
 
 ## Cost-estimate accuracy
 
@@ -95,10 +112,15 @@ trusting it for a new model or a long time after `PRICING_LAST_VERIFIED`.
   `demos/jp_autopilot_demo.py --smoke-test` print a `[blocked]` message
   and exit 0 with no API key configured — confirmed by running them, not
   just reading the code.
-- One real `--smoke-test` call was executed against a configured project
-  key. Result: **HTTP 401, `Invalid bearer token`** — the key as
-  currently stored is not accepted by the API. A 401 is rejected before
-  reaching a model, so **zero tokens were consumed and nothing was
+- **2026-11-14, real smoke test succeeded** (one call, SDK retries set to
+  0): `claude-haiku-4-5` → served by `claude-haiku-4-5-20251001`, reply
+  `OK.`, `stop_reason=end_turn`, usage 15 input / 5 output tokens,
+  `service_tier=standard`, estimated cost **$0.00004**, recorded in the
+  local ledger. The key used is a real `sk-ant-` API key; the earlier
+  failure was a Console workspace ID stored in place of a key.
+- Earlier run: one real `--smoke-test` call against the then-configured
+  value returned **HTTP 401, `Invalid bearer token`**. A 401 is rejected
+  before reaching a model, so **zero tokens were consumed and nothing was
   billed**. This exposed a real bug (fixed): the adapter's exception
   handling didn't have a 401-specific branch, so it surfaced as a raw,
   uncaught SDK exception instead of a clean error — `client.py` now maps
@@ -106,7 +128,5 @@ trusting it for a new model or a long time after `PRICING_LAST_VERIFIED`.
   distinct from `CreditsExhaustedError`, with tests covering both the
   mapping and that nothing gets recorded to the budget ledger for a
   rejected call.
-- **Owner action:** the key in `~/.config/jp-autopilot/env` needs to be
-  checked/regenerated in the Console — confirm it was copied in full, is
-  still active, and belongs to this org's intended workspace, then re-run
-  the smoke test.
+- Not yet exercised against the real API: the full Agent SDK review mode
+  (owner-initiated only; capped at $0.50 per run by `max_budget_usd`).
